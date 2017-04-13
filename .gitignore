@@ -1,0 +1,17 @@
+### OSX ###
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Generated files
+*.log
+*.pot
+*.pyc
+.idea
+_build
+*.egg-info/
+
+# Unit test / coverage reports
+.coverage
+.tox
+.cache
