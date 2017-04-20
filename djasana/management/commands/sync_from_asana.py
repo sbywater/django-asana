@@ -1,3 +1,4 @@
+"""The django management command sync_from_asana"""
 import logging
 
 from django.apps import apps
@@ -5,14 +6,16 @@ from django.core.management.base import BaseCommand, CommandError
 from django.utils import six
 
 from djasana.connect import client_connect
-from djasana import models
+from djasana.models import Attachment, Project, Story, Tag, Task, Team, User, Workspace
 
 logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    help = 'Import data from Asana and insert/update/delete model instances'
+    """Sync data from Asana to the database"""
+    help = 'Import data from Asana and insert/update model instances'
     client = client_connect()
+    commit = True
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -47,129 +50,80 @@ class Command(BaseCommand):
             if not yes_or_no.lower().startswith('y'):
                 self.stdout.write("No action taken.")
                 return
-        commit = not options.get('nocommit')
-        models_ = options.get('model')
-        if models_:
-            app_models = list(apps.get_app_config('djasana').get_models())
-            model_names = [model_.__name__.lower() for model_ in app_models]
-            for model in models_:
-                if model.lower() not in model_names:
-                    raise CommandError('{} is not an Asana model'.format(model))
+        self.commit = not options.get('nocommit')
+        models = self._get_models(options)
 
         if options.get('verbosity') >= 1:
             self.stdout.write("Syncronizing data from Asana.")
         workspaces = options.get('workspace')
         workspace_ids = self._get_workspace_ids(workspaces)
+        projects = options.get('project')
 
-        host_choices = set()
-        status_choices = set()
-        layout_choices = set()
-        type_choices = set()
-        assignee_status_choices = set()
-
+        choices = {  # collect unique values for choices; output in debug logging
+            'host': set(),
+            'status': set(),
+            'layout': set(),
+            'type': set(),
+            'assignee_status': set(),
+        }
         for workspace_id in workspace_ids:
+            self._sync_workspace_id(workspace_id, projects, models, choices)
 
-            workspace_dict = self.client.workspaces.find_by_id(workspace_id)
-            logger.debug('Sync workspace %s', workspace_dict['name'])
-            logger.debug(workspace_dict)
-            remote_id = workspace_dict.pop('id')
-            if commit:
-                workspace_dict.pop('email_domains')
-                models.Workspace.objects.update_or_create(
-                    remote_id=remote_id, defaults=workspace_dict)
-            projects = options.get('project')
-            project_ids = self._get_project_ids(projects, workspace_id)
-            if workspace_id != self.client.options['workspace_id']:
-                self.client.options['workspace_id'] = workspace_id
+        for key, value in choices.items():
+            logger.debug('Unique %s choices: %s', key, value)
 
-            for project_id in project_ids:
-
-                project_dict = self.client.projects.find_by_id(project_id)
-                logger.debug('Sync project %s', project_dict['name'])
-                logger.debug(project_dict)
-                remote_id = project_dict.pop('id')
-                if commit:
-                    models.Project.objects.update_or_create(
-                        remote_id=remote_id, defaults=project_dict)
-                status_choices.add(project_dict['current_status'])
-                layout_choices.add(project_dict['layout'])
-
-                for task in self.client.tasks.find_all({'project': project_id}):
-
-                    task_dict = self.client.tasks.find_by_id(task['id'])
-                    logger.debug('Sync task %s', task_dict['name'])
-                    logger.debug(task_dict)
-                    assignee_status_choices.add(task_dict['assignee_status'])
-
-                    if models.Attachment in models_:
-                        for attachment in self.client.attachments.find_by_task(task['id']):
-                            attachment_dict = self.client.attachments.find_by_id(attachment['id'])
-                            logger.debug(attachment_dict)
-                            host_choices.add(attachment_dict['host'])
-                    if models.Story in models_:
-                        for story in self.client.stories.find_by_task(task['id']):
-                            story_dict = self.client.stories.find_by_id(story['id'])
-                            logger.debug(story_dict)
-                            type_choices.add(story_dict['type'])
-
-            if models.User in models_:
-
-                for user in self.client.users.find_all({'workspace': workspace_id}):
-
-                    user_dict = self.client.user.find_by_id(user['id'])
-                    logger.debug(user_dict)
-
-            if models.Tag in models_:
-                for tag in self.client.tags.find_by_worspace(workspace_id):
-
-                    tag_dict = self.client.tag.find_by_id(tag['id'])
-                    logger.debug(tag_dict)
-
-            if models.Team in models_:
-                for team in self.client.teams.find_by_organization(workspace_id):
-                    team_dict = self.client.teams.find_by_id(team['id'])
-                    logger.debug(team_dict)
-            logger.debug('Unique host choices: %s', host_choices)
-            logger.debug('Unique status choices: %s', status_choices)
-            logger.debug('Unique layout choices: %s', layout_choices)
-            logger.debug('Unique type choices: %s', type_choices)
-            logger.debug('Unique assignee status choices: %s', assignee_status_choices)
+    @staticmethod
+    def _get_models(options):
+        """Returns a list of models to sync"""
+        models = options.get('model')
+        app_models = list(apps.get_app_config('djasana').get_models())
+        if models:
+            model_names = [model_.__name__.lower() for model_ in app_models]
+            for model in models:
+                if model.lower() not in model_names:
+                    raise CommandError('{} is not an Asana model'.format(model))
+        else:
+            models = app_models
+        return models
 
     def _get_workspace_ids(self, workspaces):
         workspace_ids = []
         bad_list = []
-        for workspace in self.client.workspaces.find_all():
-            if workspaces:
-                if workspace['name'] in workspaces:
-                    workspace_ids.append(workspace['id'])
+
+        workspaces_ = self.client.workspaces.find_all()
+        if workspaces:
+            for workspace in workspaces:
+                for wks in workspaces_:
+                    if workspace == wks['name']:
+                        workspace_ids.append(wks['id'])
+                        break
                 else:
                     bad_list.append(workspace)
-            else:
-                workspace_ids.append(workspace['id'])
+        else:
+            workspace_ids = [wks['id'] for wks in workspaces_]
         if bad_list:
             if len(bad_list) == 1:
-                raise CommandError('{} is not an Asana workspace'.format(bad_list[0]))
+                raise CommandError('{} is not an Asana workspace'.format(workspaces[0]))
             else:
                 raise CommandError('Specified workspaces are not valid: {}'.format(
                     ', '.join(bad_list)))
         return workspace_ids
 
-    @staticmethod
-    def _save_workspace(workspace, workspace_ids):
-        logger.debug(workspace)
-        workspace_ids.append(workspace['id'])
-
     def _get_project_ids(self, projects, workspace_id):
         project_ids = []
         bad_list = []
-        for project in self.client.projects.find_all({'workspace': workspace_id}):
-            if projects:
-                if project['name'] in projects:
-                    project_ids.append(project['id'])
+
+        projects_ = self.client.projects.find_all({'workspace': workspace_id})
+        if projects:
+            for project in projects:
+                for prj in projects_:
+                    if project == prj['name']:
+                        project_ids.append(prj['id'])
+                        break
                 else:
                     bad_list.append(project)
-            else:
-                project_ids.append(project['id'])
+        else:
+            project_ids = [prj['id'] for prj in projects_]
         if bad_list:
             if len(bad_list) == 1:
                 raise CommandError('{} is not an Asana project'.format(bad_list[0]))
@@ -177,3 +131,167 @@ class Command(BaseCommand):
                 raise CommandError('Specified projects are not valid: {}'.format(
                     ', '.join(bad_list)))
         return project_ids
+
+    @staticmethod
+    def _save_workspace(workspace, workspace_ids):
+        logger.debug(workspace)
+        workspace_ids.append(workspace['id'])
+
+    def _sync_project_id(self, project_id, workspace, models, choices):
+        project_dict = self.client.projects.find_by_id(project_id)
+        logger.debug('Sync project %s', project_dict['name'])
+        logger.debug(project_dict)
+        if self.commit:
+            remote_id = project_dict.pop('id')
+            if project_dict['owner']:
+                user = User.objects.get_or_create(
+                    remote_id=project_dict['owner']['id'],
+                    defaults={'name': project_dict['owner']['name']})[0]
+                project_dict['owner'] = user
+            team = Team.objects.get_or_create(
+                remote_id=project_dict['team']['id'],
+                defaults={'name': project_dict['team']['name']})[0]
+            project_dict['team'] = team
+            project_dict['workspace'] = workspace
+            members_dict = project_dict.pop('members')
+            followers_dict = project_dict.pop('followers')
+            project = Project.objects.update_or_create(
+                remote_id=remote_id, defaults=project_dict)[0]
+            member_ids = [member['id'] for member in members_dict]
+            members = User.objects.filter(id__in=member_ids)
+            project.members.set(members)
+            follower_ids = [follower['id'] for follower in followers_dict]
+            followers = User.objects.filter(id__in=follower_ids)
+            project.followers.set(followers)
+
+        choices['status'].add(project_dict['current_status'])
+        choices['layout'].add(project_dict['layout'])
+
+        for task in self.client.tasks.find_all({'project': project_id}):
+            self._sync_task(task, project, models, choices)
+
+        self.stdout.write(
+            self.style.SUCCESS('Successfully synced project {}.'.format(project.name)))
+
+    def _sync_tag(self, tag):
+        tag_dict = self.client.tags.find_by_id(tag['id'])
+        logger.debug(tag_dict)
+        if self.commit:
+            remote_id = tag_dict.pop('id')
+            Tag.objects.get_or_create(
+                remote_id=remote_id,
+                defaults=tag_dict)
+
+    def _sync_task(self, task, project, models, choices):
+        task_dict = self.client.tasks.find_by_id(task['id'])
+        logger.debug('Sync task %s', task_dict['name'])
+        logger.debug(task_dict)
+        choices['assignee_status'].add(task_dict['assignee_status'])
+
+        if Attachment in models:
+            for attachment in self.client.attachments.find_by_task(task['id']):
+                attachment_dict = self.client.attachments.find_by_id(attachment['id'])
+                logger.debug(attachment_dict)
+                remote_id = attachment_dict.pop('id')
+                Attachment.objects.get_or_create(remote_id=remote_id, defaults=attachment_dict)
+                choices['host_choices'].add(attachment_dict['host'])
+        if Task in models and self.commit:
+            remote_id = task_dict.pop('id')
+            if task_dict['assignee']:
+                user = User.objects.get_or_create(
+                    remote_id=task_dict['assignee']['id'],
+                    defaults={'name': task_dict['assignee']['name']})[0]
+                task_dict['assignee'] = user
+            task_dict.pop('hearts', None)
+            task_dict.pop('memberships')
+            task_dict.pop('projects')
+            task_dict.pop('workspace')
+            followers_dict = task_dict.pop('followers')
+            tags_dict = task_dict.pop('tags')
+            task_ = Task.objects.update_or_create(
+                remote_id=remote_id, defaults=task_dict)[0]
+            follower_ids = [follower['id'] for follower in followers_dict]
+            followers = User.objects.filter(id__in=follower_ids)
+            task_.followers.set(followers)
+            for tag_ in tags_dict:
+                tag = Tag.objects.get_or_create(
+                    remote_id=tag_['id'],
+                    defaults={'name': tag_['name']})[0]
+                task_.tags.add(tag)
+            task_.projects.add(project)
+        if Story in models:
+            for story in self.client.stories.find_by_task(task['id']):
+                story_dict = self.client.stories.find_by_id(story['id'])
+                logger.debug(story_dict)
+                remote_id = story_dict.pop('id')
+                if story_dict['created_by']:
+                    user = User.objects.get_or_create(
+                        remote_id=story_dict['created_by']['id'],
+                        defaults={'name': story_dict['created_by']['name']})[0]
+                    story_dict['created_by'] = user
+                story_dict.pop('hearts', None)
+                story_dict['target_id'] = story_dict['target']['id']
+                story_dict.pop('target')
+                import pdb; pdb.set_trace()
+                Story.objects.get_or_create(remote_id=remote_id, defaults=story_dict)
+                choices['type'].add(story_dict['type'])
+
+    def _sync_team(self, team):
+        team_dict = self.client.teams.find_by_id(team['id'])
+        logger.debug(team_dict)
+        if self.commit:
+            remote_id = team_dict.pop('id')
+            organization = team_dict.pop('organization')
+            team_dict['organization_id'] = organization['id']
+            team_dict['organization_name'] = organization['name']
+            Team.objects.get_or_create(
+                remote_id=remote_id,
+                defaults=team_dict)
+
+    def _sync_user(self, user, workspace):
+        user_dict = self.client.users.find_by_id(user['id'])
+        logger.debug(user_dict)
+        if self.commit:
+            remote_id = user_dict.pop('id')
+            user_dict.pop('workspaces')
+            if user_dict['photo']:
+                user_dict['photo'] = user_dict['photo']['image_128x128']
+            user = User.objects.get_or_create(
+                remote_id=remote_id,
+                defaults=user_dict)[0]
+            user.workspaces.add(workspace)
+
+    def _sync_workspace_id(self, workspace_id, projects, models, choices):
+        workspace_dict = self.client.workspaces.find_by_id(workspace_id)
+        logger.debug('Sync workspace %s', workspace_dict['name'])
+        logger.debug(workspace_dict)
+        if Workspace in models and self.commit:
+            remote_id = workspace_dict.pop('id')
+            workspace_dict.pop('email_domains')
+            workspace = Workspace.objects.update_or_create(
+                remote_id=remote_id, defaults=workspace_dict)[0]
+        else:
+            workspace = None
+        project_ids = self._get_project_ids(projects, workspace_id)
+        if workspace_id != self.client.options['workspace_id']:
+            self.client.options['workspace_id'] = workspace_id
+
+        if User in models:
+            for user in self.client.users.find_all({'workspace': workspace_id}):
+                self._sync_user(user, workspace)
+
+        if Tag in models:
+            for tag in self.client.tags.find_by_workspace(workspace_id):
+                self._sync_tag(tag)
+
+        if Team in models:
+            for team in self.client.teams.find_by_organization(workspace_id):
+                self._sync_team(team)
+
+        if Project in models:
+            for project_id in project_ids:
+                self._sync_project_id(project_id, workspace, models, choices)
+
+        if workspace:
+            self.stdout.write(
+                self.style.SUCCESS('Successfully synced workspace {}.'.format(workspace.name)))
