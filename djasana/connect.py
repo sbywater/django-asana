@@ -13,17 +13,18 @@ class Client(asana.Client, object):
 
 
 def client_connect():
-    if hasattr(settings, 'ASANA_ACCESS_TOKEN'):
+    if getattr(settings, 'ASANA_ACCESS_TOKEN', None):
         client = Client.access_token(settings.ASANA_ACCESS_TOKEN)
-    elif hasattr(settings, 'ASANA_CLIENT_ID') and hasattr(settings, 'ASANA_CLIENT_SECRET') and \
-            hasattr(settings, 'ASANA_OAUTH_REDIRECT_URI'):
+    elif getattr(settings, 'ASANA_CLIENT_ID', None) and \
+            getattr(settings, 'ASANA_CLIENT_SECRET', None) and \
+            getattr(settings, 'ASANA_OAUTH_REDIRECT_URI', None):
         client = Client.oauth(
             client_id=settings.ASANA_CLIENT_ID,
             client_secret=settings.ASANA_CLIENT_SECRET,
             redirect_uri=settings.ASANA_OAUTH_REDIRECT_URI
         )
     else:
-        return ImproperlyConfigured(
+        raise ImproperlyConfigured(
             'It is required to set the ASANA_ACCESS_TOKEN or the three OAuth2 settings ' +
             'ASANA_CLIENT_ID, ASANA_CLIENT_SECRET, and ASANA_OAUTH_REDIRECT_URI.')
 
@@ -32,5 +33,5 @@ def client_connect():
         for workspace in workspaces:
             if settings.ASANA_WORKSPACE == workspace['name']:
                 client.options['workspace_id'] = workspace['id']
-
+    client.options['Asana-Fast-Api'] = 'true'
     return client

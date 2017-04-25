@@ -8,11 +8,17 @@ from .connect import client_connect
 logger = logging.getLogger(__name__)
 
 
+STATUS_CHOICES = (
+    ('inbox', _('inbox')),
+    ('upcoming', _('upcoming')),
+    ('later', _('later')),
+)
+
 class BaseModel(models.Model):
     remote_id = models.BigIntegerField(
         unique=True, db_index=True,
         help_text=_('The id of this object in Asana.'))
-    name = models.CharField(_('name'), max_length=255)
+    name = models.CharField(_('name'), max_length=1024)
 
     class Meta:
         abstract = True
@@ -27,7 +33,7 @@ class BaseModel(models.Model):
 class Hearted(models.Model):
     hearted = models.BooleanField(default=False)
     hearts = models.ManyToManyField('User', related_name='%(class)s_hearted')
-    num_hearts = models.SmallIntegerField()
+    num_hearts = models.SmallIntegerField(default=0)
 
     class Meta:
         abstract = True
@@ -38,11 +44,11 @@ class Attachment(BaseModel):
         ('asana', 'asana'),
     )
     created_at = models.DateTimeField(auto_now_add=True)
-    download_url = models.URLField()
+    download_url = models.URLField(max_length=1024)
     host = models.CharField(choices=host_choices, max_length=24)
-    parent = models.ForeignKey('Task', on_delete=models.CASCADE)
-    permanent_url = models.URLField()
-    view_url = models.URLField()
+    parent = models.ForeignKey('Task', to_field='remote_id', on_delete=models.CASCADE)
+    permanent_url = models.URLField(max_length=1024)
+    view_url = models.URLField(max_length=1024)
 
 
 class Event(models.Model):
@@ -50,11 +56,6 @@ class Event(models.Model):
 
 
 class Project(BaseModel):
-    status_choices = (
-        ('inbox', _('inbox')),
-        ('upcoming', _('upcoming')),
-        ('later', _('later')),
-    )
     layout_choices = (
         ('list', _('list')),
     )
@@ -62,17 +63,18 @@ class Project(BaseModel):
     archived = models.BooleanField()
     color = models.CharField(max_length=16, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    current_status = models.CharField(choices=status_choices, max_length=16, null=True)
+    current_status = models.CharField(choices=STATUS_CHOICES, max_length=16, null=True)
     due_date = models.DateField(null=True)
     followers = models.ManyToManyField('User', related_name='projects_following')
     layout = models.CharField(choices=layout_choices, max_length=16)
     members = models.ManyToManyField('User')
     modified_at = models.DateTimeField()
     notes = models.TextField()
-    owner = models.ForeignKey('User', related_name='projects_owned', null=True)
+    owner = models.ForeignKey(
+        'User', to_field='remote_id', related_name='projects_owned', null=True)
     public = models.BooleanField()
-    team = models.ForeignKey('Team')
-    workspace = models.ForeignKey('Workspace')
+    team = models.ForeignKey('Team', to_field='remote_id')
+    workspace = models.ForeignKey('Workspace', to_field='remote_id')
 
 
 class Story(Hearted, BaseModel):
@@ -83,13 +85,12 @@ class Story(Hearted, BaseModel):
         ('comment', _('comment')),
         ('system', _('system')),
     )
-    remote_id = models.BigIntegerField(unique=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(
         'User', to_field='remote_id', on_delete=models.SET_NULL, null=True)
     target = models.BigIntegerField(db_index=True)
     source = models.CharField(choices=source_choices, max_length=16)
-    text = models.CharField(max_length=50)
+    text = models.CharField(max_length=1024)
     type= models.CharField(choices=type_choices, max_length=16)
 
     class Meta:
@@ -101,11 +102,9 @@ class Tag(BaseModel):
 
 
 class Task(Hearted, BaseModel):
-    assignee_status_choices = (
-        ('inbox', _('inbox')),
-    )
-    assignee = models.ForeignKey('User', related_name='assigned_tasks', null=True)
-    assignee_status = models.CharField(choices=assignee_status_choices, max_length=16)
+    assignee = models.ForeignKey(
+        'User', to_field='remote_id', related_name='assigned_tasks', null=True)
+    assignee_status = models.CharField(choices=STATUS_CHOICES, max_length=16)
     completed = models.BooleanField()
     completed_at = models.DateTimeField(auto_now_add=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -114,7 +113,7 @@ class Task(Hearted, BaseModel):
     followers = models.ManyToManyField('User', related_name='tasks_following')
     modified_at = models.DateTimeField()
     notes = models.TextField()
-    parent = models.ForeignKey('self', null=True)
+    parent = models.ForeignKey('self', to_field='remote_id', null=True)
     projects = models.ManyToManyField('Project')
     tags = models.ManyToManyField('Tag')
 

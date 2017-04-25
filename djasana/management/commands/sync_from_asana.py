@@ -5,6 +5,7 @@ from django.apps import apps
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import six
 
+from asana.error import NotFoundError
 from djasana.connect import client_connect
 from djasana.models import Attachment, Project, Story, Tag, Task, Team, User, Workspace
 
@@ -16,6 +17,7 @@ class Command(BaseCommand):
     help = 'Import data from Asana and insert/update model instances'
     client = client_connect()
     commit = True
+    process_archived = False
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -38,6 +40,13 @@ class Command(BaseCommand):
                  'By default all models will be updated from Asana.'
         )
         parser.add_argument(
+            "-a", "--archive", action="store_false", dest='archive',
+            help='Sync project tasks etc. even if the project is archived. '
+                 'By default, only tasks of unarchived projects are updated from Asana. '
+                 'Regardless of this setting, the project itself will be updated, '
+                 'perhaps becoming marked as archived. '
+        )
+        parser.add_argument(
             '--nocommit', action='store_false', dest='commit',
             default=True, help='Will pass commit=False to the backend.'
         )
@@ -45,12 +54,13 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         if options.get('interactive', True):
             self.stdout.write(
-                'WARNING: This will irreparably syncronize your local database from Asana.')
+                'WARNING: This will irreparably synchronize your local database from Asana.')
             yes_or_no = six.moves.input("Are you sure you wish to continue? [y/N] ")
             if not yes_or_no.lower().startswith('y'):
                 self.stdout.write("No action taken.")
                 return
         self.commit = not options.get('nocommit')
+        self.process_archived = options.get('archive')
         models = self._get_models(options)
 
         if options.get('verbosity') >= 1:
@@ -59,18 +69,8 @@ class Command(BaseCommand):
         workspace_ids = self._get_workspace_ids(workspaces)
         projects = options.get('project')
 
-        choices = {  # collect unique values for choices; output in debug logging
-            'host': set(),
-            'status': set(),
-            'layout': set(),
-            'type': set(),
-            'assignee_status': set(),
-        }
         for workspace_id in workspace_ids:
-            self._sync_workspace_id(workspace_id, projects, models, choices)
-
-        for key, value in choices.items():
-            logger.debug('Unique %s choices: %s', key, value)
+            self._sync_workspace_id(workspace_id, projects, models)
 
     @staticmethod
     def _get_models(options):
@@ -137,21 +137,19 @@ class Command(BaseCommand):
         logger.debug(workspace)
         workspace_ids.append(workspace['id'])
 
-    def _sync_project_id(self, project_id, workspace, models, choices):
+    def _sync_project_id(self, project_id, workspace, models):
         project_dict = self.client.projects.find_by_id(project_id)
         logger.debug('Sync project %s', project_dict['name'])
         logger.debug(project_dict)
         if self.commit:
             remote_id = project_dict.pop('id')
             if project_dict['owner']:
-                user = User.objects.get_or_create(
-                    remote_id=project_dict['owner']['id'],
-                    defaults={'name': project_dict['owner']['name']})[0]
-                project_dict['owner'] = user
-            team = Team.objects.get_or_create(
-                remote_id=project_dict['team']['id'],
-                defaults={'name': project_dict['team']['name']})[0]
-            project_dict['team'] = team
+                owner = project_dict.pop('owner')
+                User.objects.get_or_create(remote_id=owner['id'], defaults={'name': owner['name']})
+                project_dict['owner_id'] = owner['id']
+            team = project_dict.pop('team')
+            Team.objects.get_or_create(remote_id=team['id'], defaults={'name': team['name']})
+            project_dict['team_id'] = team['id']
             project_dict['workspace'] = workspace
             members_dict = project_dict.pop('members')
             followers_dict = project_dict.pop('followers')
@@ -164,11 +162,9 @@ class Command(BaseCommand):
             followers = User.objects.filter(id__in=follower_ids)
             project.followers.set(followers)
 
-        choices['status'].add(project_dict['current_status'])
-        choices['layout'].add(project_dict['layout'])
-
-        for task in self.client.tasks.find_all({'project': project_id}):
-            self._sync_task(task, project, models, choices)
+        if not project_dict['archived'] or self.process_archived:
+            for task in self.client.tasks.find_all({'project': project_id}):
+                self._sync_task(task, project, models)
 
         self.stdout.write(
             self.style.SUCCESS('Successfully synced project {}.'.format(project.name)))
@@ -182,19 +178,11 @@ class Command(BaseCommand):
                 remote_id=remote_id,
                 defaults=tag_dict)
 
-    def _sync_task(self, task, project, models, choices):
+    def _sync_task(self, task, project, models):
         task_dict = self.client.tasks.find_by_id(task['id'])
         logger.debug('Sync task %s', task_dict['name'])
         logger.debug(task_dict)
-        choices['assignee_status'].add(task_dict['assignee_status'])
 
-        if Attachment in models:
-            for attachment in self.client.attachments.find_by_task(task['id']):
-                attachment_dict = self.client.attachments.find_by_id(attachment['id'])
-                logger.debug(attachment_dict)
-                remote_id = attachment_dict.pop('id')
-                Attachment.objects.get_or_create(remote_id=remote_id, defaults=attachment_dict)
-                choices['host_choices'].add(attachment_dict['host'])
         if Task in models and self.commit:
             remote_id = task_dict.pop('id')
             if task_dict['assignee']:
@@ -206,6 +194,8 @@ class Command(BaseCommand):
             task_dict.pop('memberships')
             task_dict.pop('projects')
             task_dict.pop('workspace')
+            if task_dict['parent']:
+                self._sync_task(task_dict['parent'], project, models)
             followers_dict = task_dict.pop('followers')
             tags_dict = task_dict.pop('tags')
             task_ = Task.objects.update_or_create(
@@ -219,9 +209,21 @@ class Command(BaseCommand):
                     defaults={'name': tag_['name']})[0]
                 task_.tags.add(tag)
             task_.projects.add(project)
-        if Story in models:
+        if Attachment in models and self.commit:
+            for attachment in self.client.attachments.find_by_task(task['id']):
+                attachment_dict = self.client.attachments.find_by_id(attachment['id'])
+                logger.debug(attachment_dict)
+                remote_id = attachment_dict.pop('id')
+                if attachment_dict['parent']:
+                    attachment_dict['parent'] = task_
+                Attachment.objects.get_or_create(remote_id=remote_id, defaults=attachment_dict)
+        if Story in models and self.commit:
             for story in self.client.stories.find_by_task(task['id']):
-                story_dict = self.client.stories.find_by_id(story['id'])
+                try:
+                    story_dict = self.client.stories.find_by_id(story['id'])
+                except NotFoundError as error:
+                    logger.error('This is probably a temporary connection issue; please resync')
+                    raise error
                 logger.debug(story_dict)
                 remote_id = story_dict.pop('id')
                 if story_dict['created_by']:
@@ -230,11 +232,8 @@ class Command(BaseCommand):
                         defaults={'name': story_dict['created_by']['name']})[0]
                     story_dict['created_by'] = user
                 story_dict.pop('hearts', None)
-                story_dict['target_id'] = story_dict['target']['id']
-                story_dict.pop('target')
-                import pdb; pdb.set_trace()
+                story_dict['target'] = story_dict['target']['id']
                 Story.objects.get_or_create(remote_id=remote_id, defaults=story_dict)
-                choices['type'].add(story_dict['type'])
 
     def _sync_team(self, team):
         team_dict = self.client.teams.find_by_id(team['id'])
@@ -261,7 +260,7 @@ class Command(BaseCommand):
                 defaults=user_dict)[0]
             user.workspaces.add(workspace)
 
-    def _sync_workspace_id(self, workspace_id, projects, models, choices):
+    def _sync_workspace_id(self, workspace_id, projects, models):
         workspace_dict = self.client.workspaces.find_by_id(workspace_id)
         logger.debug('Sync workspace %s', workspace_dict['name'])
         logger.debug(workspace_dict)
@@ -290,7 +289,7 @@ class Command(BaseCommand):
 
         if Project in models:
             for project_id in project_ids:
-                self._sync_project_id(project_id, workspace, models, choices)
+                self._sync_project_id(project_id, workspace, models)
 
         if workspace:
             self.stdout.write(
