@@ -15,9 +15,16 @@ logger = logging.getLogger(__name__)
 class Command(BaseCommand):
     """Sync data from Asana to the database"""
     help = 'Import data from Asana and insert/update model instances'
-    client = client_connect()
     commit = True
     process_archived = False
+
+    def __init__(self, stdout=None, stderr=None, no_color=False):
+        super(Command, self).__init__(stdout=None, stderr=None, no_color=False)
+        self.client = self.get_client()
+
+    @staticmethod
+    def get_client():
+        return client_connect()
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -63,7 +70,7 @@ class Command(BaseCommand):
         self.process_archived = options.get('archive')
         models = self._get_models(options)
 
-        if options.get('verbosity') >= 1:
+        if options.get('verbosity', 0) >= 1:
             self.stdout.write("Syncronizing data from Asana.")
         workspaces = options.get('workspace')
         workspace_ids = self._get_workspace_ids(workspaces)
@@ -89,7 +96,6 @@ class Command(BaseCommand):
     def _get_workspace_ids(self, workspaces):
         workspace_ids = []
         bad_list = []
-
         workspaces_ = self.client.workspaces.find_all()
         if workspaces:
             for workspace in workspaces:

@@ -28,7 +28,7 @@ def client_connect():
             'It is required to set the ASANA_ACCESS_TOKEN or the three OAuth2 settings ' +
             'ASANA_CLIENT_ID, ASANA_CLIENT_SECRET, and ASANA_OAUTH_REDIRECT_URI.')
 
-    if hasattr(settings, 'ASANA_WORKSPACE'):
+    if getattr(settings, 'ASANA_WORKSPACE', None):
         workspaces = client.workspaces.find_all()
         for workspace in workspaces:
             if settings.ASANA_WORKSPACE == workspace['name']:

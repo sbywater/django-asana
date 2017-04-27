@@ -9,6 +9,12 @@ django models and commands for importing data from Asana into these models.
 
 Detailed documentation is in the "docs" directory.
 
+Requirements
+============
+
+This project requires Python 3.
+
+
 Installation
 ============
 
