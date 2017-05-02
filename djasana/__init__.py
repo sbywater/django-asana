@@ -1,4 +1,4 @@
-"""Django asana integration project"""
+"""Django Asana integration project"""
 # :copyright: (c) 2017 by Stephen Bywater.
 # :license:   MIT, see LICENSE for more details.
 

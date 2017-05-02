@@ -1,6 +1,6 @@
-=====
+============
 django-asana
-=====
+============
 
 :License: MIT
 
@@ -25,10 +25,7 @@ This will also install [python-asana](https://github.com/Asana/python-asana)
 Quick start
 ===========
 
-1. Configure your django settings file. Asana allows two different connection methods.
-For Oauth2, provide values for the following settings: ASANA_CLIENT_ID, ASANA_CLIENT_SECRET, and ASANA_OAUTH_REDIRECT_URI.
-To use an access token, provide a value for ASANA_ACCESS_TOKEN.
-Then add "django-asana" to your INSTALLED_APPS setting like this::
+1. Configure your django settings file. Asana allows two different connection methods. For Oauth2, provide values for the following settings: ASANA_CLIENT_ID, ASANA_CLIENT_SECRET, and ASANA_OAUTH_REDIRECT_URI. To use an access token, provide a value for ASANA_ACCESS_TOKEN. Then add "django-asana" to your INSTALLED_APPS setting like this::
 
     INSTALLED_APPS = [
         ...
@@ -85,5 +82,4 @@ To restrict your project to a single workspace, add the setting ASANA_WORKSPACE.
 Limitations
 -----------
 
-django-asana does not support updating user photo data. It will read user photo data from Asana,
-if available, but only the path to the 128x128 version of the photo.
+django-asana does not support updating user photo data. It will read user photo data from Asana, if available, but only the path to the 128x128 version of the photo.
