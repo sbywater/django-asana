@@ -9,16 +9,38 @@ def fake_response(**kwargs):
     return response
 
 
+def attachment(**kwargs):
+    defaults = {
+        'id': 1,
+        'name': 'Test Attachment',
+        'parent': task(),
+    }
+    defaults.update(kwargs)
+    return fake_response(**defaults)
+
+
 def project(**kwargs):
     defaults = {
         'id': 1,
         'name': 'Test Project',
         'archived': False,
         'followers': [user()],
+        'owner': user(),
         'team': team(),
         'members': [user()],
         'modified_at': timezone.now(),
         'public': True,
+    }
+    defaults.update(kwargs)
+    return fake_response(**defaults)
+
+
+def story(**kwargs):
+    defaults = {
+        'id': 1,
+        'name': 'Test Story',
+        'created_by': user(),
+        'target': task(),
     }
     defaults.update(kwargs)
     return fake_response(**defaults)
@@ -55,6 +77,10 @@ def team(**kwargs):
     defaults = {
         'id': 1,
         'name': 'Test Team',
+        'organization': {
+            'id': 1,
+            'name': 'Test Organization',
+        }
     }
     defaults.update(kwargs)
     return fake_response(**defaults)
@@ -64,6 +90,7 @@ def user(**kwargs):
     defaults = {
         'id': 1,
         'name': 'Test User',
+        'workspaces': [workspace()],
     }
     defaults.update(kwargs)
     return fake_response(**defaults)

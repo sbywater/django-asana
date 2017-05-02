@@ -69,7 +69,6 @@ class Command(BaseCommand):
         self.commit = not options.get('nocommit')
         self.process_archived = options.get('archive')
         models = self._get_models(options)
-
         if options.get('verbosity', 0) >= 1:
             self.stdout.write("Syncronizing data from Asana.")
         workspaces = options.get('workspace')
@@ -85,10 +84,16 @@ class Command(BaseCommand):
         models = options.get('model')
         app_models = list(apps.get_app_config('djasana').get_models())
         if models:
+            good_models = []
             model_names = [model_.__name__.lower() for model_ in app_models]
             for model in models:
-                if model.lower() not in model_names:
+                try:
+                    index = model_names.index(model.lower())
+                except ValueError:
                     raise CommandError('{} is not an Asana model'.format(model))
+                else:
+                    good_models.append(app_models[index])
+            models = good_models
         else:
             models = app_models
         return models
@@ -167,13 +172,16 @@ class Command(BaseCommand):
             follower_ids = [follower['id'] for follower in followers_dict]
             followers = User.objects.filter(id__in=follower_ids)
             project.followers.set(followers)
+        else:
+            project = None
 
         if not project_dict['archived'] or self.process_archived:
             for task in self.client.tasks.find_all({'project': project_id}):
                 self._sync_task(task, project, models)
 
-        self.stdout.write(
-            self.style.SUCCESS('Successfully synced project {}.'.format(project.name)))
+        if project:
+            self.stdout.write(
+                self.style.SUCCESS('Successfully synced project {}.'.format(project.name)))
 
     def _sync_tag(self, tag):
         tag_dict = self.client.tags.find_by_id(tag['id'])
