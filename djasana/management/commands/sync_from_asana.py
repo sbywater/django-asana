@@ -19,7 +19,7 @@ class Command(BaseCommand):
     process_archived = False
 
     def __init__(self, stdout=None, stderr=None, no_color=False):
-        super(Command, self).__init__(stdout=None, stderr=None, no_color=False)
+        super(Command, self).__init__(stdout, stderr, no_color)
         self.client = self.get_client()
 
     @staticmethod
@@ -142,11 +142,6 @@ class Command(BaseCommand):
                 raise CommandError('Specified projects are not valid: {}'.format(
                     ', '.join(bad_list)))
         return project_ids
-
-    @staticmethod
-    def _save_workspace(workspace, workspace_ids):
-        logger.debug(workspace)
-        workspace_ids.append(workspace['id'])
 
     def _sync_project_id(self, project_id, workspace, models):
         project_dict = self.client.projects.find_by_id(project_id)
