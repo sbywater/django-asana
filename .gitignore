@@ -9,6 +9,7 @@
 *.pyc
 .idea
 _build
+dist/
 *.egg-info/
 
 # Unit test / coverage reports
