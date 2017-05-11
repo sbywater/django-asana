@@ -14,6 +14,7 @@ STATUS_CHOICES = (
     ('later', _('later')),
 )
 
+
 class BaseModel(models.Model):
     remote_id = models.BigIntegerField(
         unique=True, db_index=True,
