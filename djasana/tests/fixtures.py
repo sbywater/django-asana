@@ -23,7 +23,7 @@ def project(**kwargs):
     defaults = {
         'id': 1,
         'name': 'Test Project',
-        'archived': False,
+        'archived': 'false',
         'followers': [user()],
         'owner': user(),
         'team': team(),

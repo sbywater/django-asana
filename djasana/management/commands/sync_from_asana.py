@@ -157,6 +157,8 @@ class Command(BaseCommand):
             Team.objects.get_or_create(remote_id=team['id'], defaults={'name': team['name']})
             project_dict['team_id'] = team['id']
             project_dict['workspace'] = workspace
+            # Convert string to boolean:
+            project_dict['archived'] = project_dict['archived'] == 'true'
             members_dict = project_dict.pop('members')
             followers_dict = project_dict.pop('followers')
             project = Project.objects.update_or_create(

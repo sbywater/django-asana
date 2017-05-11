@@ -70,6 +70,7 @@ class SyncFromAsanaTestCase(TestCase):
     def test_good_project(self):
         self.command.handle(interactive=False, project=['Test Project'])
         self.assertEqual(1, Project.objects.count())
+        self.assertEqual(1, Task.objects.count())
 
     def test_bad_project(self):
         with self.assertRaises(CommandError):
@@ -80,9 +81,10 @@ class SyncFromAsanaTestCase(TestCase):
             self.command.handle(interactive=False, project=['foo', 'bar'])
 
     def test_skip_archived_project(self):
-        self.command.client.projects.find_by_id.return_value = project(archived=True)
+        self.command.client.projects.find_by_id.return_value = project(archived='true')
         self.command.handle(interactive=False)
         self.assertEqual(1, Project.objects.count())
+        self.assertEqual(0, Task.objects.count())
 
     def test_sync_users(self):
         self.command.client.users.find_all.return_value = [user()]
