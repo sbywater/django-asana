@@ -18,9 +18,9 @@ This project requires Python 3.
 Installation
 ============
 
-This will also install [python-asana](https://github.com/Asana/python-asana)
+This will also install `python-asana <https://github.com/Asana/python-asana>`_.
 
- $ pip install django-asana -e git+git://github.com/sbywater/django-asana.git#egg=django-asana
+ $ pip install django-asana
 
 Quick start
 ===========
