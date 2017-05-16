@@ -11,3 +11,4 @@ __docformat__ = 'restructuredtext'
 __license__ = 'MIT'
 
 # -eof meta-
+default_app_config = 'djasana.apps.DjsanaConfig'
