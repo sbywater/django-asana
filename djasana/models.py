@@ -14,6 +14,8 @@ STATUS_CHOICES = (
     ('later', _('later')),
 )
 
+ASANA_BASE_URL = 'https://app.asana.com/0/'
+
 
 class BaseModel(models.Model):
     remote_id = models.BigIntegerField(
@@ -25,10 +27,13 @@ class BaseModel(models.Model):
         abstract = True
 
     def __str__(self):
-        return self.name or str(self.remote_id)
+        return self.name[:50] or str(self.remote_id)
 
     def refresh_from_asana(self):
         raise NotImplementedError
+
+    def asana_url(self, *args, **kwargs):
+        return '{}{}'.format(ASANA_BASE_URL, self.remote_id)
 
 
 class Hearted(models.Model):
@@ -51,6 +56,9 @@ class Attachment(BaseModel):
     permanent_url = models.URLField(max_length=1024)
     view_url = models.URLField(max_length=1024)
 
+    def asana_url(self, project=None):
+        return self.permanent_url
+
 
 class Event(models.Model):
     pass
@@ -62,13 +70,13 @@ class Project(BaseModel):
     )
 
     archived = models.BooleanField()
-    color = models.CharField(max_length=16, null=True)
+    color = models.CharField(max_length=16, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    current_status = models.CharField(choices=STATUS_CHOICES, max_length=16, null=True)
-    due_date = models.DateField(null=True)
-    followers = models.ManyToManyField('User', related_name='projects_following')
+    current_status = models.CharField(choices=STATUS_CHOICES, max_length=16, null=True, blank=True)
+    due_date = models.DateField(null=True, blank=True)
+    followers = models.ManyToManyField('User', related_name='projects_following', blank=True)
     layout = models.CharField(choices=layout_choices, max_length=16)
-    members = models.ManyToManyField('User')
+    members = models.ManyToManyField('User', blank=True)
     modified_at = models.DateTimeField()
     notes = models.TextField()
     owner = models.ForeignKey(
@@ -76,6 +84,9 @@ class Project(BaseModel):
     public = models.BooleanField()
     team = models.ForeignKey('Team', to_field='remote_id')
     workspace = models.ForeignKey('Workspace', to_field='remote_id')
+
+    def asana_url(self):
+        return '{}{}/list'.format(ASANA_BASE_URL, self.remote_id)
 
 
 class Story(Hearted, BaseModel):
@@ -117,6 +128,11 @@ class Task(Hearted, BaseModel):
     parent = models.ForeignKey('self', to_field='remote_id', null=True)
     projects = models.ManyToManyField('Project')
     tags = models.ManyToManyField('Tag')
+
+    def asana_url(self, project=None):
+        if project:
+            return '{}/{}/list'.format(ASANA_BASE_URL, project.remote_id, self.remote_id)
+        return super(Task, self).asana_url()
 
     def due(self):
         return self.due_at or self.due_on
