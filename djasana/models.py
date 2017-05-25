@@ -35,6 +35,9 @@ class BaseModel(models.Model):
     def asana_url(self, *args, **kwargs):
         return '{}{}'.format(ASANA_BASE_URL, self.remote_id)
 
+    def get_absolute_url(self):
+        return self.asana_url()
+
 
 class Hearted(models.Model):
     hearted = models.BooleanField(default=False)
@@ -129,9 +132,16 @@ class Task(Hearted, BaseModel):
     projects = models.ManyToManyField('Project')
     tags = models.ManyToManyField('Tag')
 
+    def _asana_project_url(self, project):
+        return '{}{}/list'.format(ASANA_BASE_URL, project.workspace.remote_id, self.remote_id)
+
     def asana_url(self, project=None):
         if project:
-            return '{}/{}/list'.format(ASANA_BASE_URL, project.remote_id, self.remote_id)
+            return self._asana_project_url(project)
+        projects = self.projects.all()
+        if len(projects) == 1:
+            project = projects[0]
+            return self._asana_project_url(project)
         return super(Task, self).asana_url()
 
     def due(self):
