@@ -99,6 +99,7 @@ class Command(BaseCommand):
         return models
 
     def _check_sync_project_id(self, project_id, workspace, models):
+        new_sync = False
         try:
             sync_token = SyncToken.objects.get(project_id=project_id)
             try:
@@ -112,8 +113,10 @@ class Command(BaseCommand):
             try:
                 self.client.events.get({'resource': project_id})
             except InvalidTokenError as error:
-                SyncToken.objects.create(project_id=project_id, sync=error.sync)
+                new_sync = error.sync
         self._sync_project_id(project_id, workspace, models)
+        if new_sync:
+            SyncToken.objects.create(project_id=project_id, sync=new_sync)
 
     def _get_workspace_ids(self, workspaces):
         workspace_ids = []
