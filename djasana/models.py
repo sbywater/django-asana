@@ -29,9 +29,6 @@ class BaseModel(models.Model):
     def __str__(self):
         return self.name[:50] or str(self.remote_id)
 
-    def refresh_from_asana(self):
-        raise NotImplementedError
-
     def asana_url(self, *args, **kwargs):
         return '{}{}'.format(ASANA_BASE_URL, self.remote_id)
 
@@ -61,10 +58,6 @@ class Attachment(BaseModel):
 
     def asana_url(self, project=None):
         return self.permanent_url
-
-
-class Event(models.Model):
-    pass
 
 
 class Project(BaseModel):
@@ -112,6 +105,12 @@ class Story(Hearted, BaseModel):
         verbose_name_plural = 'stories'
 
 
+class SyncToken(models.Model):
+    """The most recent sync token received from Asana for the project"""
+    sync = models.CharField(max_length=36)
+    project = models.ForeignKey('Project', to_field='remote_id')
+
+
 class Tag(BaseModel):
     pass
 
@@ -133,7 +132,7 @@ class Task(Hearted, BaseModel):
     tags = models.ManyToManyField('Tag')
 
     def _asana_project_url(self, project):
-        return '{}{}/list'.format(ASANA_BASE_URL, project.workspace.remote_id, self.remote_id)
+        return '{}{}/{}/list'.format(ASANA_BASE_URL, project.workspace.remote_id, self.remote_id)
 
     def asana_url(self, project=None):
         if project:
@@ -146,6 +145,31 @@ class Task(Hearted, BaseModel):
 
     def due(self):
         return self.due_at or self.due_on
+
+    def refresh_from_asana(self):
+        client = client_connect()
+        task_dict = client.tasks.find_by_id(self.remote_id)
+        if task_dict['assignee']:
+            user = User.objects.get_or_create(
+                remote_id=task_dict['assignee']['id'],
+                defaults={'name': task_dict['assignee']['name']})[0]
+            task_dict['assignee'] = user
+        task_dict.pop('hearts', None)
+        task_dict.pop('memberships')
+        task_dict.pop('projects')
+        task_dict.pop('workspace')
+        followers_dict = task_dict.pop('followers')
+        tags_dict = task_dict.pop('tags')
+        self.save(**task_dict)
+        follower_ids = [follower['id'] for follower in followers_dict]
+        followers = User.objects.filter(id__in=follower_ids)
+        self.followers.set(followers)
+        for tag_ in tags_dict:
+            tag = Tag.objects.get_or_create(
+                remote_id=tag_['id'],
+                defaults={'name': tag_['name']})[0]
+            self.tags.add(tag)
+        self.save(**task_dict)
 
 
 class Team(BaseModel):

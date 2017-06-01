@@ -5,9 +5,9 @@ from django.apps import apps
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import six
 
-from asana.error import NotFoundError
+from asana.error import NotFoundError, InvalidTokenError
 from djasana.connect import client_connect
-from djasana.models import Attachment, Project, Story, Tag, Task, Team, User, Workspace
+from djasana.models import Attachment, Project, Story, SyncToken, Tag, Task, Team, User, Workspace
 
 logger = logging.getLogger(__name__)
 
@@ -98,6 +98,23 @@ class Command(BaseCommand):
             models = app_models
         return models
 
+    def _check_sync_project_id(self, project_id, workspace, models):
+        try:
+            sync_token = SyncToken.objects.get(project_id=project_id)
+            try:
+                events = self.client.events.get({'resource': project_id, 'sync': sync_token.sync})
+                self._process_events(project_id, events, workspace, models)
+                return
+            except InvalidTokenError as error:
+                sync_token.sync = error.sync
+                sync_token.save()
+        except SyncToken.DoesNotExist:
+            try:
+                self.client.events.get({'resource': project_id})
+            except InvalidTokenError as error:
+                SyncToken.objects.create(project_id=project_id, sync=error.sync)
+        self._sync_project_id(project_id, workspace, models)
+
     def _get_workspace_ids(self, workspaces):
         workspace_ids = []
         bad_list = []
@@ -143,6 +160,24 @@ class Command(BaseCommand):
                     ', '.join(bad_list)))
         return project_ids
 
+    def _process_events(self, project_id, events, workspace, models):
+        project = Project.objects.get(remote_id=project_id)
+        for event in events['data']:
+            if event['type'] == 'project':
+                if event['action'] == 'removed':
+                    Project.objects.get(remote_id=event['resource']['id']).delete()
+                else:
+                    self._sync_project_id(project_id, workspace, models)
+            elif event['type'] == 'task':
+                if event['action'] == 'removed':
+                    Task.objects.get(remote_id=event['resource']['id']).delete()
+                else:
+                    self._sync_task(event['resource'], project, models)
+            elif event['type'] == 'story':
+                self._sync_story(event['resource'])
+        self.stdout.write(
+            self.style.SUCCESS('Successfully synced project {}.'.format(project.name)))
+
     def _sync_project_id(self, project_id, workspace, models):
         project_dict = self.client.projects.find_by_id(project_id)
         logger.debug('Sync project %s', project_dict['name'])
@@ -179,6 +214,23 @@ class Command(BaseCommand):
         if project:
             self.stdout.write(
                 self.style.SUCCESS('Successfully synced project {}.'.format(project.name)))
+
+    def _sync_story(self, story):
+        try:
+            story_dict = self.client.stories.find_by_id(story['id'])
+        except NotFoundError as error:
+            logger.error('This is probably a temporary connection issue; please resync')
+            raise error
+        logger.debug(story_dict)
+        remote_id = story_dict.pop('id')
+        if story_dict['created_by']:
+            user = User.objects.get_or_create(
+                remote_id=story_dict['created_by']['id'],
+                defaults={'name': story_dict['created_by']['name']})[0]
+            story_dict['created_by'] = user
+        story_dict.pop('hearts', None)
+        story_dict['target'] = story_dict['target']['id']
+        Story.objects.get_or_create(remote_id=remote_id, defaults=story_dict)
 
     def _sync_tag(self, tag):
         tag_dict = self.client.tags.find_by_id(tag['id'])
@@ -230,21 +282,7 @@ class Command(BaseCommand):
                 Attachment.objects.get_or_create(remote_id=remote_id, defaults=attachment_dict)
         if Story in models and self.commit:
             for story in self.client.stories.find_by_task(task['id']):
-                try:
-                    story_dict = self.client.stories.find_by_id(story['id'])
-                except NotFoundError as error:
-                    logger.error('This is probably a temporary connection issue; please resync')
-                    raise error
-                logger.debug(story_dict)
-                remote_id = story_dict.pop('id')
-                if story_dict['created_by']:
-                    user = User.objects.get_or_create(
-                        remote_id=story_dict['created_by']['id'],
-                        defaults={'name': story_dict['created_by']['name']})[0]
-                    story_dict['created_by'] = user
-                story_dict.pop('hearts', None)
-                story_dict['target'] = story_dict['target']['id']
-                Story.objects.get_or_create(remote_id=remote_id, defaults=story_dict)
+                self._sync_story(story)
 
     def _sync_team(self, team):
         team_dict = self.client.teams.find_by_id(team['id'])
@@ -300,7 +338,7 @@ class Command(BaseCommand):
 
         if Project in models:
             for project_id in project_ids:
-                self._sync_project_id(project_id, workspace, models)
+                self._check_sync_project_id(project_id, workspace, models)
 
         if workspace:
             self.stdout.write(
