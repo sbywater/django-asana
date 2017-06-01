@@ -5,7 +5,7 @@ from django.apps import apps
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import six
 
-from asana.error import NotFoundError, InvalidTokenError
+from asana.error import NotFoundError, InvalidTokenError, ForbiddenError
 from djasana.connect import client_connect
 from djasana.models import Attachment, Project, Story, SyncToken, Tag, Task, Team, User, Workspace
 
@@ -245,7 +245,14 @@ class Command(BaseCommand):
                 defaults=tag_dict)
 
     def _sync_task(self, task, project, models):
-        task_dict = self.client.tasks.find_by_id(task['id'])
+        try:
+            task_dict = self.client.tasks.find_by_id(task['id'])
+        except ForbiddenError:
+            try:
+                Task.objects.get(remote_id=task['id']).delete()
+            except Task.DoesNotExist:
+                pass
+            return
         logger.debug('Sync task %s', task_dict['name'])
         logger.debug(task_dict)
 
