@@ -1,13 +1,15 @@
 """The django management command sync_from_asana"""
 import logging
 
+from asana.error import NotFoundError, InvalidTokenError, ForbiddenError
 from django.apps import apps
 from django.core.management.base import BaseCommand, CommandError
+from django.core.urlresolvers import reverse
 from django.utils import six
 
-from asana.error import NotFoundError, InvalidTokenError, ForbiddenError
 from djasana.connect import client_connect
 from djasana.models import Attachment, Project, Story, SyncToken, Tag, Task, Team, User, Workspace
+from djasana.settings import DJASANA_WEBHOOK_URL
 
 logger = logging.getLogger(__name__)
 
@@ -207,6 +209,15 @@ class Command(BaseCommand):
             follower_ids = [follower['id'] for follower in followers_dict]
             followers = User.objects.filter(id__in=follower_ids)
             project.followers.set(followers)
+            if DJASANA_WEBHOOK_URL:
+                target = '{}{}'.format(
+                    DJASANA_WEBHOOK_URL,
+                    reverse('djasana_webhook', kwargs={'remote_id': project_id}))
+                self.client.webhooks.create({
+                    'resource': project_id,
+                    'target': target,
+                })
+                logger.debug('Setting webhook at {}', target)
         else:
             project = None
 
@@ -222,8 +233,8 @@ class Command(BaseCommand):
         try:
             story_dict = self.client.stories.find_by_id(story['id'])
         except NotFoundError as error:
-            logger.error('This is probably a temporary connection issue; please resync')
-            raise error
+            logger.info(error.response)
+            return
         logger.debug(story_dict)
         remote_id = story_dict.pop('id')
         if story_dict['created_by']:

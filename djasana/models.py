@@ -1,5 +1,6 @@
 import logging
 
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
@@ -65,7 +66,7 @@ class Project(BaseModel):
         ('list', _('list')),
     )
 
-    archived = models.BooleanField()
+    archived = models.BooleanField(default=False)
     color = models.CharField(max_length=16, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     current_status = models.CharField(choices=STATUS_CHOICES, max_length=16, null=True, blank=True)
@@ -73,11 +74,11 @@ class Project(BaseModel):
     followers = models.ManyToManyField('User', related_name='projects_following', blank=True)
     layout = models.CharField(choices=layout_choices, max_length=16)
     members = models.ManyToManyField('User', blank=True)
-    modified_at = models.DateTimeField()
+    modified_at = models.DateTimeField(auto_now=True)
     notes = models.TextField()
     owner = models.ForeignKey(
         'User', to_field='remote_id', related_name='projects_owned', null=True)
-    public = models.BooleanField()
+    public = models.BooleanField(default=False)
     team = models.ForeignKey('Team', to_field='remote_id')
     workspace = models.ForeignKey('Workspace', to_field='remote_id')
 
@@ -119,13 +120,13 @@ class Task(Hearted, BaseModel):
     assignee = models.ForeignKey(
         'User', to_field='remote_id', related_name='assigned_tasks', null=True)
     assignee_status = models.CharField(choices=STATUS_CHOICES, max_length=16)
-    completed = models.BooleanField()
+    completed = models.BooleanField(default=False)
     completed_at = models.DateTimeField(auto_now_add=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     due_at = models.DateTimeField(null=True)
     due_on = models.DateField(null=True)
     followers = models.ManyToManyField('User', related_name='tasks_following')
-    modified_at = models.DateTimeField()
+    modified_at = models.DateTimeField(auto_now=True)
     notes = models.TextField()
     parent = models.ForeignKey('self', to_field='remote_id', null=True)
     projects = models.ManyToManyField('Project')
@@ -192,5 +193,10 @@ class User(BaseModel):
         self.save(**user_dict)
 
 
+class Webhook(models.Model):
+    secret = models.CharField(max_length=64, validators=[MinValueValidator(64)])
+    project = models.ForeignKey('Project', to_field='remote_id')
+
+
 class Workspace(BaseModel):
-    is_organization = models.BooleanField()
+    is_organization = models.BooleanField(default=True)
