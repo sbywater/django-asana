@@ -14,7 +14,7 @@ About
 
 ``django-asana`` aims to allow for rich interaction between Django projects and Asana projects. The vision is to allow automated processes done in Django to interact with human Asana users toward project completion. For example, an Asana project might include a workflow of ten tasks that must all be completed in order. This tool will monitor the Asana project status, complete the automated steps when they are ready to be done, and report completion bask to Asana so the workflow may continue.
 
-For now, this tool can do a one time sync from Asana, storing the current status of workspaces, projects, and tasks in Django models. Depending on the size of the Asana workspaces, this initial sync may take some time. Successive syncs are faster if they are performed within the hour, which is the timeout for Asana's sync token. Current work is adding webhook receivers so the Django project will remain synced to Asana in real-time.
+For now, this tool can do a one time sync from Asana, storing the current status of workspaces, projects, and tasks in Django models. Depending on the size of the Asana workspaces, this initial sync may take some time. Successive syncs are faster if they are performed within the hour, which is the timeout for Asana's sync token. Webhook receivers are registered so the Django project will remain synced to Asana in real-time. Task.sync_to_asana() can be used to update Asana to reflect local changes, like task completion.
 
 
 Requirements

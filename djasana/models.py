@@ -157,6 +157,7 @@ class Task(Hearted, BaseModel):
             task_dict['assignee'] = user
         task_dict.pop('hearts', None)
         task_dict.pop('memberships')
+        task_dict.pop('num_hearts')
         task_dict.pop('projects')
         task_dict.pop('workspace')
         followers_dict = task_dict.pop('followers')
@@ -171,6 +172,15 @@ class Task(Hearted, BaseModel):
                 defaults={'name': tag_['name']})[0]
             self.tags.add(tag)
         self.save(**task_dict)
+
+    def sync_to_asana(self, fields=None):
+        fields = fields or ['completed']
+        data = {}
+        for field in fields:
+            data[field] = getattr(self, field)
+        client = client_connect()
+        client.tasks.update(self.remote_id, data)
+        logger.debug('Updated asana for task {0}', self.name)
 
 
 class Team(BaseModel):
