@@ -157,12 +157,14 @@ class Task(Hearted, BaseModel):
             task_dict['assignee'] = user
         task_dict.pop('hearts', None)
         task_dict.pop('memberships')
-        task_dict.pop('num_hearts')
+        task_dict.pop('num_hearts', None)
         task_dict.pop('projects')
         task_dict.pop('workspace')
         followers_dict = task_dict.pop('followers')
         tags_dict = task_dict.pop('tags')
-        self.save(**task_dict)
+        for field, value in task_dict.items():
+            setattr(self, field, value)
+        self.save()
         follower_ids = [follower['id'] for follower in followers_dict]
         followers = User.objects.filter(id__in=follower_ids)
         self.followers.set(followers)
@@ -171,7 +173,6 @@ class Task(Hearted, BaseModel):
                 remote_id=tag_['id'],
                 defaults={'name': tag_['name']})[0]
             self.tags.add(tag)
-        self.save(**task_dict)
 
     def sync_to_asana(self, fields=None):
         fields = fields or ['completed']
@@ -180,7 +181,7 @@ class Task(Hearted, BaseModel):
             data[field] = getattr(self, field)
         client = client_connect()
         client.tasks.update(self.remote_id, data)
-        logger.debug('Updated asana for task {0}', self.name)
+        logger.debug('Updated asana for task %s', self.name)
 
 
 class Team(BaseModel):
@@ -200,7 +201,9 @@ class User(BaseModel):
         user_dict.pop('workspaces')
         if user_dict['photo']:
             user_dict['photo'] = user_dict['photo']['image_128x128']
-        self.save(**user_dict)
+        for field, value in user_dict.items():
+            setattr(self, field, value)
+        self.save()
 
 
 class Webhook(models.Model):

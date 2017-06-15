@@ -22,7 +22,7 @@ class WebhookViewTestCase(TestCase):
         cls.team = models.Team.objects.create(remote_id=2, name='New Team')
         cls.project = models.Project.objects.create(
             remote_id=3, name='New Project', public=True, team=cls.team, workspace=cls.workspace)
-        cls.user = models.Team.objects.create(remote_id=4, name='New User')
+        cls.user = models.User.objects.create(remote_id=4, name='New User')
         cls.url = reverse('djasana_webhook', kwargs={'remote_id': 3})
         cls.secret = '1d6207f8818f063890758a32d3833914754ba788cb8993e644701bac7257f59e'
         cls.data = {
