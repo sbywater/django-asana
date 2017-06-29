@@ -121,7 +121,7 @@ class Task(Hearted, BaseModel):
         'User', to_field='remote_id', related_name='assigned_tasks', null=True)
     assignee_status = models.CharField(choices=STATUS_CHOICES, max_length=16)
     completed = models.BooleanField(default=False)
-    completed_at = models.DateTimeField(auto_now_add=True, null=True)
+    completed_at = models.DateTimeField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     due_at = models.DateTimeField(null=True)
     due_on = models.DateField(null=True)
