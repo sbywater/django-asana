@@ -1,3 +1,4 @@
+import requests
 import unittest
 
 from django.core.exceptions import ImproperlyConfigured
@@ -16,4 +17,7 @@ class ClientConnectTestCase(unittest.TestCase):
     @override_settings(ASANA_ACCESS_TOKEN='foo')
     def test_connect_access_token(self):
         with self.assertRaises(NoAuthorizationError):
-            client_connect()
+            try:
+                client_connect()
+            except requests.exceptions.ConnectionError:
+                self.skipTest('No Internet connection')
