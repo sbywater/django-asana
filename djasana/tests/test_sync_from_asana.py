@@ -16,7 +16,6 @@ def mock_connect():
 @override_settings(ASANA_WORKSPACE=None)
 class CommandArgumentsTestCase(TestCase):
     """Tests of command argument handling, that do not call Asana
-    
     (adds coverage to add_arguments)
     """
 

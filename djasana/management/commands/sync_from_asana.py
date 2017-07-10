@@ -9,7 +9,7 @@ from django.utils import six
 
 from djasana.connect import client_connect
 from djasana.models import Attachment, Project, Story, SyncToken, Tag, Task, Team, User, Workspace
-from djasana.settings import DJASANA_WEBHOOK_URL
+from djasana.settings import settings
 
 logger = logging.getLogger(__name__)
 
@@ -18,11 +18,8 @@ class Command(BaseCommand):
     """Sync data from Asana to the database"""
     help = 'Import data from Asana and insert/update model instances'
     commit = True
+    client = None
     process_archived = False
-
-    def __init__(self, stdout=None, stderr=None, no_color=False):
-        super(Command, self).__init__(stdout, stderr, no_color)
-        self.client = self.get_client()
 
     @staticmethod
     def get_client():
@@ -73,7 +70,11 @@ class Command(BaseCommand):
         models = self._get_models(options)
         if options.get('verbosity', 0) >= 1:
             self.stdout.write("Syncronizing data from Asana.")
-        workspaces = options.get('workspace')
+        workspaces = options.get('workspace') or []
+        if settings.ASANA_WORKSPACE:
+            workspaces.append(settings.ASANA_WORKSPACE)
+        # Allow client to be mocked:
+        self.client = self.client or self.get_client()
         workspace_ids = self._get_workspace_ids(workspaces)
         projects = options.get('project')
 
@@ -127,7 +128,7 @@ class Command(BaseCommand):
         if workspaces:
             for workspace in workspaces:
                 for wks in workspaces_:
-                    if workspace == wks['name']:
+                    if workspace == str(wks['id']) or workspace == wks['name']:
                         workspace_ids.append(wks['id'])
                         break
                 else:
@@ -150,7 +151,7 @@ class Command(BaseCommand):
         if projects:
             for project in projects:
                 for prj in projects_:
-                    if project == prj['name']:
+                    if project == str(prj['id']) or project == prj['name']:
                         project_ids.append(prj['id'])
                         break
                 else:
@@ -209,9 +210,9 @@ class Command(BaseCommand):
             follower_ids = [follower['id'] for follower in followers_dict]
             followers = User.objects.filter(id__in=follower_ids)
             project.followers.set(followers)
-            if DJASANA_WEBHOOK_URL:
+            if settings.DJASANA_WEBHOOK_URL:
                 target = '{}{}'.format(
-                    DJASANA_WEBHOOK_URL,
+                    settings.DJASANA_WEBHOOK_URL,
                     reverse('djasana_webhook', kwargs={'remote_id': project_id}))
                 self.client.webhooks.create({
                     'resource': project_id,

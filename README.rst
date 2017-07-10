@@ -43,11 +43,9 @@ Quick start
         'djasana',
     ]
 
-#. To enable webhooks so Asana can keep your data in sync, add the following to your base urls.py
+If you have multiple Asana workspaces but only ever need to sync one with Django, specify it:
 
-    urlpatterns += [
-        url(r'^', include('djasana.urls')),
-    ]
+    ASANA_WORKSPACE = 'This Workspace'
 
 In the production version of your settings, set a base url for the webhooks. It must be reachable by Asana and secured by SSL. In your dev environment it is fine to leave this setting out; your project will be synced whenever you run the management command.
 
@@ -56,6 +54,11 @@ In the production version of your settings, set a base url for the webhooks. It 
 With that value, your webhook urls will be something like this: https://mysite.com/djasana/webhooks/project/1337/
 
 
+#. To enable webhooks so Asana can keep your data in sync, add the following to your base urls.py
+
+    urlpatterns += [
+        url(r'^', include('djasana.urls')),
+    ]
 
 #. Run `python manage.py migrate` to create the Asana models.
 #. Run the command to synchronize data from Asana to Django:
@@ -66,16 +69,30 @@ With that value, your webhook urls will be something like this: https://mysite.c
 Command line options
 ====================
 
+Note: Due to option parsing limitations, it is less error prone to pass in the id of the object rather than the name.
+
+Good example:
+
+ $ python manage.py sync_from_asana -w 123456
+
+Bad example:
+
+ $ python manage.py sync_from_asana -w="Personal Projects"`
+
+ manage.py sync_from_asana: error: unrecognized arguments: Projects
+
 ===================     ======================================================
-``--workspace, -w``     Restrict work to the named Asana workspace. Can be used
+``--workspace, -w``     Restrict work to the specified Asana workspace, by id or name. Can be used
                         multiple times. By default, all workspaces will used.
 
-                        Ex: python manage.py sync_from_asana -w 'Private Projects'`
+                        Ex: python manage.py sync_from_asana -w 1234567890
 
-``--project, -p``       Restrict work to the named Asana project. Can be used
-                        multiple times. By default, all projects will used.
+``--project, -p``       Restrict work to the specified Asana project, by id or name. Can be used
+                        multiple times. By default, all projects will used. If you specify a project
+                        and have multiple workspaces and have not set ASANA_WORKSPACE, also specify the workspace.
 
-                        Ex: python manage.py sync_from_asana -p 'Sample Project'`
+                        Ex: python manage.py sync_from_asana -p MyProject.com
+                        python manage.py sync_from_asana -w 1234567890 -p MyProject.com
 
 ``--model, -m``         Restrict work to the named model. Can be used
                         multiple times. By default, all models will used.
