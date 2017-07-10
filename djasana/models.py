@@ -118,17 +118,17 @@ class Tag(BaseModel):
 
 class Task(Hearted, BaseModel):
     assignee = models.ForeignKey(
-        'User', to_field='remote_id', related_name='assigned_tasks', null=True)
+        'User', to_field='remote_id', related_name='assigned_tasks', null=True, blank=True)
     assignee_status = models.CharField(choices=STATUS_CHOICES, max_length=16)
     completed = models.BooleanField(default=False)
-    completed_at = models.DateTimeField(null=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    due_at = models.DateTimeField(null=True)
-    due_on = models.DateField(null=True)
+    due_at = models.DateTimeField(null=True, blank=True)
+    due_on = models.DateField(null=True, blank=True)
     followers = models.ManyToManyField('User', related_name='tasks_following')
     modified_at = models.DateTimeField(auto_now=True)
-    notes = models.TextField()
-    parent = models.ForeignKey('self', to_field='remote_id', null=True)
+    notes = models.TextField(null=True, blank=True)
+    parent = models.ForeignKey('self', to_field='remote_id', null=True, blank=True)
     projects = models.ManyToManyField('Project')
     tags = models.ManyToManyField('Tag')
 
