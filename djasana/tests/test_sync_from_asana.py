@@ -1,10 +1,10 @@
 import unittest
+
 from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.test import override_settings, TestCase
-
 from djasana.management.commands.sync_from_asana import Command
-from djasana.models import Attachment, Project, Story, Tag, Task, Team, Workspace, User
+from djasana.models import Attachment, Project, Story, SyncToken, Tag, Task, Team, Workspace, User
 from djasana.tests.fixtures import attachment, project, story, tag, task, team, user, workspace
 
 
@@ -15,7 +15,7 @@ def mock_connect():
 @override_settings(ASANA_ACCESS_TOKEN='foo')
 @override_settings(ASANA_WORKSPACE=None)
 class CommandArgumentsTestCase(TestCase):
-    """Tests of command argument handling, that do not call Asana
+    """Tests of command argument handling that do not call Asana
     (adds coverage to add_arguments)
     """
 
@@ -41,12 +41,18 @@ class SyncFromAsanaTestCase(TestCase):
         self.command.client.tasks.find_all.return_value = [task()]
         self.command.client.tasks.find_by_id.return_value = task()
 
+    def test_interactive(self):
+        with unittest.mock.patch.object(Command, '_confirm') as mock_confirm:
+            mock_confirm.return_value = False
+            self.command.handle(interactive=True)
+            self.assertEqual(1, mock_confirm.call_count)
+
     def test_good_sync(self):
         self.command.client.attachments.find_by_task.return_value = [attachment()]
         self.command.client.attachments.find_by_id.return_value = attachment()
         self.command.client.stories.find_by_task.return_value = [story()]
         self.command.client.stories.find_by_id.return_value = story()
-        self.command.handle(interactive=False)
+        self.command.handle(interactive=False, verbosity=2)
         self.assertEqual(1, Workspace.objects.count())
         self.assertEqual(1, Project.objects.count())
         self.assertEqual(1, Task.objects.count())
@@ -56,6 +62,11 @@ class SyncFromAsanaTestCase(TestCase):
 
     def test_good_workspace(self):
         self.command.handle(interactive=False, workspace=['Test Workspace'])
+        self.assertEqual(1, Workspace.objects.count())
+
+    @override_settings(ASANA_WORKSPACE='Test Workspace')
+    def test_good_workspace_setting(self):
+        self.command.handle(interactive=False)
         self.assertEqual(1, Workspace.objects.count())
 
     def test_bad_workspace(self):
@@ -109,3 +120,58 @@ class SyncFromAsanaTestCase(TestCase):
         self.assertFalse(Project.objects.exists())
         self.assertFalse(Task.objects.exists())
         self.assertFalse(User.objects.exists())
+
+    def test_sync_events(self):
+        workspace_ = Workspace.objects.create(remote_id=1, name='New Workspace')
+        team_ = Team.objects.create(remote_id=2, name='New Team')
+        project_ = Project.objects.create(
+            remote_id=1, name='New Project', public=True, team=team_, workspace=workspace_)
+        SyncToken.objects.create(sync='foo', project=project_)
+        data = {
+            'data': [
+                {
+                    'action': 'changed',
+                    'created_at': '2017-08-21T18:20:37.972Z',
+                    'parent': None,
+                    'resource': {
+                        'id': 1,
+                        'name': 'Test Project'
+                    },
+                    'type': 'project',
+                    'user': 1123
+                },
+                {
+                    'action': 'changed',
+                    'created_at': '2017-08-21T18:20:37.972Z',
+                    'parent': None,
+                    'resource': {
+                        'id': 1337,
+                        'name': 'Test Task'
+                    },
+                    'type': 'task',
+                    'user': 1123
+                },
+                {
+                    'action': 'added',
+                    'created_at': '2017-08-21T18:20:37.972Z',
+                    'parent': None,
+                    'resource': {
+                        'id': 1,
+                        'name': 'Test Story'
+                    },
+                    'type': 'story',
+                    'user': 1123
+                }
+            ]
+        }
+        self.command.client.events.get.return_value = data
+        self.command.client.projects.find_by_id.return_value = project()
+        self.command.client.tasks.find_by_id.side_effect = task
+        self.command.client.stories.find_by_id.return_value = story()
+        self.command.handle(interactive=False)
+        project_.refresh_from_db()
+        self.assertEqual('Test Project', project_.name)
+        try:
+            Story.objects.get(remote_id=1)
+        except Story.DoesNotExist:
+            self.fail('Story not created')

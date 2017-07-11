@@ -61,8 +61,7 @@ class Command(BaseCommand):
         if options.get('interactive', True):
             self.stdout.write(
                 'WARNING: This will irreparably synchronize your local database from Asana.')
-            yes_or_no = six.moves.input("Are you sure you wish to continue? [y/N] ")
-            if not yes_or_no.lower().startswith('y'):
+            if not self._confirm():
                 self.stdout.write("No action taken.")
                 return
         self.commit = not options.get('nocommit')
@@ -80,6 +79,11 @@ class Command(BaseCommand):
 
         for workspace_id in workspace_ids:
             self._sync_workspace_id(workspace_id, projects, models)
+
+    @staticmethod
+    def _confirm():
+        yes_or_no = six.moves.input("Are you sure you wish to continue? [y/N] ")
+        return yes_or_no.lower().startswith('y')
 
     @staticmethod
     def _get_models(options):
