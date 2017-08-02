@@ -2,6 +2,7 @@ import unittest
 
 from django.core.management import call_command
 from django.core.management.base import CommandError
+from django.db import IntegrityError
 from django.test import override_settings, TestCase
 from djasana.management.commands.sync_from_asana import Command
 from djasana.models import Attachment, Project, Story, SyncToken, Tag, Task, Team, Workspace, User
@@ -175,3 +176,11 @@ class SyncFromAsanaTestCase(TestCase):
             Story.objects.get(remote_id=1)
         except Story.DoesNotExist:
             self.fail('Story not created')
+
+    def test_null_email_passes(self):
+        null_user = user(email=None)
+        self.command.client.users.find_by_id.return_value = null_user
+        try:
+            self.command._sync_user(user=null_user, workspace=None)
+        except IntegrityError:
+            self.fail('IntegrityError not caught')

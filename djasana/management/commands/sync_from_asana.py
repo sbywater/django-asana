@@ -3,6 +3,7 @@ import logging
 
 from asana.error import NotFoundError, InvalidTokenError, ForbiddenError
 from django.apps import apps
+from django.db import IntegrityError, transaction
 from django.core.management.base import BaseCommand, CommandError
 from django.core.urlresolvers import reverse
 from django.utils import six
@@ -330,10 +331,16 @@ class Command(BaseCommand):
             user_dict.pop('workspaces')
             if user_dict['photo']:
                 user_dict['photo'] = user_dict['photo']['image_128x128']
-            user = User.objects.get_or_create(
-                remote_id=remote_id,
-                defaults=user_dict)[0]
-            user.workspaces.add(workspace)
+            try:
+                with transaction.atomic():
+                    user = User.objects.get_or_create(
+                        remote_id=remote_id,
+                        defaults=user_dict)[0]
+            except IntegrityError as error:
+                # Private User may have null email
+                logger.debug(error)
+            else:
+                user.workspaces.add(workspace)
 
     def _sync_workspace_id(self, workspace_id, projects, models):
         workspace_dict = self.client.workspaces.find_by_id(workspace_id)
