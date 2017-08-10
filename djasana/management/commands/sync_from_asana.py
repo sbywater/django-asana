@@ -219,11 +219,11 @@ class Command(BaseCommand):
                 target = '{}{}'.format(
                     settings.DJASANA_WEBHOOK_URL,
                     reverse('djasana_webhook', kwargs={'remote_id': project_id}))
+                logger.debug('Setting webhook at {}', target)
                 self.client.webhooks.create({
                     'resource': project_id,
                     'target': target,
                 })
-                logger.debug('Setting webhook at {}', target)
         else:
             project = None
 
