@@ -22,6 +22,7 @@ class WebhookView(JSONRequestResponseMixin, View):
         if 'X-Hook-Secret' in request.META:
             return self._process_secret(request, request.META['X-Hook-Secret'], remote_id)
         if 'X-Hook-Signature' not in request.META:
+            logger.debug('No signature')
             return HttpResponseForbidden
         signature = request.META['X-Hook-Signature']
         if len(signature) != 44 or not self.request_json:
@@ -40,6 +41,7 @@ class WebhookView(JSONRequestResponseMixin, View):
     @staticmethod
     def _process_secret(request, secret, remote_id):
         """Process a request from Asana to establish a web hook"""
+        logger.debug('Processing secret')
         if len(secret) != 64:
             return HttpResponseForbidden
         try:
@@ -51,6 +53,7 @@ class WebhookView(JSONRequestResponseMixin, View):
                 return HttpResponseForbidden
         response = HttpResponse()
         response['X-Hook-Secret'] = secret
+        logger.debug('Secret accepted')
         return response
 
     def _process_events(self, events, project):

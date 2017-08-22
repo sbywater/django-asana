@@ -1,7 +1,7 @@
 """The django management command sync_from_asana"""
 import logging
 
-from asana.error import NotFoundError, InvalidTokenError, ForbiddenError
+from asana.error import NotFoundError, InvalidTokenError, ForbiddenError, InvalidRequestError
 from django.apps import apps
 from django.db import IntegrityError, transaction
 from django.core.management.base import BaseCommand, CommandError
@@ -219,11 +219,15 @@ class Command(BaseCommand):
                 target = '{}{}'.format(
                     settings.DJASANA_WEBHOOK_URL,
                     reverse('djasana_webhook', kwargs={'remote_id': project_id}))
-                logger.debug('Setting webhook at {}', target)
-                self.client.webhooks.create({
-                    'resource': project_id,
-                    'target': target,
-                })
+                logger.debug('Setting webhook at %s', target)
+                try:
+                    self.client.webhooks.create({
+                        'resource': project_id,
+                        'target': target,
+                    })
+                except InvalidRequestError as error:
+                    logger.warning(error)
+                    logger.warning('Target url: %s', target)
         else:
             project = None
 
