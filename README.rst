@@ -47,9 +47,10 @@ If you have multiple Asana workspaces but only ever need to sync one with Django
 
     ASANA_WORKSPACE = 'This Workspace'
 
-In the production version of your settings, set a base url for the webhooks. It must be reachable by Asana and secured by SSL. In your dev environment it is fine to leave this setting out; your project will be synced whenever you run the management command.
+In the production version of your settings, set a base url and pattern for the webhooks. It must be reachable by Asana and secured by SSL. In your dev environment it is fine to leave this setting out; your project will be synced whenever you run the management command.
 
     DJASANA_WEBHOOK_URL = 'https://mysite.com/djasana/webhooks'
+    DJASANA_WEBHOOK_PATTERN = r'^djasana/webhooks/'
 
 With that value, your webhook urls will be something like this: https://mysite.com/djasana/webhooks/project/1337/
 
@@ -57,7 +58,7 @@ With that value, your webhook urls will be something like this: https://mysite.c
 #. To enable webhooks so Asana can keep your data in sync, add the following to your base urls.py
 
     urlpatterns += [
-        url(r'^', include('djasana.urls')),
+        url(settings.DJASANA_WEBHOOK_PATTERN, include('djasana.urls')),
     ]
 
 #. Run `python manage.py migrate` to create the Asana models.
