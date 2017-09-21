@@ -184,3 +184,15 @@ class SyncFromAsanaTestCase(TestCase):
             self.command._sync_user(user=null_user, workspace=None)
         except IntegrityError:
             self.fail('IntegrityError not caught')
+
+    def test_long_story(self):
+        """Asserts a story over 1024 characters long is truncated"""
+        long_story = story(text='x' * 2000)
+        self.command.client.attachments.find_by_task.return_value = [attachment()]
+        self.command.client.attachments.find_by_id.return_value = attachment()
+        self.command.client.stories.find_by_task.return_value = [long_story]
+        self.command.client.stories.find_by_id.return_value = long_story
+        self.command.handle(interactive=False, verbosity=2)
+        self.assertTrue(1, Story.objects.exists())
+        story_instance = Story.objects.last()
+        self.assertEqual(1024, len(story_instance.text))

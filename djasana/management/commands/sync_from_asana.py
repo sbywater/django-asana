@@ -254,6 +254,7 @@ class Command(BaseCommand):
             story_dict['created_by'] = user
         story_dict.pop('hearts', None)
         story_dict['target'] = story_dict['target']['id']
+        story_dict['text'] = story_dict['text'][:1024]  # Truncate text if too long
         Story.objects.get_or_create(remote_id=remote_id, defaults=story_dict)
 
     def _sync_tag(self, tag):
