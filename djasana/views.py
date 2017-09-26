@@ -4,6 +4,8 @@ from asana.error import ForbiddenError, NotFoundError
 from braces.views import JSONRequestResponseMixin
 from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
 
 from .connect import client_connect
@@ -13,6 +15,7 @@ from .utils import sign_sha256_hmac
 logger = logging.getLogger(__name__)
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class WebhookView(JSONRequestResponseMixin, View):
     client = None
 
@@ -23,17 +26,17 @@ class WebhookView(JSONRequestResponseMixin, View):
             return self._process_secret(request, request.META['X-Hook-Secret'], remote_id)
         if 'X-Hook-Signature' not in request.META:
             logger.debug('No signature')
-            return HttpResponseForbidden
+            return HttpResponseForbidden()
         signature = request.META['X-Hook-Signature']
         if len(signature) != 44 or not self.request_json:
-            return HttpResponseForbidden
+            return HttpResponseForbidden()
         try:
             webhook = Webhook.objects.get(project_id=remote_id)
         except Webhook.DoesNotExist:
-            return HttpResponseForbidden
+            return HttpResponseForbidden()
         target_signature = sign_sha256_hmac(webhook.secret, self.request.body)
         if signature != target_signature:
-            return HttpResponseForbidden
+            return HttpResponseForbidden()
         if self.request_json['events']:
             self._process_events(self.request_json['events'], project)
         return HttpResponse()
@@ -43,14 +46,14 @@ class WebhookView(JSONRequestResponseMixin, View):
         """Process a request from Asana to establish a web hook"""
         logger.debug('Processing secret')
         if len(secret) != 64:
-            return HttpResponseForbidden
+            return HttpResponseForbidden()
         try:
             webhook = Webhook.objects.get(project_id=remote_id)
         except Webhook.DoesNotExist:
             Webhook.objects.create(project_id=remote_id, secret=secret)
         else:
             if webhook.secret != secret:
-                return HttpResponseForbidden
+                return HttpResponseForbidden()
         response = HttpResponse()
         response['X-Hook-Secret'] = secret
         logger.debug('Secret accepted')
