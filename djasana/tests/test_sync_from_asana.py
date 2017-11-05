@@ -196,3 +196,13 @@ class SyncFromAsanaTestCase(TestCase):
         self.assertTrue(1, Story.objects.exists())
         story_instance = Story.objects.last()
         self.assertEqual(1024, len(story_instance.text))
+
+    def test_task_with_parent(self):
+        parent_task = task()
+        child_task = task(id=2, parent=parent_task)
+        self.command.client.tasks.find_all.return_value = [child_task]
+        self.command.client.tasks.find_by_id.side_effect = [child_task, parent_task]
+        self.command.handle(interactive=False, project=['Test Project'])
+        self.assertEqual(2, Task.objects.count())
+        parent, child = tuple(Task.objects.order_by('remote_id'))
+        self.assertEqual(parent, child.parent)

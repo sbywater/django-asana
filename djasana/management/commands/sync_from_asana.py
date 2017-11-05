@@ -69,7 +69,9 @@ class Command(BaseCommand):
         self.process_archived = options.get('archive')
         models = self._get_models(options)
         if options.get('verbosity', 0) >= 1:
-            self.stdout.write("Syncronizing data from Asana.")
+            message = "Synchronizing data from Asana."
+            self.stdout.write(message)
+            logger.info(message)
         workspaces = options.get('workspace') or []
         if settings.ASANA_WORKSPACE:
             workspaces.append(settings.ASANA_WORKSPACE)
@@ -186,8 +188,10 @@ class Command(BaseCommand):
                     self._sync_task(event['resource'], project, models)
             elif event['type'] == 'story':
                 self._sync_story(event['resource'])
-        self.stdout.write(
-            self.style.SUCCESS('Successfully synced project {}.'.format(project.name)))
+        message = 'Successfully synced {0} events for project {1}.'.format(
+            len(events['data']), project.name)
+        self.stdout.write(self.style.SUCCESS(message))
+        logger.info(message)
 
     def _sync_project_id(self, project_id, workspace, models):
         project_dict = self.client.projects.find_by_id(project_id)
@@ -236,8 +240,9 @@ class Command(BaseCommand):
                 self._sync_task(task, project, models)
 
         if project:
-            self.stdout.write(
-                self.style.SUCCESS('Successfully synced project {}.'.format(project.name)))
+            message = 'Successfully synced project {}.'.format(project.name)
+            self.stdout.write(self.style.SUCCESS(message))
+            logger.info(message)
 
     def _sync_story(self, story):
         try:
@@ -268,6 +273,7 @@ class Command(BaseCommand):
                 defaults=tag_dict)
 
     def _sync_task(self, task, project, models):
+        import pdb; pdb.set_trace()
         try:
             task_dict = self.client.tasks.find_by_id(task['id'])
         except ForbiddenError:
@@ -290,8 +296,11 @@ class Command(BaseCommand):
             task_dict.pop('memberships')
             task_dict.pop('projects')
             task_dict.pop('workspace')
-            if task_dict['parent']:
-                self._sync_task(task_dict['parent'], project, models)
+            parent = task_dict.pop('parent', None)
+            if parent:
+                parent_id = parent['id']
+                self._sync_task(parent, project, models)
+                task_dict['parent_id'] = parent_id
             followers_dict = task_dict.pop('followers')
             tags_dict = task_dict.pop('tags')
             task_ = Task.objects.update_or_create(
@@ -339,7 +348,7 @@ class Command(BaseCommand):
                 user_dict['photo'] = user_dict['photo']['image_128x128']
             try:
                 with transaction.atomic():
-                    user = User.objects.get_or_create(
+                    user = User.objects.update_or_create(
                         remote_id=remote_id,
                         defaults=user_dict)[0]
             except IntegrityError as error:
@@ -380,5 +389,6 @@ class Command(BaseCommand):
                 self._check_sync_project_id(project_id, workspace, models)
 
         if workspace:
-            self.stdout.write(
-                self.style.SUCCESS('Successfully synced workspace {}.'.format(workspace.name)))
+            message = 'Successfully synced workspace {}.'.format(workspace.name)
+            self.stdout.write(self.style.SUCCESS(message))
+            logger.info(message)
