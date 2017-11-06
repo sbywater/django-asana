@@ -273,7 +273,6 @@ class Command(BaseCommand):
                 defaults=tag_dict)
 
     def _sync_task(self, task, project, models):
-        import pdb; pdb.set_trace()
         try:
             task_dict = self.client.tasks.find_by_id(task['id'])
         except ForbiddenError:
