@@ -184,6 +184,10 @@ class Task(Hearted, BaseModel):
         client.tasks.update(self.remote_id, data)
         logger.debug('Updated asana for task %s', self.name)
 
+    def add_comment(self, text):
+        client = client_connect()
+        return client.tasks.add_comment(self.remote_id, {'text': text})
+
 
 class Team(BaseModel):
     organization_id = models.BigIntegerField(null=True)

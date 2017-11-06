@@ -45,6 +45,14 @@ class TaskModelTestCase(TestCase):
         self.task.refresh_from_db()
         self.assertEqual(task['name'], self.task.name)
 
+    @override_settings(ASANA_ACCESS_TOKEN='foo')
+    @unittest.mock.patch('djasana.models.client_connect')
+    def test_add_comment(self, mock_connect):
+        mock_client = mock_connect.return_value
+        mock_client.tasks.add_comment.return_value = fixtures.story()
+        self.task.add_comment(text='Test comment')
+        self.assertTrue(mock_client.tasks.add_comment.called)
+
 
 class UserModelTestCase(TestCase):
 
