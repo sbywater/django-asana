@@ -22,14 +22,14 @@ class WebhookView(JSONRequestResponseMixin, View):
     def post(self, request, *_, **kwargs):
         remote_id = kwargs.pop('remote_id')
         project = get_object_or_404(Project, remote_id=remote_id)
-        logger.debug(request)
         logger.debug(request.META)
-        if 'X-Hook-Secret' in request.META:
+        secret = request.META.get('X-Hook-Secret', request.META.get('HTTP_X_HOOK_SECRET'))
+        if secret:
             return self._process_secret(request, request.META['X-Hook-Secret'], remote_id)
-        if 'X-Hook-Signature' not in request.META:
+        signature = request.META.get('X-Hook-Signature', request.META.get('HTTP_X_HOOK_SIGNATURE'))
+        if not signature:
             logger.debug('No signature')
             return HttpResponseForbidden()
-        signature = request.META['X-Hook-Signature']
         if len(signature) != 44 or not self.request_json:
             return HttpResponseForbidden()
         try:
