@@ -52,6 +52,15 @@ class WebhookViewTestCase(TestCase):
             self.fail('Webhook not created')
         self.assertEqual(self.secret, webhook.secret)
 
+    def test_alternative_webhook_meta_key(self):
+        """Asserts a webhook is established with an alternative META tag"""
+        request = self.factory.post(
+            '', content_type='application/json', **{'HTTP_X_HOOK_SECRET': self.secret})
+        response = views.WebhookView.as_view()(request, remote_id=self.project.remote_id)
+        self.assertEqual(200, response.status_code)
+        self.assertTrue('x-hook-secret' in response)
+        self.assertEqual(self.secret, response['x-hook-secret'])
+
     def test_bad_short_secret(self):
         """Asserts a malicious endpoint posts a wrong secret that is not 64 chars"""
         request = self.factory.post(

@@ -25,7 +25,7 @@ class WebhookView(JSONRequestResponseMixin, View):
         logger.debug(request.META)
         secret = request.META.get('X-Hook-Secret', request.META.get('HTTP_X_HOOK_SECRET'))
         if secret:
-            return self._process_secret(request, request.META['X-Hook-Secret'], remote_id)
+            return self._process_secret(request, secret, remote_id)
         signature = request.META.get('X-Hook-Signature', request.META.get('HTTP_X_HOOK_SIGNATURE'))
         if not signature:
             logger.debug('No signature')
