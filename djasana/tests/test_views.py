@@ -67,7 +67,8 @@ class WebhookViewTestCase(TestCase):
             '', content_type='application/json', data=json.dumps(self.data),
             **{'X-Hook-Secret': self.secret[:32]})
         response = views.WebhookView.as_view()(request, remote_id=3)
-        self.assertEqual(403, response.status_code)
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(self.secret[:32], response['x-hook-secret'])
 
     def test_bad_short_secret(self):
         """Asserts a malicious endpoint posts a wrong secret that is not 64 chars"""
