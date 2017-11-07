@@ -22,6 +22,8 @@ class WebhookView(JSONRequestResponseMixin, View):
     def post(self, request, *_, **kwargs):
         remote_id = kwargs.pop('remote_id')
         project = get_object_or_404(Project, remote_id=remote_id)
+        logger.debug(request)
+        logger.debug(request.META)
         if 'X-Hook-Secret' in request.META:
             return self._process_secret(request, request.META['X-Hook-Secret'], remote_id)
         if 'X-Hook-Signature' not in request.META:
