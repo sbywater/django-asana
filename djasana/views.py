@@ -56,8 +56,8 @@ class WebhookView(JSONRequestResponseMixin, View):
             Webhook.objects.create(project_id=remote_id, secret=secret)
         else:
             if webhook.secret != secret:
-                logger.debug('Secrets do not match: %s %s' % (webhook.secret, secret))
-                return HttpResponseForbidden()
+                webhook.secret = secret
+                webhook.save()
         response = HttpResponse()
         response['X-Hook-Secret'] = secret
         logger.debug('Secret accepted')
