@@ -47,7 +47,7 @@ class WebhookView(JSONRequestResponseMixin, View):
     def _process_secret(request, secret, remote_id):
         """Process a request from Asana to establish a web hook"""
         logger.debug('Processing secret')
-        if len(secret) != 64:
+        if len(secret) != 64 or len(secret) != 32:
             return HttpResponseForbidden()
         try:
             webhook = Webhook.objects.get(project_id=remote_id)

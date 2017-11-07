@@ -212,7 +212,7 @@ class User(BaseModel):
 
 
 class Webhook(models.Model):
-    secret = models.CharField(max_length=64, validators=[MinValueValidator(64)])
+    secret = models.CharField(max_length=64, validators=[MinValueValidator(32)])
     project = models.ForeignKey('Project', to_field='remote_id')
 
 
