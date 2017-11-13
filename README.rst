@@ -14,9 +14,11 @@ About
 
 ``django-asana`` aims to allow for rich interaction between Django projects and Asana projects. The vision is to allow automated processes done in Django to interact with human Asana users toward project completion. For example, an Asana project might include a workflow of ten tasks that must all be completed in order. This tool will monitor the Asana project status, complete the automated steps when they are ready to be done, and report completion bask to Asana so the workflow may continue.
 
-This tool can do a one time sync from Asana, storing the current status of workspaces, projects, and tasks in Django models. Depending on the size of the Asana workspaces, this initial sync may take some time. Successive syncs are faster if they are performed within the hour, which is the timeout for Asana's sync token.
+This tool can do a one time sync from Asana, storing the current status of workspaces, projects, tasks, users, teams and tags in Django models. Depending on the size of the Asana workspaces, this initial sync may take some time. Successive syncs are faster if they are performed within the hour, which is the timeout for Asana's sync token. You may specify to sync only specific workspaces, projects or models.
 
-Optionally, Webhook receivers are registered so the Django project will remain synced to Asana in real-time. Task.sync_to_asana() can be used to update Asana to reflect local changes, like task completion.
+Optionally, Webhook receivers are registered so the Django project will remain synced to Asana in real-time. The Asana API only supports webhooks for projects and tasks, so even if you use django-asana webhooks to keep your projects in sync in real-time you will still periodically want to run the sync-from-asana task to get new projects and reflect additions and changes to workspaces, users, etc.
+
+Task.sync_to_asana() can be used to update Asana to reflect local changes, like task completion. Task.add_comment() can be used to add a comment to a task in Asana.
 
 
 Requirements

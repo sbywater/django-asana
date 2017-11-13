@@ -55,17 +55,17 @@ class Command(BaseCommand):
         )
         parser.add_argument(
             '--nocommit', action='store_false', dest='commit',
-            default=True, help='Will pass commit=False to the backend.'
+            default=True, help='Will not commit changes to the database.'
         )
 
     def handle(self, *args, **options):
-        if options.get('interactive', True):
+        self.commit = not options.get('nocommit')
+        if self.commit and options.get('interactive', True):
             self.stdout.write(
                 'WARNING: This will irreparably synchronize your local database from Asana.')
             if not self._confirm():
                 self.stdout.write("No action taken.")
                 return
-        self.commit = not options.get('nocommit')
         self.process_archived = options.get('archive')
         models = self._get_models(options)
         if options.get('verbosity', 0) >= 1:
@@ -109,12 +109,14 @@ class Command(BaseCommand):
         return models
 
     def _check_sync_project_id(self, project_id, workspace, models):
+        """If we have a valid sync token for this project sync new events else sync the project"""
         new_sync = False
         try:
             sync_token = SyncToken.objects.get(project_id=project_id)
             try:
                 events = self.client.events.get({'resource': project_id, 'sync': sync_token.sync})
                 self._process_events(project_id, events, workspace, models)
+                self._set_webhook(project_id)
                 return
             except InvalidTokenError as error:
                 sync_token.sync = error.sync
@@ -125,6 +127,7 @@ class Command(BaseCommand):
             except InvalidTokenError as error:
                 new_sync = error.sync
         self._sync_project_id(project_id, workspace, models)
+        self._set_webhook(project_id)
         if new_sync:
             SyncToken.objects.create(project_id=project_id, sync=new_sync)
 
@@ -173,6 +176,22 @@ class Command(BaseCommand):
                     ', '.join(bad_list)))
         return project_ids
 
+    def _set_webhook(self, project_id):
+        """Sets a webhook if the setting is configured"""
+        if self.commit and settings.DJASANA_WEBHOOK_URL:
+            target = '{}{}'.format(
+                settings.DJASANA_WEBHOOK_URL,
+                reverse('djasana_webhook', kwargs={'remote_id': project_id}))
+            logger.debug('Setting webhook at %s', target)
+            try:
+                self.client.webhooks.create({
+                    'resource': project_id,
+                    'target': target,
+                })
+            except InvalidRequestError as error:
+                logger.warning(error)
+                logger.warning('Target url: %s', target)
+
     def _process_events(self, project_id, events, workspace, models):
         project = Project.objects.get(remote_id=project_id)
         for event in events['data']:
@@ -219,19 +238,6 @@ class Command(BaseCommand):
             follower_ids = [follower['id'] for follower in followers_dict]
             followers = User.objects.filter(id__in=follower_ids)
             project.followers.set(followers)
-            if settings.DJASANA_WEBHOOK_URL:
-                target = '{}{}'.format(
-                    settings.DJASANA_WEBHOOK_URL,
-                    reverse('djasana_webhook', kwargs={'remote_id': project_id}))
-                logger.debug('Setting webhook at %s', target)
-                try:
-                    self.client.webhooks.create({
-                        'resource': project_id,
-                        'target': target,
-                    })
-                except InvalidRequestError as error:
-                    logger.warning(error)
-                    logger.warning('Target url: %s', target)
         else:
             project = None
 
