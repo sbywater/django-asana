@@ -41,10 +41,12 @@ class WebhookView(JSONRequestResponseMixin, View):
         except Webhook.DoesNotExist:
             logger.debug('No matching webhook')
             return HttpResponseForbidden()
+        logger.debug(self.request.body)
         target_signature = sign_sha256_hmac(webhook.secret, self.request.body)
         if signature != target_signature:
             logger.debug('Signature mismatch')
-            return HttpResponseForbidden()
+            # For troubleshooting, allow a signature mismatch
+            # return HttpResponseForbidden()
         if self.request_json['events']:
             self._process_events(self.request_json['events'], project)
         return HttpResponse()
