@@ -30,8 +30,12 @@ class WebhookView(JSONRequestResponseMixin, View):
         if not signature:
             logger.debug('No signature')
             return HttpResponseForbidden()
-        if len(signature) != 64 or not self.request_json:
+        if len(signature) != 64:
+            logger.debug('Signature of length %s not allowed' % len(signature))
+        if not self.request_json:
+            logger.debug('No json payload')
             return HttpResponseForbidden()
+        logger.debug(self.request_json)
         try:
             webhook = Webhook.objects.get(project_id=remote_id)
         except Webhook.DoesNotExist:
@@ -66,6 +70,7 @@ class WebhookView(JSONRequestResponseMixin, View):
         return response
 
     def _process_events(self, events, project):
+        logger.debug('Processing events')
         self.client = client_connect()
         for event in events:
             if event['type'] == 'project':
