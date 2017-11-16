@@ -127,8 +127,9 @@ class Command(BaseCommand):
                 self.client.events.get({'resource': project_id})
             except InvalidTokenError as error:
                 new_sync = error.sync
-        self._sync_project_id(project_id, workspace, models)
-        self._set_webhook(workspace, project_id)
+        is_archived = self._sync_project_id(project_id, workspace, models)
+        if not is_archived:
+            self._set_webhook(workspace, project_id)
         if new_sync:
             SyncToken.objects.create(project_id=project_id, sync=new_sync)
 
@@ -180,19 +181,17 @@ class Command(BaseCommand):
     def _set_webhook(self, workspace, project_id):
         """Sets a webhook if the setting is configured and a webhook does not currently exist"""
         if self.commit and settings.DJASANA_WEBHOOK_URL:
-            webhooks = self.client.webhooks.get({
-                'workspace': workspace.remote_id, 'resource': project_id})
+            webhooks = [webhook for webhook in self.client.webhooks.get_all({
+                'workspace': workspace.remote_id, 'resource': project_id})]
             if webhooks:
                 # If there is exactly one, and it is active, we are good to go,
                 # else delete them and start a new one.
                 webhooks_ = Webhook.objects.filter(project_id=project_id)
-                if len(webhooks['data']) == webhooks_.count() == 1:
-                    webhook_dict = self.client.webhooks.get(webhooks['data'][0]['id'])
-                    logger.debug(webhook_dict['data'])
-                    if webhook_dict['data']['active']:
+                if len(webhooks) == webhooks_.count() == 1:
+                    if webhooks[0]['active']:
                         return
-                for webhook in webhooks['data']:
-                    self.client.webhooks.delete(webhook['id'])
+                for webhook in webhooks:
+                    self.client.webhooks.delete_by_id(webhook['id'])
                 Webhook.objects.filter(id__in=webhooks_.values_list('id', flat=True)[1:]).delete()
             target = '{}{}'.format(
                 settings.DJASANA_WEBHOOK_URL,
@@ -228,6 +227,7 @@ class Command(BaseCommand):
         logger.info(message)
 
     def _sync_project_id(self, project_id, workspace, models):
+        """Sync this project by polling it. Returns boolean 'is archived?'"""
         project_dict = self.client.projects.find_by_id(project_id)
         logger.debug('Sync project %s', project_dict['name'])
         logger.debug(project_dict)
@@ -264,6 +264,7 @@ class Command(BaseCommand):
             message = 'Successfully synced project {}.'.format(project.name)
             self.stdout.write(self.style.SUCCESS(message))
             logger.info(message)
+        return project_dict['archived']
 
     def _sync_story(self, story):
         try:

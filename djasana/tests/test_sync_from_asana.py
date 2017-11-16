@@ -222,8 +222,7 @@ class SyncFromAsanaTestCase(TestCase):
         self.command.client.projects.find_all.return_value = [project_dict]
         self.command.client.projects.find_by_id.return_value = project_dict
         webhook_ = webhook(project=project_dict)
-        data = {'data': [webhook_, webhook_]}
-        self.command.client.webhooks.get.side_effect = [data, webhook_]
+        self.command.client.webhooks.get_all.return_value = [webhook_, webhook_]
         self.command.handle(interactive=False, project=['Test Project'])
-        assert self.command.client.webhooks.delete.called
+        self.assertEqual(2, self.command.client.webhooks.delete_by_id.call_count)
         self.assertEqual(1, Webhook.objects.filter(project=project_).count())
