@@ -5,8 +5,10 @@ from django.core.management.base import CommandError
 from django.db import IntegrityError
 from django.test import override_settings, TestCase
 from djasana.management.commands.sync_from_asana import Command
-from djasana.models import Attachment, Project, Story, SyncToken, Tag, Task, Team, Workspace, User
-from djasana.tests.fixtures import attachment, project, story, tag, task, team, user, workspace
+from djasana.models import (
+    Attachment, Project, Story, SyncToken, Tag, Task, Team, Webhook, Workspace, User)
+from djasana.tests.fixtures import (
+    attachment, project, story, tag, task, team, user, webhook, workspace)
 
 
 def mock_connect():
@@ -206,3 +208,22 @@ class SyncFromAsanaTestCase(TestCase):
         self.assertEqual(2, Task.objects.count())
         parent, child = tuple(Task.objects.order_by('remote_id'))
         self.assertEqual(parent, child.parent)
+
+    @override_settings(DJASANA_WEBHOOK_URL='https://example.com/hooks/')
+    def test_redundant_webhooks_are_deleted(self):
+        workspace_ = Workspace.objects.create(remote_id=1, name='Workspace')
+        team_ = Team.objects.create(remote_id=2, name='Team')
+        project_ = Project.objects.create(
+            remote_id=3, name='Test Project', public=True, team=team_, workspace=workspace_)
+        secret = 'x' * 32
+        Webhook.objects.create(secret=secret, project=project_)
+        Webhook.objects.create(secret=secret, project=project_)
+        project_dict = project(id=3)
+        self.command.client.projects.find_all.return_value = [project_dict]
+        self.command.client.projects.find_by_id.return_value = project_dict
+        webhook_ = webhook(project=project_dict)
+        data = {'data': [webhook_, webhook_]}
+        self.command.client.webhooks.get.side_effect = [data, webhook_]
+        self.command.handle(interactive=False, project=['Test Project'])
+        assert self.command.client.webhooks.delete.called
+        self.assertEqual(1, Webhook.objects.filter(project=project_).count())

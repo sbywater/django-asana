@@ -9,7 +9,8 @@ from django.core.urlresolvers import reverse
 from django.utils import six
 
 from djasana.connect import client_connect
-from djasana.models import Attachment, Project, Story, SyncToken, Tag, Task, Team, User, Workspace
+from djasana.models import (
+    Attachment, Project, Story, SyncToken, Tag, Task, Team, User, Webhook, Workspace)
 from djasana.settings import settings
 
 logger = logging.getLogger(__name__)
@@ -116,7 +117,7 @@ class Command(BaseCommand):
             try:
                 events = self.client.events.get({'resource': project_id, 'sync': sync_token.sync})
                 self._process_events(project_id, events, workspace, models)
-                self._set_webhook(project_id)
+                self._set_webhook(workspace, project_id)
                 return
             except InvalidTokenError as error:
                 sync_token.sync = error.sync
@@ -127,7 +128,7 @@ class Command(BaseCommand):
             except InvalidTokenError as error:
                 new_sync = error.sync
         self._sync_project_id(project_id, workspace, models)
-        self._set_webhook(project_id)
+        self._set_webhook(workspace, project_id)
         if new_sync:
             SyncToken.objects.create(project_id=project_id, sync=new_sync)
 
@@ -176,9 +177,23 @@ class Command(BaseCommand):
                     ', '.join(bad_list)))
         return project_ids
 
-    def _set_webhook(self, project_id):
-        """Sets a webhook if the setting is configured"""
+    def _set_webhook(self, workspace, project_id):
+        """Sets a webhook if the setting is configured and a webhook does not currently exist"""
         if self.commit and settings.DJASANA_WEBHOOK_URL:
+            webhooks = self.client.webhooks.get({
+                'workspace': workspace.remote_id, 'resource': project_id})
+            if webhooks:
+                # If there is exactly one, and it is active, we are good to go,
+                # else delete them and start a new one.
+                webhooks_ = Webhook.objects.filter(project_id=project_id)
+                if len(webhooks['data']) == webhooks_.count() == 1:
+                    webhook_dict = self.client.webhooks.get(webhooks['data'][0]['id'])
+                    logger.debug(webhook_dict['data'])
+                    if webhook_dict['data']['active']:
+                        return
+                for webhook in webhooks['data']:
+                    self.client.webhooks.delete(webhook['id'])
+                Webhook.objects.filter(id__in=webhooks_.values_list('id', flat=True)[1:]).delete()
             target = '{}{}'.format(
                 settings.DJASANA_WEBHOOK_URL,
                 reverse('djasana_webhook', kwargs={'remote_id': project_id}))

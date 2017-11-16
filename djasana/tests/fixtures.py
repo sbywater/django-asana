@@ -97,6 +97,17 @@ def user(**kwargs):
     return fake_response(**defaults)
 
 
+def webhook(**kwargs):
+    defaults = {
+        'id': 1,
+        'resource': project(),
+        'target': 'https://example.com/receive-webhook/7654',
+        'active': True,
+    }
+    defaults.update(kwargs)
+    return fake_response(**defaults)
+
+
 def workspace(**kwargs):
     defaults = {
         'id': 1,
