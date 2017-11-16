@@ -22,7 +22,6 @@ class WebhookView(JSONRequestResponseMixin, View):
     def post(self, request, *_, **kwargs):
         remote_id = kwargs.pop('remote_id')
         project = get_object_or_404(Project, remote_id=remote_id)
-        logger.debug(request.META)
         secret = request.META.get('X-Hook-Secret', request.META.get('HTTP_X_HOOK_SECRET'))
         if secret:
             return self._process_secret(request, secret, remote_id)
@@ -41,7 +40,6 @@ class WebhookView(JSONRequestResponseMixin, View):
         except Webhook.DoesNotExist:
             logger.debug('No matching webhook')
             return HttpResponseForbidden()
-        logger.debug(self.request.body)
         target_signature = sign_sha256_hmac(webhook.secret, self.request.body)
         if signature != target_signature:
             logger.debug('Signature mismatch')
