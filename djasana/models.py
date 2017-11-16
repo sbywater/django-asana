@@ -101,7 +101,7 @@ class Story(Hearted, BaseModel):
     target = models.BigIntegerField(db_index=True)
     source = models.CharField(choices=source_choices, max_length=16)
     text = models.CharField(max_length=1024)
-    type= models.CharField(choices=type_choices, max_length=16)
+    type = models.CharField(choices=type_choices, max_length=16)
 
     class Meta:
         verbose_name_plural = 'stories'
