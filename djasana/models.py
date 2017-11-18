@@ -1,5 +1,6 @@
 import logging
 
+from django.core.cache import cache
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
@@ -63,12 +64,20 @@ class Attachment(BaseModel):
 
 
 class Project(BaseModel):
+    colors = [
+        'dark-pink', 'dark-green', 'dark-blue', 'dark-red', 'dark-teal', 'dark-brown',
+        'dark-orange', 'dark-purple', 'dark-warm-gray', 'light-pink', 'light-green',
+        'light-blue', 'light-red', 'light-teal', 'light-yellow', 'light-orange',
+        'light-purple', 'light-warm-gray']
+    color_choices = ((choice, _(choice)) for choice in colors)
+
     layout_choices = (
+        ('board', _('board')),
         ('list', _('list')),
     )
 
     archived = models.BooleanField(default=False)
-    color = models.CharField(max_length=16, null=True, blank=True)
+    color = models.CharField(choices=color_choices, max_length=16, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     current_status = models.CharField(choices=STATUS_CHOICES, max_length=16, null=True, blank=True)
     due_date = models.DateField(null=True, blank=True)
@@ -218,3 +227,21 @@ class Webhook(models.Model):
 
 class Workspace(BaseModel):
     is_organization = models.BooleanField(default=True)
+
+
+def get_next_color():
+    """Returns the next color choice.
+
+    For assigning to new Asana projects. Cache where we are in the list.
+    """
+    color = cache.get('LAST_ASANA_COLOR')
+    if color:
+        index = Project.colors.index(color)
+        if index == len(Project.colors) - 1:
+            color = Project.colors[0]
+        else:
+            color = Project.colors[index + 1]
+    else:
+        color = Project.colors[0]
+    cache.set('LAST_ASANA_COLOR', color)
+    return color

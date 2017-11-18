@@ -1,9 +1,42 @@
 import unittest
 
+from django.conf import settings
+from django.core.cache import cache
+from django.test import SimpleTestCase, TestCase, override_settings
+from django.utils import timezone
 from djasana import models
 from djasana.tests import fixtures
-from django.test import TestCase, override_settings
-from django.utils import timezone
+
+
+LOCAL_MEMORY_CACHE = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+    }
+}
+
+
+class ProjectColorTestCase(SimpleTestCase):
+
+    @staticmethod
+    def cycle_colors():
+        colors = []
+        for dummy in range(len(models.Project.colors)):
+            colors.append(models.get_next_color())
+        return colors
+
+    @override_settings()
+    def test_get_next_color_cycles_no_cache(self):
+        cache.delete('LAST_ASANA_COLOR')
+        colors = self.cycle_colors()
+        self.assertSequenceEqual(models.Project.colors, colors)
+
+    @override_settings(CACHES=LOCAL_MEMORY_CACHE)
+    def test_cached_color_cycles(self):
+        cache.set('LAST_ASANA_COLOR', models.Project.colors[3])
+        colors = self.cycle_colors()
+        self.assertNotEqual(models.Project.colors, colors)
+        self.assertSetEqual(set(models.Project.colors), set(colors))
 
 
 class TaskModelTestCase(TestCase):
