@@ -20,6 +20,7 @@ class ProjectAdmin(admin.ModelAdmin):
     date_hierarchy = 'created_at'
     list_display = ('__str__', 'owner', 'archived', asana_link)
     list_filter = ('workspace', 'team', 'archived')
+    readonly_fields = ('workspace', 'team')
 
 
 class TaskForm(forms.ModelForm):
@@ -27,6 +28,7 @@ class TaskForm(forms.ModelForm):
     class Meta:
         fields = ('name', 'assignee', 'completed', 'completed_at',
                   'due_at', 'due_on', 'notes', 'projects')
+
 
 @admin.register(models.Task)
 class TaskAdmin(admin.ModelAdmin):
