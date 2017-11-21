@@ -43,6 +43,7 @@ class SyncFromAsanaTestCase(TestCase):
         self.command.client.projects.find_by_id.return_value = project()
         self.command.client.tasks.find_all.return_value = [task()]
         self.command.client.tasks.find_by_id.return_value = task()
+        self.command.client.tasks.subtasks.return_value = []
 
     def test_interactive(self):
         with unittest.mock.patch.object(Command, '_confirm') as mock_confirm:
@@ -226,3 +227,10 @@ class SyncFromAsanaTestCase(TestCase):
         self.command.handle(interactive=False, project=['Test Project'])
         self.assertEqual(2, self.command.client.webhooks.delete_by_id.call_count)
         self.assertEqual(1, Webhook.objects.filter(project=project_).count())
+
+    def test_subtasks_synced(self):
+        child_task = task(id=99, name='Subtask', parent=task())
+        self.command.client.tasks.find_by_id.side_effect = [task(), child_task]
+        self.command.client.tasks.subtasks.side_effect = [[child_task], []]
+        self.command.handle(interactive=False)
+        self.assertTrue(Task.objects.filter(remote_id=99, name='Subtask').exists())

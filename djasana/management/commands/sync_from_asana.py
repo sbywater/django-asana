@@ -294,7 +294,12 @@ class Command(BaseCommand):
                 remote_id=remote_id,
                 defaults=tag_dict)
 
-    def _sync_task(self, task, project, models):
+    def _sync_task(self, task, project, models, skip_subtasks=False):
+        """Sync this task and parent its subtasks
+
+        For parents and subtasks, this method is called recursively, so skip_subtasks True is
+        passed when syncing a parent task from a subtask.
+        """
         try:
             task_dict = self.client.tasks.find_by_id(task['id'])
         except ForbiddenError:
@@ -319,13 +324,19 @@ class Command(BaseCommand):
             task_dict.pop('workspace')
             parent = task_dict.pop('parent', None)
             if parent:
+                # If this is a task we already know about, assume it was just synced.
                 parent_id = parent['id']
-                self._sync_task(parent, project, models)
+                if not Task.objects.filter(remote_id=parent_id).exists():
+                    self._sync_task(parent, project, models, skip_subtasks=True)
                 task_dict['parent_id'] = parent_id
             followers_dict = task_dict.pop('followers')
             tags_dict = task_dict.pop('tags')
             task_ = Task.objects.update_or_create(
                 remote_id=remote_id, defaults=task_dict)[0]
+            if not skip_subtasks:
+                subtasks = self.client.tasks.subtasks(task['id'])
+                for subtask in subtasks:
+                    self._sync_task(subtask, project, models)
             follower_ids = [follower['id'] for follower in followers_dict]
             followers = User.objects.filter(id__in=follower_ids)
             task_.followers.set(followers)
