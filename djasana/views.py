@@ -117,8 +117,8 @@ class WebhookView(JSONRequestResponseMixin, View):
         try:
             story_dict = self.client.stories.find_by_id(story_id)
         except NotFoundError as error:
-            logger.error('This is probably a temporary connection issue; please resync')
-            raise error
+            logger.error('This is probably a temporary connection issue; please sync: %s', error)
+            return
         logger.debug(story_dict)
         story_dict.pop('id')
         if story_dict['created_by']:
