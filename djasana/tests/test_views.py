@@ -86,7 +86,6 @@ class WebhookViewTestCase(TestCase):
         response = views.WebhookView.as_view()(request, remote_id=3)
         self.assertEqual(403, response.status_code)
 
-    @unittest.skip('Bad signatures temporarily accepted')
     def test_bad_signature(self):
         """Asserts a malicious endpoint posts a wrong signature"""
         models.Webhook.objects.create(project=self.project, secret=self.secret)
