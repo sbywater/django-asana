@@ -89,7 +89,7 @@ class Project(BaseModel):
     owner = models.ForeignKey(
         'User', to_field='remote_id', related_name='projects_owned', null=True)
     public = models.BooleanField(default=False)
-    team = models.ForeignKey('Team', to_field='remote_id')
+    team = models.ForeignKey('Team', to_field='remote_id', null=True)
     workspace = models.ForeignKey('Workspace', to_field='remote_id')
 
     def asana_url(self):
