@@ -132,3 +132,5 @@ Limitations
 -----------
 
 django-asana does not support updating user photo data. It will read user photo data from Asana, if available, but only the path to the 128x128 version of the photo.
+
+If a project or task that has been synced to Django is deleted in Asana, it is not deleted in Django.
