@@ -156,6 +156,7 @@ class Task(Hearted, BaseModel):
 
     def due(self):
         return self.due_at or self.due_on
+    due.admin_order_field = 'due_on'
 
     def refresh_from_asana(self):
         client = client_connect()
