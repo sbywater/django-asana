@@ -1,17 +1,17 @@
 """The django management command sync_from_asana"""
 import logging
 
-from asana.error import NotFoundError, InvalidTokenError, ForbiddenError, InvalidRequestError
+from asana.error import NotFoundError, InvalidTokenError, ForbiddenError
 from django.apps import apps
 from django.db import IntegrityError, transaction
 from django.core.management.base import BaseCommand, CommandError
-from django.core.urlresolvers import reverse
 from django.utils import six
 
 from djasana.connect import client_connect
 from djasana.models import (
     Attachment, Project, Story, SyncToken, Tag, Task, Team, User, Webhook, Workspace)
 from djasana.settings import settings
+from djasana.utils import set_webhook
 
 logger = logging.getLogger(__name__)
 
@@ -193,18 +193,7 @@ class Command(BaseCommand):
                 for webhook in webhooks:
                     self.client.webhooks.delete_by_id(webhook['id'])
                 Webhook.objects.filter(id__in=webhooks_.values_list('id', flat=True)[1:]).delete()
-            target = '{}{}'.format(
-                settings.DJASANA_WEBHOOK_URL,
-                reverse('djasana_webhook', kwargs={'remote_id': project_id}))
-            logger.debug('Setting webhook at %s', target)
-            try:
-                self.client.webhooks.create({
-                    'resource': project_id,
-                    'target': target,
-                })
-            except InvalidRequestError as error:
-                logger.warning(error)
-                logger.warning('Target url: %s', target)
+            set_webhook(self.client, project_id)
 
     def _process_events(self, project_id, events, workspace, models):
         project = Project.objects.get(remote_id=project_id)
