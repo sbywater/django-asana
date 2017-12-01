@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib import admin
+from django.contrib.admin import widgets
 from django.utils.safestring import mark_safe
 
 from djasana import models
@@ -7,6 +8,17 @@ from djasana import models
 
 def asana_link(obj):
     return mark_safe('<a href="{}" target="_blank">View on Asana</a>'.format(obj.asana_url()))
+
+
+class ParentRawIdWidget(widgets.ForeignKeyRawIdWidget):
+
+    def url_parameters(self):
+        params = super().url_parameters()
+        object_ = self.attrs.get('object', None)
+        if object_:
+            # Filter parent choices by project
+            params['projects__id__exact'] = object_.projects.first().pk
+        return params
 
 
 @admin.register(models.Attachment)
@@ -27,14 +39,24 @@ class TaskForm(forms.ModelForm):
 
     class Meta:
         fields = ('name', 'assignee', 'completed', 'completed_at',
-                  'due_at', 'due_on', 'notes', 'projects')
+                  'due_at', 'due_on', 'parent', 'notes', 'projects')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk:
+            self.fields['parent'].widget = ParentRawIdWidget(
+                rel=self.instance._meta.get_field('parent').rel,
+                admin_site=admin.site,
+                # Pass the object to attrs
+                attrs={'object': self.instance}
+            )
 
 
 @admin.register(models.Task)
 class TaskAdmin(admin.ModelAdmin):
     date_hierarchy = 'created_at'
     form = TaskForm
-    list_display = ('__str__', 'completed', 'due', asana_link)
+    list_display = ('name', 'assignee', 'completed', 'due', asana_link)
     list_filter = ('completed', 'projects__workspace', 'projects__team', 'assignee', 'projects')
     raw_id_fields = ('assignee', 'parent')
     search_fields = ('remote_id', 'name')
