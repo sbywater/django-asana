@@ -157,6 +157,7 @@ class WebhookView(JSONRequestResponseMixin, View):
         task_dict.pop('workspace')
         if task_dict['parent']:
             self._sync_task_id(task_dict['parent']['id'], project)
+            task_dict['parent_id'] = task_dict.pop('parent')['id']
         followers_dict = task_dict.pop('followers')
         tags_dict = task_dict.pop('tags')
         task = Task.objects.update_or_create(
