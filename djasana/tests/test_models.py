@@ -1,6 +1,5 @@
 import unittest
 
-from django.conf import settings
 from django.core.cache import cache
 from django.test import SimpleTestCase, TestCase, override_settings
 from django.utils import timezone
