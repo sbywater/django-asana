@@ -100,6 +100,7 @@ class WebhookView(JSONRequestResponseMixin, View):
             project_dict['owner_id'] = owner['id']
         team = project_dict.pop('team')
         Team.objects.get_or_create(remote_id=team['id'], defaults={'name': team['name']})
+        project_dict['workspace_id'] = project_dict.pop('workspace')['id']
         project_dict['team_id'] = team['id']
         # Convert string to boolean:
         project_dict['archived'] = project_dict['archived'] == 'true'

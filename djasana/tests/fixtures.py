@@ -30,6 +30,7 @@ def project(**kwargs):
         'members': [user()],
         'modified_at': timezone.now(),
         'public': True,
+        'workspace': workspace(),
     }
     defaults.update(kwargs)
     return fake_response(**defaults)
