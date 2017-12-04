@@ -74,7 +74,9 @@ class WebhookView(JSONRequestResponseMixin, View):
         logger.debug('Processing events')
         self.client = client_connect()
         for event in events:
-            if event['type'] == 'project':
+            if event['action'] == 'sync_error':
+                logger.warning(event['message'])
+            elif event['type'] == 'project':
                 if event['action'] == 'removed':
                     Project.objects.get(remote_id=event['resource']['id']).delete()
                 else:
@@ -103,6 +105,7 @@ class WebhookView(JSONRequestResponseMixin, View):
         project_dict['archived'] = project_dict['archived'] == 'true'
         members_dict = project_dict.pop('members')
         followers_dict = project_dict.pop('followers')
+
         Project.objects.update_or_create(
             remote_id=project.remote_id, defaults=project_dict)
         member_ids = [member['id'] for member in members_dict]
