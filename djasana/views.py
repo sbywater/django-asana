@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
+from requests.packages.urllib3.exceptions import RequestError
 
 from .connect import client_connect
 from .models import Attachment, Project, Story, Tag, Task, Team, User, Webhook
@@ -119,7 +120,7 @@ class WebhookView(JSONRequestResponseMixin, View):
     def _sync_story_id(self, story_id):
         try:
             story_dict = self.client.stories.find_by_id(story_id)
-        except NotFoundError as error:
+        except (RequestError, NotFoundError) as error:
             logger.warning('This is probably a temporary connection issue; please sync: %s', error)
             return
         logger.debug(story_dict)

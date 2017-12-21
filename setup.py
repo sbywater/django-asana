@@ -87,6 +87,7 @@ def is_unwanted_file(filename):
             return True
     return False
 
+
 for dirpath, dirnames, filenames in os.walk(src_dir):
     # Ignore dirnames that start with '.'
     for i, dirname in enumerate(dirnames):
