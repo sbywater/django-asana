@@ -38,6 +38,16 @@ class WebhookViewTestCase(TestCase):
             ]
         }
 
+    def _get_mock_response(self, mock_client, data):
+        message = json.dumps(data)
+        signature = sign_sha256_hmac(self.secret, message)
+        mock_client.access_token().projects.find_by_id.return_value = project()
+        mock_client.access_token().tasks.find_by_id.return_value = task(parent=task())
+        request = self.factory.post(
+            '', content_type='application/json', data=message,
+            **{'X-Hook-Signature': signature})
+        return views.WebhookView.as_view()(request, remote_id=3)
+
     def test_webhook_created(self):
         """Asserts a webhook is established"""
         request = self.factory.post(
@@ -106,18 +116,13 @@ class WebhookViewTestCase(TestCase):
     @unittest.mock.patch('djasana.connect.Client')
     def test_valid_request(self, mock_client):
         models.Webhook.objects.create(project=self.project, secret=self.secret)
-        message = json.dumps(self.data)
-        signature = sign_sha256_hmac(self.secret, message)
         task_ = models.Task.objects.create(remote_id=1337, name='Old task Name')
         mock_client.access_token().tasks.find_by_id.return_value = task()
         mock_client.access_token().attachments.find_by_task.return_value = [attachment()]
         mock_client.access_token().attachments.find_by_id.return_value = attachment()
         mock_client.access_token().stories.find_by_task.return_value = [story()]
         mock_client.access_token().stories.find_by_id.return_value = story()
-        request = self.factory.post(
-            '', content_type='application/json', data=message,
-            **{'X-Hook-Signature': signature})
-        response = views.WebhookView.as_view()(request, remote_id=3)
+        response = self._get_mock_response(mock_client, self.data.copy())
         self.assertEqual(200, response.status_code)
         self.assertFalse('x-hook-secret' in response)
         task_.refresh_from_db()
@@ -142,6 +147,23 @@ class WebhookViewTestCase(TestCase):
         self.assertEqual(200, response.status_code)
 
     @unittest.mock.patch('djasana.connect.Client')
+    def _test_task_deleted(self, mock_client):
+        models.Webhook.objects.create(project=self.project, secret=self.secret)
+        task_ = models.Task.objects.create(remote_id=1337, name='Old task Name')
+        mock_client.access_token().tasks.find_by_id.return_value = task()
+        mock_client.access_token().attachments.find_by_task.return_value = [attachment()]
+        mock_client.access_token().attachments.find_by_id.return_value = attachment()
+        mock_client.access_token().stories.find_by_task.return_value = [story()]
+        mock_client.access_token().stories.find_by_id.return_value = story()
+        data = self.data.copy()
+        data['events'][0]['action'] = 'removed'
+        response = self._get_mock_response(mock_client, data)
+        self.assertEqual(200, response.status_code)
+        self.assertFalse('x-hook-secret' in response)
+        with self.assertRaises(models.Task.DoesNotExist):
+            models.Task.objects.get(pk=task_.pk)
+
+    @unittest.mock.patch('djasana.connect.Client')
     def test_project_updated(self, mock_client):
         models.Webhook.objects.create(project=self.project, secret=self.secret)
         data = {
@@ -156,18 +178,34 @@ class WebhookViewTestCase(TestCase):
                 },
             ]
         }
-        message = json.dumps(data)
-        signature = sign_sha256_hmac(self.secret, message)
-        mock_client.access_token().projects.find_by_id.return_value = project()
-        mock_client.access_token().tasks.find_by_id.return_value = task(parent=task())
-        request = self.factory.post(
-            '', content_type='application/json', data=message,
-            **{'X-Hook-Signature': signature})
-        response = views.WebhookView.as_view()(request, remote_id=3)
+        response = self._get_mock_response(mock_client, data)
         self.assertEqual(200, response.status_code)
         self.assertFalse('x-hook-secret' in response)
         self.project.refresh_from_db()
         self.assertEqual('Test Project', self.project.name)
+
+    @unittest.mock.patch('djasana.connect.Client')
+    def test_project_deleted(self, mock_client):
+        models.Webhook.objects.create(project=self.project, secret=self.secret)
+        data = {
+            'events': [
+                {
+                    'action': 'removed',
+                    'created_at': '2017-08-21T18:20:37.972Z',
+                    'parent': None,
+                    'resource': 3,
+                    'type': 'project',
+                    'user': 1123
+                },
+            ]
+        }
+        mock_client.access_token().projects.find_by_id.return_value = project()
+        mock_client.access_token().tasks.find_by_id.return_value = task(parent=task())
+        response = self._get_mock_response(mock_client, data)
+        self.assertEqual(200, response.status_code)
+        self.assertFalse('x-hook-secret' in response)
+        with self.assertRaises(models.Project.DoesNotExist):
+            models.Project.objects.get(pk=self.project.pk)
 
     @unittest.mock.patch('djasana.connect.Client')
     def test_new_story(self, mock_client):
@@ -184,14 +222,9 @@ class WebhookViewTestCase(TestCase):
                 },
             ]
         }
-        message = json.dumps(data)
-        signature = sign_sha256_hmac(self.secret, message)
         mock_client.access_token().projects.find_by_id.return_value = project()
         mock_client.access_token().stories.find_by_id.return_value = story()
-        request = self.factory.post(
-            '', content_type='application/json', data=message,
-            **{'X-Hook-Signature': signature})
-        response = views.WebhookView.as_view()(request, remote_id=3)
+        response = self._get_mock_response(mock_client, data)
         self.assertEqual(200, response.status_code)
         try:
             models.Story.objects.get(remote_id=12)

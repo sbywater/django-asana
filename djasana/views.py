@@ -79,12 +79,12 @@ class WebhookView(JSONRequestResponseMixin, View):
                 logger.warning(event['message'])
             elif event['type'] == 'project':
                 if event['action'] == 'removed':
-                    Project.objects.get(remote_id=event['resource']['id']).delete()
+                    Project.objects.get(remote_id=event['resource']).delete()
                 else:
                     self._sync_project(project)
             elif event['type'] == 'task':
                 if event['action'] == 'removed':
-                    Task.objects.get(remote_id=event['resource']['id']).delete()
+                    Task.objects.get(remote_id=event['resource']).delete()
                 else:
                     self._sync_task_id(event['resource'], project)
             elif event['type'] == 'story':
