@@ -7,7 +7,7 @@ from django.http import Http404
 from django.test import override_settings, TestCase, RequestFactory
 
 from djasana import models, views
-from djasana.tests.fixtures import attachment, project, story, task
+from djasana.tests.fixtures import attachment, project, story, task, user
 from djasana.utils import sign_sha256_hmac
 
 
@@ -42,7 +42,7 @@ class WebhookViewTestCase(TestCase):
         message = json.dumps(data)
         signature = sign_sha256_hmac(self.secret, message)
         mock_client.access_token().projects.find_by_id.return_value = project()
-        mock_client.access_token().tasks.find_by_id.return_value = task(parent=task())
+        mock_client.access_token().tasks.find_by_id.return_value = task()
         request = self.factory.post(
             '', content_type='application/json', data=message,
             **{'X-Hook-Signature': signature})
@@ -116,13 +116,25 @@ class WebhookViewTestCase(TestCase):
     @unittest.mock.patch('djasana.connect.Client')
     def test_valid_request(self, mock_client):
         models.Webhook.objects.create(project=self.project, secret=self.secret)
-        task_ = models.Task.objects.create(remote_id=1337, name='Old task Name')
-        mock_client.access_token().tasks.find_by_id.return_value = task()
+        task_ = models.Task.objects.create(remote_id=99, name='Old task Name')
+        mock_client.access_token().tasks.find_by_id.return_value = task(id=99)
         mock_client.access_token().attachments.find_by_task.return_value = [attachment()]
         mock_client.access_token().attachments.find_by_id.return_value = attachment()
         mock_client.access_token().stories.find_by_task.return_value = [story()]
         mock_client.access_token().stories.find_by_id.return_value = story()
-        response = self._get_mock_response(mock_client, self.data.copy())
+        data = {
+            'events': [
+                {
+                    'action': 'changed',
+                    'created_at': '2017-08-21T18:20:37.972Z',
+                    'parent': None,
+                    'resource': 99,
+                    'type': 'task',
+                    'user': 1123
+                },
+            ]
+        }
+        response = self._get_mock_response(mock_client, data)
         self.assertEqual(200, response.status_code)
         self.assertFalse('x-hook-secret' in response)
         task_.refresh_from_db()
@@ -147,7 +159,36 @@ class WebhookViewTestCase(TestCase):
         self.assertEqual(200, response.status_code)
 
     @unittest.mock.patch('djasana.connect.Client')
-    def _test_task_deleted(self, mock_client):
+    def test_task_with_parent(self, mock_client):
+        models.Webhook.objects.create(project=self.project, secret=self.secret)
+        parent_task = task(id=10, assignee=user())
+        child_task = task(id=11, assignee=user(), parent=parent_task.copy())
+        mock_client.access_token().tasks.find_all.return_value = [child_task]
+        mock_client.access_token().tasks.find_by_id.side_effect = [child_task, parent_task]
+        data = {
+            'events': [
+                {
+                    'action': 'added',
+                    'created_at': '2017-08-21T18:20:37.972Z',
+                    'parent': {'id': 10},
+                    'resource': 1337,
+                    'type': 'task',
+                    'user': 1123
+                },
+            ]
+        }
+        message = json.dumps(data)
+        signature = sign_sha256_hmac(self.secret, message)
+        request = self.factory.post(
+            '', content_type='application/json', data=message,
+            **{'X-Hook-Signature': signature})
+        views.WebhookView.as_view()(request, remote_id=3)
+        self.assertEqual(2, models.Task.objects.count())
+        parent, child = tuple(models.Task.objects.order_by('remote_id'))
+        self.assertEqual(parent, child.parent)
+
+    @unittest.mock.patch('djasana.connect.Client')
+    def test_task_deleted(self, mock_client):
         models.Webhook.objects.create(project=self.project, secret=self.secret)
         task_ = models.Task.objects.create(remote_id=1337, name='Old task Name')
         mock_client.access_token().tasks.find_by_id.return_value = task()
