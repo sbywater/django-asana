@@ -35,7 +35,9 @@ Installation
 
 This will also install `python-asana <https://github.com/Asana/python-asana>`_.
 
- $ pip install django-asana
+.. code:: bash
+
+    pip install django-asana
 
 Quick start
 ===========
@@ -78,11 +80,15 @@ Note: Due to option parsing limitations, it is less error prone to pass in the i
 
 Good example:
 
- $ python manage.py sync_from_asana -w 123456
+.. code:: bash
+
+    python manage.py sync_from_asana -w 123456
 
 Bad example:
 
- $ python manage.py sync_from_asana -w="Personal Projects"`
+.. code:: bash
+
+    python manage.py sync_from_asana -w="Personal Projects"`
 
  manage.py sync_from_asana: error: unrecognized arguments: Projects
 
@@ -133,4 +139,26 @@ Limitations
 
 django-asana does not support updating user photo data. It will read user photo data from Asana, if available, but only the path to the 128x128 version of the photo.
 
-If a project or task that has been synced to Django is deleted in Asana, it is not deleted in Django.
+If a project or task that has been synced to Django is deleted in Asana, it is not deleted in Django. This is forthcoming functionality.
+
+Running tests
+=============
+
+After installing django-asana and adding it to your project, run tests against it as you would any other app:
+
+.. code:: bash
+
+    manage.py test djasana
+
+You can also run the test suite with the test settings file:
+
+    .. code:: bash
+
+    manage.py test djasana --settings=djasana.test.settings
+
+You an also run tests independent of your project. Assuming you have already setup a virtual environment and installed requirements:
+
+.. code:: bash
+
+    cd tests
+    ./runtests.py

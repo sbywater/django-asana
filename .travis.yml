@@ -1,0 +1,14 @@
+language: python
+
+python:
+  - 3.5
+
+services: postgresql
+
+install:
+  - pip install -r requirements/default.txt
+
+before_script:
+
+script:
+- python manage.py test --settings=djasana.tests.settings
