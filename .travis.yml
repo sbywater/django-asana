@@ -11,4 +11,4 @@ install:
 before_script:
 
 script:
-- python manage.py test --settings=djasana.tests.settings
+- python ./manage.py test --settings=djasana.tests.settings
