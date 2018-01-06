@@ -87,10 +87,11 @@ class Project(BaseModel):
     modified_at = models.DateTimeField(auto_now=True)
     notes = models.TextField()
     owner = models.ForeignKey(
-        'User', to_field='remote_id', related_name='projects_owned', null=True)
+        'User', to_field='remote_id', related_name='projects_owned',
+        null=True, on_delete=models.SET_NULL)
     public = models.BooleanField(default=False)
-    team = models.ForeignKey('Team', to_field='remote_id', null=True)
-    workspace = models.ForeignKey('Workspace', to_field='remote_id')
+    team = models.ForeignKey('Team', to_field='remote_id', null=True, on_delete=models.SET_NULL)
+    workspace = models.ForeignKey('Workspace', to_field='remote_id', on_delete=models.CASCADE)
 
     def asana_url(self):
         return '{}{}/list'.format(ASANA_BASE_URL, self.remote_id)
@@ -106,7 +107,7 @@ class Story(Hearted, BaseModel):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(
-        'User', to_field='remote_id', on_delete=models.SET_NULL, null=True)
+        'User', to_field='remote_id', null=True, on_delete=models.SET_NULL)
     target = models.BigIntegerField(db_index=True)
     source = models.CharField(choices=source_choices, max_length=16)
     text = models.CharField(max_length=1024)
@@ -119,7 +120,7 @@ class Story(Hearted, BaseModel):
 class SyncToken(models.Model):
     """The most recent sync token received from Asana for the project"""
     sync = models.CharField(max_length=36)
-    project = models.ForeignKey('Project', to_field='remote_id')
+    project = models.ForeignKey('Project', to_field='remote_id', on_delete=models.CASCADE)
 
 
 class Tag(BaseModel):
@@ -128,7 +129,8 @@ class Tag(BaseModel):
 
 class Task(Hearted, BaseModel):
     assignee = models.ForeignKey(
-        'User', to_field='remote_id', related_name='assigned_tasks', null=True, blank=True)
+        'User', to_field='remote_id', related_name='assigned_tasks', null=True, blank=True,
+        on_delete=models.SET_NULL)
     assignee_status = models.CharField(choices=STATUS_CHOICES, max_length=16)
     completed = models.BooleanField(default=False)
     completed_at = models.DateTimeField(null=True, blank=True)
@@ -138,7 +140,8 @@ class Task(Hearted, BaseModel):
     followers = models.ManyToManyField('User', related_name='tasks_following')
     modified_at = models.DateTimeField(auto_now=True)
     notes = models.TextField(null=True, blank=True)
-    parent = models.ForeignKey('self', to_field='remote_id', null=True, blank=True)
+    parent = models.ForeignKey(
+        'self', to_field='remote_id', null=True, blank=True, on_delete=models.SET_NULL)
     projects = models.ManyToManyField('Project')
     tags = models.ManyToManyField('Tag')
 
@@ -223,7 +226,7 @@ class User(BaseModel):
 
 class Webhook(models.Model):
     secret = models.CharField(max_length=64, validators=[MinValueValidator(32)])
-    project = models.ForeignKey('Project', to_field='remote_id')
+    project = models.ForeignKey('Project', to_field='remote_id', on_delete=models.CASCADE)
 
 
 class Workspace(BaseModel):
