@@ -3,12 +3,14 @@ language: python
 python:
   - 3.5
 
-services: postgresql
+env:
+  -DJANGO=1.11.5
 
 install:
-  - pip install -r requirements/default.txt
+  - pip install -q Django==$DJANGO_VERSION
+  - python setup.py -q install
 
 before_script:
 
 script:
-- python ./manage.py test --settings=djasana.tests.settings
+- python manage.py test --settings=djasana.tests.settings
