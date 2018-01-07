@@ -11,6 +11,6 @@ if __name__ == '__main__':
     django.setup()
     from django.test.runner import DiscoverRunner
     test_runner = DiscoverRunner(verbosity=2)
-    failures = test_runner.run_tests(['cachalot.tests'])
+    failures = test_runner.run_tests(['djasana.tests'])
     if failures:
         sys.exit(failures)
