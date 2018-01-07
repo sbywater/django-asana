@@ -5,7 +5,7 @@ INSTALLED_APPS = [
 ]
 
 SECRET_KEY = 'not a secret'
-ROOT_URLCONF = 'urls'
+ROOT_URLCONF = 'djasana.urls'
 
 DATABASES = {
     'default': {
