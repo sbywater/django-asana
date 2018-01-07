@@ -17,7 +17,8 @@ install:
   - pip install .
 
 script:
-  - coverage run manage.py test
+  - python manage.py test
 
 after_success:
+  - coverage run manage.py test
   - coverage report
