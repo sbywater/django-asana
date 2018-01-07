@@ -149,16 +149,3 @@ After installing django-asana and adding it to your project, run tests against i
 .. code:: bash
 
     manage.py test djasana
-
-You can also run the test suite with the test settings file:
-
-    .. code:: bash
-
-    manage.py test djasana --settings=djasana.test.settings
-
-You an also run tests independent of your project. Assuming you have already setup a virtual environment and installed requirements:
-
-.. code:: bash
-
-    cd tests
-    ./runtests.py

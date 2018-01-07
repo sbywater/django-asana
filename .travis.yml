@@ -7,10 +7,8 @@ env:
   -DJANGO_VERSION=1.11.5
 
 install:
-  - pip install -q Django==$DJANGO_VERSION
-  - python setup.py -q install
-
-before_script:
+  - pip install Django==$DJANGO_VERSION
+  - python setup.py install
 
 script:
-- python manage.py test --settings=djasana.tests.settings
+- python runtests.py
