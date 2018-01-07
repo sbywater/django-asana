@@ -17,6 +17,7 @@ install:
   - pip install .
 
 script:
+  - cd django-asana
   - python manage.py test
 
 after_success:
