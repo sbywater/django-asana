@@ -5,16 +5,19 @@ python:
 
 env:
   global:
-    - DJANGO_SETTINGS_MODULE="my_site.settings"
+    - DJANGO_SETTINGS_MODULE="settings"
     - PYTHONPATH="/home/travis/build/sbywater/django-asana"
     - PIP_USE_MIRRORS=true
-    - BUILD_ON_TRAVIS=true
   matrix:
     -DJANGO_VERSION=1.11.5
 
 install:
   - pip install Django==$DJANGO_VERSION
+  - pip install coverage
   - pip install .
 
 script:
-  - python manage.py test
+  - coverage run manage.py test
+
+after_success:
+  - coverage report
