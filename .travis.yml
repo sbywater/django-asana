@@ -4,11 +4,17 @@ python:
   - 3.5
 
 env:
-  -DJANGO_VERSION=1.11.5
+  global:
+    - DJANGO_SETTINGS_MODULE="my_site.settings"
+    - PYTHONPATH="/home/travis/build/sbywater/django-asana"
+    - PIP_USE_MIRRORS=true
+    - BUILD_ON_TRAVIS=true
+  matrix:
+    -DJANGO_VERSION=1.11.5
 
 install:
   - pip install Django==$DJANGO_VERSION
-  - pip install -r requirements.txt
+  - pip install .
 
 script:
   - python manage.py test
