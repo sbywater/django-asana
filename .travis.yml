@@ -12,12 +12,12 @@ env:
     -DJANGO_VERSION=1.11.5
 
 install:
-  - pip install Django==$DJANGO_VERSION
-  - pip install coverage
+  - pip install -q Django==$DJANGO_VERSION
+  - pip install -q coverage
   - pip install .
 
 script:
   - coverage run manage.py test
 
 after_success:
-  - coverage report
+  - coveralls
