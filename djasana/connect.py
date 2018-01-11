@@ -9,8 +9,11 @@ class Client(asana.Client, object):
 
     def request(self, method, path, **options):
         logging.debug('%s, %s', method, path)
-        return super(Client, self).request(method, path, **options)
-
+        try:
+            return super(Client, self).request(method, path, **options)
+        except SystemExit:
+            # Try once more
+            return super(Client, self).request(method, path, **options)
 
 def client_connect():
     if getattr(settings, 'ASANA_ACCESS_TOKEN', None):
