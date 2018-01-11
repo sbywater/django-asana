@@ -291,7 +291,7 @@ class Command(BaseCommand):
         """
         try:
             task_dict = self.client.tasks.find_by_id(task['id'])
-        except ForbiddenError:
+        except (ForbiddenError, NotFoundError):
             try:
                 Task.objects.get(remote_id=task['id']).delete()
             except Task.DoesNotExist:

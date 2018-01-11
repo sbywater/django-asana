@@ -137,7 +137,7 @@ class WebhookView(JSONRequestResponseMixin, View):
     def _sync_task_id(self, task_id, project):
         try:
             task_dict = self.client.tasks.find_by_id(task_id)
-        except ForbiddenError:
+        except (ForbiddenError, NotFoundError):
             try:
                 Task.objects.get(remote_id=task_id).delete()
             except Task.DoesNotExist:
