@@ -268,8 +268,9 @@ class Command(BaseCommand):
                 remote_id=story_dict['created_by']['id'],
                 defaults={'name': story_dict['created_by']['name']})[0]
             story_dict['created_by'] = user
-        story_dict.pop('hearts', None)
         story_dict['target'] = story_dict['target']['id']
+        for key in ('hearts', 'liked', 'likes', 'num_likes'):
+            story_dict.pop(key, None)
         if 'text' in story_dict:
             story_dict['text'] = story_dict['text'][:1024]  # Truncate text if too long
         Story.objects.get_or_create(remote_id=remote_id, defaults=story_dict)
@@ -307,7 +308,9 @@ class Command(BaseCommand):
                     remote_id=task_dict['assignee']['id'],
                     defaults={'name': task_dict['assignee']['name']})[0]
                 task_dict['assignee'] = user
-            for key in ('hearts', 'liked', 'num_likes', 'memberships', 'projects', 'workspace'):
+            for key in (
+                    'hearts', 'liked', 'likes', 'num_likes',
+                    'memberships', 'projects', 'workspace'):
                 task_dict.pop(key, None)
             parent = task_dict.pop('parent', None)
             if parent:
