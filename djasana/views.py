@@ -152,10 +152,8 @@ class WebhookView(JSONRequestResponseMixin, View):
                 remote_id=task_dict['assignee']['id'],
                 defaults={'name': task_dict['assignee']['name']})[0]
             task_dict['assignee'] = user
-        task_dict.pop('hearts', None)
-        task_dict.pop('memberships')
-        task_dict.pop('projects')
-        task_dict.pop('workspace')
+        for key in ('hearts', 'liked', 'num_likes', 'membership', 'projects', 'workspace'):
+            task_dict.pop(key, None)
         if task_dict['parent']:
             self._sync_task_id(task_dict['parent']['id'], project)
             task_dict['parent_id'] = task_dict.pop('parent')['id']

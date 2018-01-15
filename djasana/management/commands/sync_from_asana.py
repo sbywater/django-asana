@@ -307,10 +307,8 @@ class Command(BaseCommand):
                     remote_id=task_dict['assignee']['id'],
                     defaults={'name': task_dict['assignee']['name']})[0]
                 task_dict['assignee'] = user
-            task_dict.pop('hearts', None)
-            task_dict.pop('memberships')
-            task_dict.pop('projects')
-            task_dict.pop('workspace')
+            for key in ('hearts', 'liked', 'num_likes', 'membership', 'projects', 'workspace'):
+                task_dict.pop(key, None)
             parent = task_dict.pop('parent', None)
             if parent:
                 # If this is a task we already know about, assume it was just synced.
