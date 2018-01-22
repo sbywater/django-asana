@@ -130,7 +130,8 @@ class WebhookView(JSONRequestResponseMixin, View):
                 remote_id=story_dict['created_by']['id'],
                 defaults={'name': story_dict['created_by']['name']})[0]
             story_dict['created_by'] = user
-        story_dict['target'] = story_dict['target']['id']
+        if story_dict['target']:
+            story_dict['target'] = story_dict['target']['id']
         for key in ('hearts', 'liked', 'likes', 'num_likes'):
             story_dict.pop(key, None)
         if 'text' in story_dict:
