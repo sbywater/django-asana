@@ -70,7 +70,7 @@ class TaskModelTestCase(TestCase):
     @unittest.mock.patch('djasana.models.client_connect')
     def test_refresh_from_asana(self, mock_connect):
         mock_client = mock_connect.return_value
-        task = fixtures.task()
+        task = fixtures.task(id=4)
         mock_client.tasks.find_by_id.return_value = task
         self.task.refresh_from_asana()
         self.assertTrue(mock_client.tasks.find_by_id.called)
