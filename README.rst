@@ -8,6 +8,8 @@ django-asana
     :target: https://travis-ci.org/sbywater/django-asana
 .. image:: https://coveralls.io/repos/github/sbywater/django-asana/badge.svg
     :target: https://coveralls.io/github/sbywater/django-asana
+.. image:: https://badge.fury.io/py/django-asana.svg
+    :target: https://badge.fury.io/py/django-asana
 
 django-asana leverages python-asana, the official python client library for Asana. To this, django-asana adds
 django models and commands for importing data from Asana into these models.
