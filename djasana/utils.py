@@ -2,9 +2,13 @@ import hashlib
 import hmac
 import logging
 
+import django
 from asana.error import InvalidRequestError
 from django.conf import settings
-from django.core.urlresolvers import reverse
+if django.VERSION >= (2, 0, 0):
+    from django.urls import reverse
+else:
+    from django.core.urlresolvers import reverse
 
 logger = logging.getLogger(__name__)
 

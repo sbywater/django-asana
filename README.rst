@@ -30,9 +30,9 @@ Requirements
 ============
 
 #. Python 3+
-#. `Django 1.8+ <https://www.djangoproject.com/>`_
+#. `Django 1.8 - 2.0 <https://www.djangoproject.com/>`_
 #. `python-asana 0.6.2+ <https://github.com/Asana/python-asana>`_
-#. `django-braces 1.10+ <https://django-braces.readthedocs.io/en/latest/index.html>`_ for JsonRequestResponseMixin
+#. `django-braces 1.11+ <https://django-braces.readthedocs.io/en/latest/index.html>`_ for JsonRequestResponseMixin
 
 
 Installation
