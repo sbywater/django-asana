@@ -2,6 +2,7 @@ language: python
 
 python:
   - 3.5
+  - 3.6
 
 env:
   global:
@@ -9,10 +10,14 @@ env:
     - PYTHONPATH="/home/travis/build/sbywater/django-asana"
     - PIP_USE_MIRRORS=true
   matrix:
-    -DJANGO_VERSION=1.11.5
+    - DJANGO_VERSION="django>=1.8,<1.9"
+    - DJANGO_VERSION="django>=1.9,<1.10"
+    - DJANGO_VERSION="django>=1.10,<1.11"
+    - DJANGO_VERSION="django>=1.11,<1.12"
+    - DJANGO_VERSION="django>=2.0,<2.1"
 
 install:
-  - pip install -q Django==$DJANGO_VERSION
+  - pip install $DJANGO_VERSION
   - pip install -r requirements.txt
   - pip install .
 
