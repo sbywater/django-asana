@@ -1,4 +1,4 @@
-import unittest
+from unittest.mock import Mock, MagicMock, patch
 
 from django.core.management import call_command
 from django.core.management.base import CommandError
@@ -12,7 +12,7 @@ from djasana.tests.fixtures import (
 
 
 def mock_connect():
-    return unittest.mock.Mock()
+    return Mock()
 
 
 @override_settings(ASANA_ACCESS_TOKEN='foo')
@@ -36,7 +36,7 @@ class SyncFromAsanaTestCase(TestCase):
 
     def setUp(self):
         self.command = Command()
-        self.command.client = unittest.mock.MagicMock()
+        self.command.client = MagicMock()
         self.command.client.workspaces.find_all.return_value = [workspace()]
         self.command.client.workspaces.find_by_id.return_value = workspace()
         self.command.client.projects.find_all.return_value = [project()]
@@ -46,7 +46,7 @@ class SyncFromAsanaTestCase(TestCase):
         self.command.client.tasks.subtasks.return_value = []
 
     def test_interactive(self):
-        with unittest.mock.patch.object(Command, '_confirm') as mock_confirm:
+        with patch.object(Command, '_confirm') as mock_confirm:
             mock_confirm.return_value = False
             self.command.handle(interactive=True)
             self.assertEqual(1, mock_confirm.call_count)

@@ -1,4 +1,4 @@
-import unittest
+from unittest.mock import patch
 
 from django.core.cache import cache
 from django.test import SimpleTestCase, TestCase, override_settings
@@ -67,7 +67,7 @@ class TaskModelTestCase(TestCase):
         self.assertEqual(self.now, self.task.due())
 
     @override_settings(ASANA_ACCESS_TOKEN='foo')
-    @unittest.mock.patch('djasana.models.client_connect')
+    @patch('djasana.models.client_connect')
     def test_refresh_from_asana(self, mock_connect):
         mock_client = mock_connect.return_value
         task = fixtures.task(id=4)
@@ -78,7 +78,7 @@ class TaskModelTestCase(TestCase):
         self.assertEqual(task['name'], self.task.name)
 
     @override_settings(ASANA_ACCESS_TOKEN='foo')
-    @unittest.mock.patch('djasana.models.client_connect')
+    @patch('djasana.models.client_connect')
     def test_add_comment(self, mock_connect):
         mock_client = mock_connect.return_value
         mock_client.tasks.add_comment.return_value = fixtures.story()
@@ -93,7 +93,7 @@ class UserModelTestCase(TestCase):
         cls.user = models.User.objects.create(remote_id=6, name='New User')
 
     @override_settings(ASANA_ACCESS_TOKEN='foo')
-    @unittest.mock.patch('djasana.models.client_connect')
+    @patch('djasana.models.client_connect')
     def test_refresh_from_asana(self, mock_connect):
         mock_client = mock_connect.return_value
         user = fixtures.user()

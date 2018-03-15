@@ -1,10 +1,14 @@
 import json
-import unittest
+from unittest.mock import patch
 
+import django
 from asana.error import ForbiddenError
-from django.core.urlresolvers import reverse
 from django.http import Http404
 from django.test import override_settings, TestCase, RequestFactory
+if django.VERSION >= (2, 0, 0):
+    from django.urls import reverse
+else:
+    from django.core.urlresolvers import reverse
 
 from djasana import models, views
 from djasana.tests.fixtures import attachment, project, story, task, user
@@ -113,7 +117,7 @@ class WebhookViewTestCase(TestCase):
         with self.assertRaises(Http404):
             views.WebhookView.as_view()(request, remote_id=99)
 
-    @unittest.mock.patch('djasana.connect.Client')
+    @patch('djasana.connect.Client')
     def test_valid_request(self, mock_client):
         models.Webhook.objects.create(project=self.project, secret=self.secret)
         task_ = models.Task.objects.create(remote_id=99, name='Old task Name')
@@ -148,7 +152,7 @@ class WebhookViewTestCase(TestCase):
         except models.Story.DoesNotExist:
             self.fail('Story not created')
 
-    @unittest.mock.patch('djasana.connect.Client')
+    @patch('djasana.connect.Client')
     def test_bad_task_id(self, mock_client):
         """Asserts an event is received for a task that is now deleted in Asana"""
         mock_client.access_token().tasks.find_by_id.side_effect = ForbiddenError
@@ -158,7 +162,7 @@ class WebhookViewTestCase(TestCase):
         response = views.WebhookView.as_view()(request, remote_id=3)
         self.assertEqual(200, response.status_code)
 
-    @unittest.mock.patch('djasana.connect.Client')
+    @patch('djasana.connect.Client')
     def test_task_with_parent(self, mock_client):
         models.Webhook.objects.create(project=self.project, secret=self.secret)
         parent_task = task(id=10, assignee=user())
@@ -187,7 +191,7 @@ class WebhookViewTestCase(TestCase):
         parent, child = tuple(models.Task.objects.order_by('remote_id'))
         self.assertEqual(parent, child.parent)
 
-    @unittest.mock.patch('djasana.connect.Client')
+    @patch('djasana.connect.Client')
     def test_task_deleted(self, mock_client):
         models.Webhook.objects.create(project=self.project, secret=self.secret)
         task_ = models.Task.objects.create(remote_id=1337, name='Old task Name')
@@ -204,7 +208,7 @@ class WebhookViewTestCase(TestCase):
         with self.assertRaises(models.Task.DoesNotExist):
             models.Task.objects.get(pk=task_.pk)
 
-    @unittest.mock.patch('djasana.connect.Client')
+    @patch('djasana.connect.Client')
     def test_project_updated(self, mock_client):
         models.Webhook.objects.create(project=self.project, secret=self.secret)
         data = {
@@ -225,7 +229,7 @@ class WebhookViewTestCase(TestCase):
         self.project.refresh_from_db()
         self.assertEqual('Test Project', self.project.name)
 
-    @unittest.mock.patch('djasana.connect.Client')
+    @patch('djasana.connect.Client')
     def test_project_deleted(self, mock_client):
         models.Webhook.objects.create(project=self.project, secret=self.secret)
         data = {
@@ -248,7 +252,7 @@ class WebhookViewTestCase(TestCase):
         with self.assertRaises(models.Project.DoesNotExist):
             models.Project.objects.get(pk=self.project.pk)
 
-    @unittest.mock.patch('djasana.connect.Client')
+    @patch('djasana.connect.Client')
     def test_new_story(self, mock_client):
         models.Webhook.objects.create(project=self.project, secret=self.secret)
         data = {
