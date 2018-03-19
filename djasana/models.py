@@ -209,7 +209,7 @@ class Team(BaseModel):
 
 
 class User(BaseModel):
-    email = models.EmailField(_('email address'), blank=True)
+    email = models.EmailField(_('email address'), null=True, blank=True)
     photo = models.CharField(_('photo'), max_length=255, null=True)
     workspaces = models.ManyToManyField('Workspace')
 
