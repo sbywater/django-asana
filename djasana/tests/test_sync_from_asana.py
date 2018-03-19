@@ -31,6 +31,7 @@ class CommandArgumentsTestCase(TestCase):
 
 @override_settings(ASANA_ACCESS_TOKEN='foo')
 @override_settings(ASANA_WORKSPACE=None)
+@override_settings(ROOT_URLCONF='djasana.urls')
 class SyncFromAsanaTestCase(TestCase):
     """Tests that use mock returns from Asana"""
 
@@ -64,6 +65,7 @@ class SyncFromAsanaTestCase(TestCase):
         self.assertEqual(1, Attachment.objects.count())
         self.assertEqual(1, Story.objects.count())
 
+    @override_settings(ASANA_WORKSPACE=None)
     def test_good_workspace(self):
         self.command.handle(interactive=False, workspace=['Test Workspace'])
         self.assertEqual(1, Workspace.objects.count())
@@ -185,8 +187,8 @@ class SyncFromAsanaTestCase(TestCase):
         self.command.client.users.find_by_id.return_value = null_user
         try:
             self.command._sync_user(user=null_user, workspace=None)
-        except IntegrityError:
-            self.fail('IntegrityError not caught')
+        except IntegrityError as error:
+            self.fail(error)
 
     def test_long_story(self):
         """Asserts a story over 1024 characters long is truncated"""

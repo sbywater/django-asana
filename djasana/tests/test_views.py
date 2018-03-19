@@ -17,6 +17,7 @@ from djasana.utils import sign_sha256_hmac
 
 @override_settings(ASANA_ACCESS_TOKEN='foo')
 @override_settings(ASANA_WORKSPACE=None)
+@override_settings(ROOT_URLCONF='djasana.urls')
 class WebhookViewTestCase(TestCase):
 
     @classmethod
