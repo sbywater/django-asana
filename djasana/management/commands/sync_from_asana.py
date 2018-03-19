@@ -10,7 +10,7 @@ from django.utils import six
 from djasana.connect import client_connect
 from djasana.models import (
     Attachment, Project, Story, SyncToken, Tag, Task, Team, User, Webhook, Workspace)
-from djasana.settings import settings
+from djasana.settings import ASANA_WORKSPACE, DJASANA_WEBHOOK_URL
 from djasana.utils import set_webhook
 
 logger = logging.getLogger(__name__)
@@ -74,8 +74,8 @@ class Command(BaseCommand):
             self.stdout.write(message)
             logger.info(message)
         workspaces = options.get('workspace') or []
-        if settings.ASANA_WORKSPACE:
-            workspaces.append(settings.ASANA_WORKSPACE)
+        if ASANA_WORKSPACE:
+            workspaces.append(ASANA_WORKSPACE)
         # Allow client to be mocked:
         self.client = self.client or self.get_client()
         workspace_ids = self._get_workspace_ids(workspaces)
@@ -180,7 +180,7 @@ class Command(BaseCommand):
 
     def _set_webhook(self, workspace, project_id):
         """Sets a webhook if the setting is configured and a webhook does not currently exist"""
-        if self.commit and settings.DJASANA_WEBHOOK_URL:
+        if self.commit and DJASANA_WEBHOOK_URL:
             webhooks = [webhook for webhook in self.client.webhooks.get_all({
                 'workspace': workspace.remote_id, 'resource': project_id})]
             if webhooks:

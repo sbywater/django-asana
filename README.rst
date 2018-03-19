@@ -70,9 +70,10 @@ With that value, your webhook urls will be something like this: https://mysite.c
 
 #. To enable webhooks so Asana can keep your data in sync, add the following to your base urls.py
 
-    urlpatterns += [
-        url(settings.DJASANA_WEBHOOK_PATTERN, include('djasana.urls')),
-    ]
+.. code:: python
+
+    if hasattr(settings, 'DJASANA_WEBHOOK_URL') and settings.DJASANA_WEBHOOK_URL:
+        urlpatterns += [url(settings.DJASANA_WEBHOOK_PATTERN, include('djasana.urls'))]
 
 #. Run `python manage.py migrate` to create the Asana models.
 #. Run the command to synchronize data from Asana to Django:
