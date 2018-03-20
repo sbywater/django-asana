@@ -3,7 +3,6 @@ import logging
 
 from asana.error import NotFoundError, InvalidTokenError, ForbiddenError
 from django.apps import apps
-from django.db import IntegrityError, transaction
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import six
 
@@ -46,6 +45,10 @@ class Command(BaseCommand):
             "-m", "--model", action="append", default=[],
             help='Sync only the named model (can be used multiple times). '
                  'By default all models will be updated from Asana.'
+        )
+        parser.add_argument(
+            "-mx", "--model-exclude", action="append", default=[],
+            help='Exclude the named model (can be used multiple times).'
         )
         parser.add_argument(
             "-a", "--archive", action="store_false", dest='archive',
@@ -93,6 +96,7 @@ class Command(BaseCommand):
     def _get_models(options):
         """Returns a list of models to sync"""
         models = options.get('model')
+        models_exclude = options.get('model_exclude')
         app_models = list(apps.get_app_config('djasana').get_models())
         if models:
             good_models = []
@@ -107,6 +111,10 @@ class Command(BaseCommand):
             models = good_models
         else:
             models = app_models
+        if models_exclude:
+            models = [model
+                      for model in models
+                      if model.__name__.lower() not in [m.lower() for m in models_exclude]]
         return models
 
     def _check_sync_project_id(self, project_id, workspace, models):
@@ -153,7 +161,8 @@ class Command(BaseCommand):
             else:
                 raise CommandError('Specified workspaces are not valid: {}'.format(
                     ', '.join(bad_list)))
-        return workspace_ids
+        # Return newer projects first so they get synced earlier
+        return sorted(workspace_ids, reverse=True)
 
     def _get_project_ids(self, projects, workspace_id):
         project_ids = []
@@ -176,7 +185,8 @@ class Command(BaseCommand):
             else:
                 raise CommandError('Specified projects are not valid: {}'.format(
                     ', '.join(bad_list)))
-        return project_ids
+        # Return newer projects first so they get synced earlier
+        return sorted(project_ids, reverse=True)
 
     def _set_webhook(self, workspace, project_id):
         """Sets a webhook if the setting is configured and a webhook does not currently exist"""
@@ -197,21 +207,34 @@ class Command(BaseCommand):
 
     def _process_events(self, project_id, events, workspace, models):
         project = Project.objects.get(remote_id=project_id)
+        ignored_tasks = 0
         for event in events['data']:
             if event['type'] == 'project':
-                if event['action'] == 'removed':
-                    Project.objects.get(remote_id=event['resource']['id']).delete()
+                if Project in models:
+                    if event['action'] == 'removed':
+                        Project.objects.get(remote_id=event['resource']['id']).delete()
+                    else:
+                        self._sync_project_id(project_id, workspace, models)
                 else:
-                    self._sync_project_id(project_id, workspace, models)
+                    ignored_tasks += 1
             elif event['type'] == 'task':
-                if event['action'] == 'removed':
-                    Task.objects.get(remote_id=event['resource']['id']).delete()
+                if Task in models:
+                    if event['action'] == 'removed':
+                        Task.objects.get(remote_id=event['resource']['id']).delete()
+                    else:
+                        self._sync_task(event['resource'], project, models)
                 else:
-                    self._sync_task(event['resource'], project, models)
+                    ignored_tasks += 1
             elif event['type'] == 'story':
-                self._sync_story(event['resource'])
+                if Story in models:
+                    self._sync_story(event['resource'])
+                else:
+                    ignored_tasks += 1
+        tasks_done = len(events['data']) - ignored_tasks
         message = 'Successfully synced {0} events for project {1}.'.format(
-            len(events['data']), project.name)
+            tasks_done, project.name)
+        if ignored_tasks:
+            message += ' {0} events ignored for excluded models.'.format(ignored_tasks)
         self.stdout.write(self.style.SUCCESS(message))
         logger.info(message)
 
@@ -245,7 +268,7 @@ class Command(BaseCommand):
         else:
             project = None
 
-        if not project_dict['archived'] or self.process_archived:
+        if Task in models and not project_dict['archived'] or self.process_archived:
             for task in self.client.tasks.find_all({'project': project_id}):
                 self._sync_task(task, project, models)
 
@@ -331,11 +354,12 @@ class Command(BaseCommand):
             follower_ids = [follower['id'] for follower in followers_dict]
             followers = User.objects.filter(id__in=follower_ids)
             task_.followers.set(followers)
-            for tag_ in tags_dict:
-                tag = Tag.objects.get_or_create(
-                    remote_id=tag_['id'],
-                    defaults={'name': tag_['name']})[0]
-                task_.tags.add(tag)
+            if Tag in models:
+                for tag_ in tags_dict:
+                    tag = Tag.objects.get_or_create(
+                        remote_id=tag_['id'],
+                        defaults={'name': tag_['name']})[0]
+                    task_.tags.add(tag)
             task_.projects.add(project)
         if Attachment in models and self.commit:
             for attachment in self.client.attachments.find_by_task(task['id']):

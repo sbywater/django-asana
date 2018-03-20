@@ -49,18 +49,24 @@ This will also install `python-asana <https://github.com/Asana/python-asana>`_.
 Quick start
 ===========
 
-#. Configure your django settings file. Asana allows two different connection methods. For Oauth2, provide values for the following settings: ASANA_CLIENT_ID, ASANA_CLIENT_SECRET, and ASANA_OAUTH_REDIRECT_URI. To use an access token, provide a value for ASANA_ACCESS_TOKEN. Then add "django-asana" to your INSTALLED_APPS setting like this::
+1. Configure your django settings file. Asana allows two different connection methods. For Oauth2, provide values for the following settings: ASANA_CLIENT_ID, ASANA_CLIENT_SECRET, and ASANA_OAUTH_REDIRECT_URI. To use an access token, provide a value for ASANA_ACCESS_TOKEN. Then add "django-asana" to your INSTALLED_APPS setting.
+
+.. code:: python
 
     INSTALLED_APPS = [
         ...
         'djasana',
     ]
 
-If you have multiple Asana workspaces but only ever need to sync one with Django, specify it:
+If you have multiple Asana workspaces but only ever need to sync one with Django, specify it.
+
+.. code:: python
 
     ASANA_WORKSPACE = 'This Workspace'
 
 In the production version of your settings, set a base url and pattern for the webhooks. It must be reachable by Asana and secured by SSL. In your dev environment it is fine to leave this setting out; your project will be synced whenever you run the management command.
+
+.. code:: python
 
     DJASANA_WEBHOOK_URL = 'https://mysite.com'
     DJASANA_WEBHOOK_PATTERN = r'^djasana/webhooks/'
@@ -68,23 +74,62 @@ In the production version of your settings, set a base url and pattern for the w
 With that value, your webhook urls will be something like this: https://mysite.com/djasana/webhooks/project/1337/
 
 
-#. To enable webhooks so Asana can keep your data in sync, add the following to your base urls.py
+2. To enable webhooks so Asana can keep your data in sync, add the following to your base urls.py
 
 .. code:: python
 
-    if hasattr(settings, 'DJASANA_WEBHOOK_URL') and settings.DJASANA_WEBHOOK_URL:
-        urlpatterns += [url(settings.DJASANA_WEBHOOK_PATTERN, include('djasana.urls'))]
+    urlpatterns += [
+        url(settings.DJASANA_WEBHOOK_PATTERN, include('djasana.urls')),
+    ]
 
-#. Run `python manage.py migrate` to create the Asana models.
-#. Run the command to synchronize data from Asana to Django:
+3. Run `python manage.py migrate` to create the Asana models.
+4. Run the command to synchronize data from Asana to Django:
 
- $ python manage.py sync_from_asasa
+.. code:: python
+
+    python manage.py sync_from_asasa
 
 
 Command line options
 ====================
 
-Note: Due to option parsing limitations, it is less error prone to pass in the id of the object rather than the name.
+========================    ======================================================
+``--workspace, -w``         Restrict work to the specified Asana workspace, by id or name. Can be
+                            used multiple times. By default, all workspaces will used.
+
+                            Ex: `python manage.py sync_from_asana -w 1234567890`
+
+``--project, -p``           Restrict work to the specified Asana project, by id or name. Can be
+                            used multiple times. By default, all projects will used. If you specify
+                            a project and have multiple workspaces and have not set
+                            ASANA_WORKSPACE, also specify the workspace.
+
+                            Ex: `python manage.py sync_from_asana -p MyProject.com`
+                            `python manage.py sync_from_asana -w 1234567890 -p MyProject.com`
+
+``--model, -m``             Restrict work to the named model. Can be used
+                            multiple times. By default, all models will used.
+                            Capitalization is ignored.
+
+                            Ex: `python manage.py sync_from_asana -m Workspace -m Project -m Task`
+
+``--model-exclude, -mx``    Exclude the named model. Can be used
+                            multiple times. Capitalization is ignored.
+
+                            Ex: `python manage.py sync_from_asana -mx Story -mx Attachment -mx Tag`
+
+``--archive, -a``           Sync task, attachments, etc. of projects even if those projects are
+                            archived. The default behavior is to skip archived projects, saving a
+                            lot of processing for larger data sets.
+
+``--nocommit``              Connects to Asana and outputs work in debug log but does not commit any
+                            database changes.
+
+``--noinput``               Skip the warning that running this process will make data changes.
+========================    ======================================================
+
+Note that due to option parsing limitations, it is less error prone to pass in the id of the object
+rather than the name.
 
 Good example:
 
@@ -96,39 +141,25 @@ Bad example:
 
 .. code:: bash
 
-    python manage.py sync_from_asana -w="Personal Projects"`
+    python manage.py sync_from_asana -w="Personal Projects"
 
- manage.py sync_from_asana: error: unrecognized arguments: Projects
+    manage.py sync_from_asana: error: unrecognized arguments: Projects
 
-===================     ======================================================
-``--workspace, -w``     Restrict work to the specified Asana workspace, by id or name. Can be used
-                        multiple times. By default, all workspaces will used.
+Further note that when including a model, the models it depends on will also be included. You cannot sync tasks without syncing the projects those tasks belong to.
 
-                        Ex: python manage.py sync_from_asana -w 1234567890
+The dependency chain for models it this, from the bottom up:
 
-``--project, -p``       Restrict work to the specified Asana project, by id or name. Can be used
-                        multiple times. By default, all projects will used. If you specify a project
-                        and have multiple workspaces and have not set ASANA_WORKSPACE, also specify the workspace.
+    | Story --> Task --> Project --> Workspace
+    | Tags --> Task
+    | Attachment --> Task
+    | Project --> Team
+    | Task --> User --> Workspace
 
-                        Ex: python manage.py sync_from_asana -p MyProject.com
-                        python manage.py sync_from_asana -w 1234567890 -p MyProject.com
+Effectively, this means you can explicitly include models from the top down or exclude models from the bottom up:
 
-``--model, -m``         Restrict work to the named model. Can be used
-                        multiple times. By default, all models will used.
-                        Capitalization is ignored.
+.. code:: bash
 
-                        Ex: python manage.py sync_from_asana -m Workspace -m Project -m Task
-
-``--archive, -a``       Sync task, attachments, etc. of projects even if those projects are
-                        archived. The default behavior is to skip these, saving a lot of processing
-                        for larger data sets.
-
-``--nocommit``          Connects to Asana and outputs work in debug log but does not commit any
-                        database changes.
-
-``--noinput``           Skip the warning that running this process will make data changes.
-===================     ======================================================
-
+    python manage.py sync_from_asana -w 123456
 
 
 See also `python manage.py sync_from_asana --help`

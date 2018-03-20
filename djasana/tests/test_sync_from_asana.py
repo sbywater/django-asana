@@ -15,8 +15,7 @@ def mock_connect():
     return Mock()
 
 
-@override_settings(ASANA_ACCESS_TOKEN='foo')
-@override_settings(ASANA_WORKSPACE=None)
+@override_settings(ASANA_ACCESS_TOKEN='foo', ASANA_WORKSPACE=None)
 class CommandArgumentsTestCase(TestCase):
     """Tests of command argument handling that do not call Asana
     (adds coverage to add_arguments)
@@ -28,10 +27,30 @@ class CommandArgumentsTestCase(TestCase):
         with self.assertRaises(CommandError):
             call_command('sync_from_asana', *args, **options)
 
+    @patch('djasana.management.commands.sync_from_asana.Command._sync_workspace_id')
+    @patch('djasana.management.commands.sync_from_asana.Command._get_workspace_ids')
+    def test_models(self, mock_workspace_ids, mock_sync):
+        mock_workspace_ids.return_value = [1]
+        args = ['--noinput']
+        options = {'model': ['Workspace']}
+        call_command('sync_from_asana', *args, **options)
+        self.assertEqual(1, len(mock_sync.call_args[0][2]))
+        self.assertTrue(Workspace in mock_sync.call_args[0][2])
 
-@override_settings(ASANA_ACCESS_TOKEN='foo')
-@override_settings(ASANA_WORKSPACE=None)
-@override_settings(ROOT_URLCONF='djasana.urls')
+    @patch('djasana.management.commands.sync_from_asana.Command._sync_workspace_id')
+    @patch('djasana.management.commands.sync_from_asana.Command._get_workspace_ids')
+    def test_models_exclude(self, mock_workspace_ids, mock_sync):
+        mock_workspace_ids.return_value = [1]
+        args = ['--noinput']
+        models_to_exclude = ['Story', 'Tags', 'Attachment']
+        options = {'model_exclude': models_to_exclude}
+        call_command('sync_from_asana', *args, **options)
+        self.assertTrue(Workspace in mock_sync.call_args[0][2])
+        for model in models_to_exclude:
+            self.assertFalse(model in mock_sync.call_args[0][2])
+
+
+@override_settings(ASANA_ACCESS_TOKEN='foo', ASANA_WORKSPACE=None, ROOT_URLCONF='djasana.urls')
 class SyncFromAsanaTestCase(TestCase):
     """Tests that use mock returns from Asana"""
 
@@ -65,7 +84,6 @@ class SyncFromAsanaTestCase(TestCase):
         self.assertEqual(1, Attachment.objects.count())
         self.assertEqual(1, Story.objects.count())
 
-    @override_settings(ASANA_WORKSPACE=None)
     def test_good_workspace(self):
         self.command.handle(interactive=False, workspace=['Test Workspace'])
         self.assertEqual(1, Workspace.objects.count())
