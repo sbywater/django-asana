@@ -15,6 +15,7 @@ class Client(asana.Client, object):
             # Try once more
             return super(Client, self).request(method, path, **options)
 
+
 def client_connect():
     if getattr(settings, 'ASANA_ACCESS_TOKEN', None):
         client = Client.access_token(settings.ASANA_ACCESS_TOKEN)

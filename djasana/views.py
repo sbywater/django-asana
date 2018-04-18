@@ -58,9 +58,8 @@ class WebhookView(JSONRequestResponseMixin, View):
         if len(secret) not in (64, 32):
             logger.debug('Secret of length %s not allowed' % len(secret))
             return HttpResponseForbidden()
-        try:
-            webhook = Webhook.objects.get(project_id=remote_id)
-        except Webhook.DoesNotExist:
+        webhook = Webhook.objects.filter(project_id=remote_id).last()
+        if not webhook:
             Webhook.objects.create(project_id=remote_id, secret=secret)
         else:
             if webhook.secret != secret:
@@ -122,6 +121,8 @@ class WebhookView(JSONRequestResponseMixin, View):
             story_dict = self.client.stories.find_by_id(story_id)
         except (RequestError, NotFoundError) as error:
             logger.warning('This is probably a temporary connection issue; please sync: %s', error)
+            return
+        except ForbiddenError:
             return
         logger.debug(story_dict)
         story_dict.pop('id')
