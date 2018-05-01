@@ -36,9 +36,8 @@ class WebhookView(JSONRequestResponseMixin, View):
             logger.debug('No json payload')
             return HttpResponseForbidden()
         logger.debug(self.request_json)
-        try:
-            webhook = Webhook.objects.get(project_id=remote_id)
-        except Webhook.DoesNotExist:
+        webhook = Webhook.objects.filter(project_id=remote_id).order_by('id').last()
+        if not webhook:
             logger.debug('No matching webhook')
             return HttpResponseForbidden()
         target_signature = sign_sha256_hmac(webhook.secret, self.request.body)
