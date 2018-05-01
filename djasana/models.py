@@ -143,6 +143,7 @@ class Task(Hearted, BaseModel):
     parent = models.ForeignKey(
         'self', to_field='remote_id', null=True, blank=True, on_delete=models.SET_NULL)
     projects = models.ManyToManyField('Project')
+    start_on = models.DateField(null=True, blank=True)
     tags = models.ManyToManyField('Tag')
 
     def _asana_project_url(self, project):
