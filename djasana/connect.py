@@ -1,17 +1,18 @@
 import logging
 
-import asana
+from asana import Client
+from asana.error import ServerError
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 
 
-class Client(asana.Client, object):
+class Client(Client, object):
 
     def request(self, method, path, **options):
         logging.debug('%s, %s', method, path)
         try:
             return super(Client, self).request(method, path, **options)
-        except SystemExit:
+        except (SystemExit, ServerError):
             # Try once more
             return super(Client, self).request(method, path, **options)
 
