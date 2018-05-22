@@ -46,7 +46,7 @@ class TaskForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if self.instance.pk:
             self.fields['parent'].widget = ParentRawIdWidget(
-                rel=self.instance._meta.get_field('parent').rel,
+                rel=self.instance._meta.get_field('parent').remote_field,
                 admin_site=admin.site,
                 # Pass the object to attrs
                 attrs={'object': self.instance}
