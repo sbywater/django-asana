@@ -109,8 +109,10 @@ class Story(Hearted, BaseModel):
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(
         'User', to_field='remote_id', null=True, on_delete=models.SET_NULL)
-    target = models.BigIntegerField(db_index=True)
+    is_edited = models.BooleanField(default=False)
+    is_pinned = models.BooleanField(default=False)
     source = models.CharField(choices=source_choices, max_length=16)
+    target = models.BigIntegerField(db_index=True)
     text = models.CharField(max_length=1024)
     type = models.CharField(choices=type_choices, max_length=16)
 
