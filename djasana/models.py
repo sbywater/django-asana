@@ -90,6 +90,7 @@ class Project(BaseModel):
         'User', to_field='remote_id', related_name='projects_owned',
         null=True, on_delete=models.SET_NULL)
     public = models.BooleanField(default=False)
+    start_on = models.DateField(null=True, blank=True)
     team = models.ForeignKey('Team', to_field='remote_id', null=True, on_delete=models.SET_NULL)
     workspace = models.ForeignKey('Workspace', to_field='remote_id', on_delete=models.CASCADE)
 
