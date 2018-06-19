@@ -14,11 +14,9 @@ env:
     - DJANGO_VERSION="django>=1.10,<1.11"
     - DJANGO_VERSION="django>=1.11,<1.12"
     - DJANGO_VERSION="django>=2.0,<2.1"
-    - DJANGO_VERSION="django=2.1"
-    - DJANGO_VERSION="django=master"
+    - DJANGO_VERSION="django=https://github.com/django/django/archive/master.tar.gz"
   allow_failures:
-    - DJANGO_VERSION="django=2.1"
-    - DJANGO_VERSION="django=master"
+    - DJANGO_VERSION="django=https://github.com/django/django/archive/master.tar.gz"
 
 install:
   - pip install $DJANGO_VERSION
