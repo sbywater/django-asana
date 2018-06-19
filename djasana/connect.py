@@ -1,4 +1,5 @@
 import logging
+from requests.exceptions import ChunkedEncodingError
 
 from asana import Client
 from asana.error import ServerError
@@ -12,7 +13,7 @@ class Client(Client, object):
         logging.debug('%s, %s', method, path)
         try:
             return super(Client, self).request(method, path, **options)
-        except (SystemExit, ServerError):
+        except (SystemExit, ServerError, ChunkedEncodingError):
             # Try once more
             return super(Client, self).request(method, path, **options)
 
