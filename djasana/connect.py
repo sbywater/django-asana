@@ -8,6 +8,7 @@ from django.core.exceptions import ImproperlyConfigured
 
 
 class Client(Client, object):
+    """An http client for making requests to an Asana API and receiving responses."""
 
     def request(self, method, path, **options):
         logging.debug('%s, %s', method, path)

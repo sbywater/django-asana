@@ -20,6 +20,7 @@ ASANA_BASE_URL = 'https://app.asana.com/0/'
 
 
 class BaseModel(models.Model):
+    """An abstract base class for Asana models."""
     remote_id = models.BigIntegerField(
         unique=True, db_index=True,
         help_text=_('The id of this object in Asana.'))
@@ -40,6 +41,7 @@ class BaseModel(models.Model):
 
 
 class Hearted(models.Model):
+    """A record that a user has liked a thing."""
     hearted = models.BooleanField(default=False)
     hearts = models.ManyToManyField('User', related_name='%(class)s_hearted')
     num_hearts = models.SmallIntegerField(default=0)
@@ -49,6 +51,7 @@ class Hearted(models.Model):
 
 
 class Attachment(BaseModel):
+    """A remote file."""
     host_choices = (
         ('asana', 'asana'),
     )
@@ -64,6 +67,7 @@ class Attachment(BaseModel):
 
 
 class Project(BaseModel):
+    """An Asana project in a workspace having a collection of tasks."""
     colors = [
         'dark-pink', 'dark-green', 'dark-blue', 'dark-red', 'dark-teal', 'dark-brown',
         'dark-orange', 'dark-purple', 'dark-warm-gray', 'light-pink', 'light-green',
@@ -99,6 +103,7 @@ class Project(BaseModel):
 
 
 class Story(Hearted, BaseModel):
+    """The log of a change to an Asana object."""
     source_choices = (
         ('web', _('web')),
     )
@@ -131,6 +136,7 @@ class Tag(BaseModel):
 
 
 class Task(Hearted, BaseModel):
+    """An Asana task; something that needs doing."""
     assignee = models.ForeignKey(
         'User', to_field='remote_id', related_name='assigned_tasks', null=True, blank=True,
         on_delete=models.SET_NULL)
@@ -213,6 +219,11 @@ class Team(BaseModel):
 
 
 class User(BaseModel):
+    """An Asana user.
+
+    Note this is not related to a django User (although you can establish a relationship yourself).
+
+    """
     email = models.EmailField(_('email address'), null=True, blank=True)
     photo = models.CharField(_('photo'), max_length=255, null=True)
     workspaces = models.ManyToManyField('Workspace')
@@ -230,11 +241,13 @@ class User(BaseModel):
 
 
 class Webhook(models.Model):
+    """A secret negotiated with Asana for keeping a project synchronized."""
     secret = models.CharField(max_length=64, validators=[MinValueValidator(32)])
     project = models.ForeignKey('Project', to_field='remote_id', on_delete=models.CASCADE)
 
 
 class Workspace(BaseModel):
+    """An object for grouping projects"""
     is_organization = models.BooleanField(default=True)
 
 

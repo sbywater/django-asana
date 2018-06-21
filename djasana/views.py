@@ -18,9 +18,11 @@ logger = logging.getLogger(__name__)
 
 @method_decorator(csrf_exempt, name='dispatch')
 class WebhookView(JSONRequestResponseMixin, View):
+    """Receives authenticated webhooks from Asana on changes to projects, tasks, and stories."""
     client = None
 
     def post(self, request, *_, **kwargs):
+        """Authenticates a request and processes a collection of events."""
         remote_id = kwargs.pop('remote_id')
         project = get_object_or_404(Project, remote_id=remote_id)
         secret = request.META.get('X-Hook-Secret', request.META.get('HTTP_X_HOOK_SECRET'))

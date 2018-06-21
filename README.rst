@@ -11,13 +11,15 @@ django-asana
 .. image:: https://badge.fury.io/py/django-asana.svg
     :target: https://badge.fury.io/py/django-asana
 
+.. inclusion-marker-do-not-remove
+
 django-asana leverages python-asana, the official python client library for Asana. To this, django-asana adds
-django models and commands for importing data from Asana into these models.
+django models and commands for importing data from Asana into these models, and for keeping a django project in sync with related Asana data.
 
 About
 =====
 
-``django-asana`` aims to allow for rich interaction between Django projects and Asana projects. The vision is to allow automated processes done in Django to interact with human Asana users toward project completion. For example, an Asana project might include a workflow of ten tasks that must all be completed in order. This tool will monitor the Asana project status, complete the automated steps when they are ready to be done, and report completion bask to Asana so the workflow may continue.
+``django-asana`` aims to allow for rich interaction between Django projects and Asana projects. The vision is to allow automated processes done in Django to interact with human Asana users toward project completion. For example, an Asana project might include a workflow of ten tasks that must all be completed in order. This tool will monitor the Asana project status, complete the automated steps when they are ready to be done, and report completion back to Asana so the workflow may continue.
 
 This tool can do a one time sync from Asana, storing the current status of workspaces, projects, tasks, users, teams and tags in Django models. Depending on the size of the Asana workspaces, this initial sync may take some time. Successive syncs are faster if they are performed within the hour, which is the timeout for Asana's sync token. You may specify to sync only specific workspaces, projects or models.
 
@@ -72,7 +74,7 @@ In the production version of your settings, set a base url and pattern for the w
 With that value, your webhook urls will be something like this: https://mysite.com/djasana/webhooks/project/1337/
 
 
-2. To enable webhooks so Asana can keep your data in sync, add the following to your base urls.py
+2. If your project is "live" and has a webserver to which Asana can send requests, you can enable webhooks. To enable webhooks so Asana can keep your data in sync, add the following to your base urls.py
 
 .. code:: python
 
@@ -127,7 +129,8 @@ Command line options
 ========================    ======================================================
 
 Note that due to option parsing limitations, it is less error prone to pass in the id of the object
-rather than the name.
+rather than the name. The easiest way to find the id of a project or task in Asana is to examine the url.
+The list view in Asana is like `https://app.asana.com/0/{project_id}/list` and for a specific task `https://app.asana.com/0/{project_id}/{task_id}`.
 
 Good example:
 
@@ -137,11 +140,11 @@ Good example:
 
 Bad example:
 
-.. code:: bash
+.. warning::
 
     python manage.py sync_from_asana -w="Personal Projects"
 
-    manage.py sync_from_asana: error: unrecognized arguments: Projects
+    ``python manage.py sync_from_asana: error: unrecognized arguments: Projects``
 
 Further note that when including a model, the models it depends on will also be included. You cannot sync tasks without syncing the projects those tasks belong to.
 
@@ -157,7 +160,7 @@ Effectively, this means you can explicitly include models from the top down or e
 
 .. code:: bash
 
-    python manage.py sync_from_asana -w 123456
+    python manage.py sync_from_asana -mx=Story -mx=Attachment -mx=Tag --noinput
 
 
 See also `python manage.py sync_from_asana --help`
@@ -185,4 +188,4 @@ After installing django-asana and adding it to your project, run tests against i
 
 .. code:: bash
 
-    manage.py test djasana
+    python manage.py test djasana
