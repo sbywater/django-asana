@@ -6,15 +6,23 @@ django-asana
 
 .. image:: https://travis-ci.org/sbywater/django-asana.svg?branch=master
     :target: https://travis-ci.org/sbywater/django-asana
+    :alt: Build Status
 .. image:: https://coveralls.io/repos/github/sbywater/django-asana/badge.svg
     :target: https://coveralls.io/github/sbywater/django-asana
+    :alt: Coverage Status
 .. image:: https://badge.fury.io/py/django-asana.svg
     :target: https://badge.fury.io/py/django-asana
+    :alt: Pypi Package
+.. image:: //readthedocs.org/projects/django-asana/badge/?version=latest
+    :target: https://django-asana.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
 
 .. inclusion-marker-do-not-remove
 
 django-asana leverages python-asana, the official python client library for Asana. To this, django-asana adds
 django models and commands for importing data from Asana into these models, and for keeping a django project in sync with related Asana data.
+
+* Documentation: https://django-asana.readthedocs.io/en/latest/
 
 About
 =====
