@@ -13,7 +13,7 @@ django-asana
 .. image:: https://badge.fury.io/py/django-asana.svg
     :target: https://badge.fury.io/py/django-asana
     :alt: Pypi Package
-.. image:: //readthedocs.org/projects/django-asana/badge/?version=latest
+.. image:: https://readthedocs.org/projects/django-asana/badge/?version=latest
     :target: https://django-asana.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
