@@ -269,9 +269,13 @@ class Command(BaseCommand):
             project = None
 
         if Task in models and not project_dict['archived'] or self.process_archived:
+            remote_task_ids = []
             for task in self.client.tasks.find_all({'project': project_id}):
+                remote_task_ids.append(task['id'])
                 self._sync_task(task, project, models)
-
+            # Delete local tasks for this project that are no longer in Asana.
+            Task.objects.filter(projects=project).exclude(
+                remote_id__in=remote_task_ids).exclude(remote_id__isnull=True).delete()
         if project:
             message = 'Successfully synced project {}.'.format(project.name)
             self.stdout.write(self.style.SUCCESS(message))

@@ -216,19 +216,35 @@ class SyncFromAsanaTestCase(TestCase):
         self.command.client.stories.find_by_task.return_value = [long_story]
         self.command.client.stories.find_by_id.return_value = long_story
         self.command.handle(interactive=False, verbosity=2)
-        self.assertTrue(1, Story.objects.exists())
+        self.assertTrue(Story.objects.exists())
         story_instance = Story.objects.last()
         self.assertEqual(1024, len(story_instance.text))
 
     def test_task_with_parent(self):
+        # When processed, tasks get modified in place; we need to pass the original twice.
         parent_task = task()
+        parent_copy = parent_task.copy()
         child_task = task(id=2, parent=parent_task)
-        self.command.client.tasks.find_all.return_value = [child_task]
-        self.command.client.tasks.find_by_id.side_effect = [child_task, parent_task]
+        self.command.client.tasks.find_all.return_value = [child_task, parent_task]
+        self.command.client.tasks.find_by_id.side_effect = [child_task, parent_task, parent_copy]
         self.command.handle(interactive=False, project=['Test Project'])
         self.assertEqual(2, Task.objects.count())
         parent, child = tuple(Task.objects.order_by('remote_id'))
         self.assertEqual(parent, child.parent)
+
+    def __test_task_not_in_asana_is_deleted(self):
+        workspace_ = Workspace.objects.create(remote_id=1, name='Workspace')
+        team_ = Team.objects.create(remote_id=2, name='Team')
+        project_ = Project.objects.create(
+            remote_id=3, name='Another Project', public=True, team=team_, workspace=workspace_)
+        task_ = Task.objects.create(remote_id=4, name='Orphan Task', completed=False)
+        task_.projects.add(project_)
+        project_dict = project(id=3)
+        self.command.client.projects.find_all.return_value = [project_dict]
+        self.command.client.projects.find_by_id.return_value = project_dict
+        self.command.client.tasks.find_all.return_value = []
+        self.command.handle(interactive=False, project=['Test Project'])
+        self.assertFalse(Task.objects.filter(pk=task_.pk).exists())
 
     @override_settings(DJASANA_WEBHOOK_URL='https://example.com/hooks/')
     def test_redundant_webhooks_are_deleted(self):
@@ -249,8 +265,12 @@ class SyncFromAsanaTestCase(TestCase):
         self.assertEqual(1, Webhook.objects.filter(project=project_).count())
 
     def test_subtasks_synced(self):
+        parent_task = task()
         child_task = task(id=99, name='Subtask', parent=task())
-        self.command.client.tasks.find_by_id.side_effect = [task(), child_task]
-        self.command.client.tasks.subtasks.side_effect = [[child_task], []]
+        # When processed, tasks get modified in place; we need to pass the original twice.
+        child_copy = child_task.copy()
+        self.command.client.tasks.find_all.return_value = [parent_task, child_task]
+        self.command.client.tasks.find_by_id.side_effect = [parent_task, child_task, child_copy]
+        self.command.client.tasks.subtasks.side_effect = [[child_task], [], []]
         self.command.handle(interactive=False)
         self.assertTrue(Task.objects.filter(remote_id=99, name='Subtask').exists())
