@@ -10,7 +10,7 @@ from djasana.connect import client_connect
 from djasana.models import (
     Attachment, Project, Story, SyncToken, Tag, Task, Team, User, Webhook, Workspace)
 from djasana.settings import settings
-from djasana.utils import set_webhook
+from djasana.utils import set_webhook, sync_story, sync_task
 
 logger = logging.getLogger(__name__)
 
@@ -290,18 +290,7 @@ class Command(BaseCommand):
             return
         logger.debug(story_dict)
         remote_id = story_dict.pop('id')
-        if story_dict['created_by']:
-            user = User.objects.get_or_create(
-                remote_id=story_dict['created_by']['id'],
-                defaults={'name': story_dict['created_by']['name']})[0]
-            story_dict['created_by'] = user
-        if story_dict['target']:
-            story_dict['target'] = story_dict['target']['id']
-        for key in ('hearts', 'liked', 'likes', 'num_likes'):
-            story_dict.pop(key, None)
-        if 'text' in story_dict:
-            story_dict['text'] = story_dict['text'][:1024]  # Truncate text if too long
-        Story.objects.get_or_create(remote_id=remote_id, defaults=story_dict)
+        sync_story(remote_id, story_dict)
 
     def _sync_tag(self, tag):
         tag_dict = self.client.tags.find_by_id(tag['id'])
@@ -331,15 +320,6 @@ class Command(BaseCommand):
 
         if Task in models and self.commit:
             remote_id = task_dict.pop('id')
-            if task_dict['assignee']:
-                user = User.objects.get_or_create(
-                    remote_id=task_dict['assignee']['id'],
-                    defaults={'name': task_dict['assignee']['name']})[0]
-                task_dict['assignee'] = user
-            for key in (
-                    'hearts', 'liked', 'likes', 'num_likes',
-                    'memberships', 'projects', 'workspace'):
-                task_dict.pop(key, None)
             parent = task_dict.pop('parent', None)
             if parent:
                 # If this is a task we already know about, assume it was just synced.
@@ -347,24 +327,11 @@ class Command(BaseCommand):
                 if not Task.objects.filter(remote_id=parent_id).exists():
                     self._sync_task(parent, project, models, skip_subtasks=True)
                 task_dict['parent_id'] = parent_id
-            followers_dict = task_dict.pop('followers')
-            tags_dict = task_dict.pop('tags')
-            task_ = Task.objects.update_or_create(
-                remote_id=remote_id, defaults=task_dict)[0]
+            task_ = sync_task(remote_id, task_dict, project, sync_tags=Tag in models)
             if not skip_subtasks:
                 subtasks = self.client.tasks.subtasks(task['id'])
                 for subtask in subtasks:
                     self._sync_task(subtask, project, models)
-            follower_ids = [follower['id'] for follower in followers_dict]
-            followers = User.objects.filter(id__in=follower_ids)
-            task_.followers.set(followers)
-            if Tag in models:
-                for tag_ in tags_dict:
-                    tag = Tag.objects.get_or_create(
-                        remote_id=tag_['id'],
-                        defaults={'name': tag_['name']})[0]
-                    task_.tags.add(tag)
-            task_.projects.add(project)
         if Attachment in models and self.commit:
             for attachment in self.client.attachments.find_by_task(task['id']):
                 attachment_dict = self.client.attachments.find_by_id(attachment['id'])
