@@ -33,7 +33,7 @@ class WebhookView(JSONRequestResponseMixin, View):
             logger.debug('No signature')
             return HttpResponseForbidden()
         if len(signature) != 64:
-            logger.debug('Signature of length %s not allowed' % len(signature))
+            logger.debug('Signature of length %s not allowed', len(signature))
         if not self.request_json:
             logger.debug('No json payload')
             return HttpResponseForbidden()
@@ -57,7 +57,7 @@ class WebhookView(JSONRequestResponseMixin, View):
         """Process a request from Asana to establish a web hook"""
         logger.debug('Processing secret')
         if len(secret) not in (64, 32):
-            logger.debug('Secret of length %s not allowed' % len(secret))
+            logger.debug('Secret of length %s not allowed', len(secret))
             return HttpResponseForbidden()
         webhook = Webhook.objects.filter(project_id=remote_id).last()
         if not webhook:

@@ -33,12 +33,12 @@ class WebhookViewTestCase(TestCase):
         cls.data = {
             'events': [
                 {
-                  'action': 'changed',
-                  'created_at': '2017-08-21T18:20:37.972Z',
-                  'parent': None,
-                  'resource': 1337,
-                  'type': 'task',
-                  'user': 1123
+                    'action': 'changed',
+                    'created_at': '2017-08-21T18:20:37.972Z',
+                    'parent': None,
+                    'resource': 1337,
+                    'type': 'task',
+                    'user': 1123
                 },
             ]
         }
@@ -215,12 +215,12 @@ class WebhookViewTestCase(TestCase):
         data = {
             'events': [
                 {
-                  'action': 'changed',
-                  'created_at': '2017-08-21T18:20:37.972Z',
-                  'parent': None,
-                  'resource': 3,
-                  'type': 'project',
-                  'user': 1123
+                    'action': 'changed',
+                    'created_at': '2017-08-21T18:20:37.972Z',
+                    'parent': None,
+                    'resource': 3,
+                    'type': 'project',
+                    'user': 1123
                 },
             ]
         }
