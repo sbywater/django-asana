@@ -210,7 +210,9 @@ class Task(Hearted, BaseModel):
 
     def add_comment(self, text):
         client = client_connect()
-        return client.tasks.add_comment(self.remote_id, {'text': text})
+        response = client.tasks.add_comment(self.remote_id, {'text': text})
+        logger.debug('Added comment for task %s: %s', self.name, text)
+        return response
 
 
 class Team(BaseModel):
