@@ -125,8 +125,6 @@ class WebhookViewTestCase(TestCase):
         mock_client.access_token().tasks.find_by_id.return_value = task(id=99)
         mock_client.access_token().attachments.find_by_task.return_value = [attachment()]
         mock_client.access_token().attachments.find_by_id.return_value = attachment()
-        mock_client.access_token().stories.find_by_task.return_value = [story()]
-        mock_client.access_token().stories.find_by_id.return_value = story()
         data = {
             'events': [
                 {
@@ -148,10 +146,6 @@ class WebhookViewTestCase(TestCase):
             models.Attachment.objects.get(remote_id=1)
         except models.Attachment.DoesNotExist:
             self.fail('Attachment not created')
-        try:
-            models.Story.objects.get(remote_id=1)
-        except models.Story.DoesNotExist:
-            self.fail('Story not created')
 
     @patch('djasana.connect.Client')
     def test_bad_task_id(self, mock_client):

@@ -152,5 +152,3 @@ class WebhookView(JSONRequestResponseMixin, View):
             if attachment_dict['parent']:
                 attachment_dict['parent'] = task
             Attachment.objects.get_or_create(remote_id=remote_id, defaults=attachment_dict)
-        for story in self.client.stories.find_by_task(task_id):
-            self._sync_story_id(story['id'])
