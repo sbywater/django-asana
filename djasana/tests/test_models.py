@@ -63,6 +63,17 @@ class TaskModelTestCase(TestCase):
         self.task.projects.add(project)
         self.assertEqual('https://app.asana.com/0/4', self.task.asana_url())
 
+    @override_settings(ASANA_ACCESS_TOKEN='foo')
+    @patch('djasana.models.client_connect')
+    def test_delete_from_asana(self, mock_connect):
+        mock_client = mock_connect.return_value
+        task = models.Task.objects.create(
+            remote_id=6, name='New Task', completed=False, due_at=self.now)
+        task.delete_from_asana()
+        self.assertTrue(mock_client.tasks.delete.called)
+        with self.assertRaises(models.Task.DoesNotExist):
+            task.refresh_from_db()
+
     def test_due(self):
         self.assertEqual(self.now, self.task.due())
 

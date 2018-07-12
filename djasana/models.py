@@ -167,6 +167,13 @@ class Task(Hearted, BaseModel):
             return self._asana_project_url(project)
         return super(Task, self).asana_url()
 
+    def delete_from_asana(self, *args, **kwargs):
+        """Delete this task from Asana and then delete this model instance"""
+        client = client_connect()
+        client.tasks.delete(self.remote_id)
+        logger.debug('Deleted asana task %s', self.name)
+        return self.delete(*args, **kwargs)
+
     def due(self):
         return self.due_at or self.due_on
     due.admin_order_field = 'due_on'
