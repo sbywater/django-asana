@@ -7,6 +7,9 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 
 
+logger = logging.getLogger(__name__)
+
+
 class Client(AsanaClient, object):
     """An http client for making requests to an Asana API and receiving responses."""
 
@@ -15,6 +18,7 @@ class Client(AsanaClient, object):
         try:
             return super(Client, self).request(method, path, **options)
         except (SystemExit, ServerError, ChunkedEncodingError):
+            logger.error('Error for %s, %s with options %s', method, path, options)
             # Try once more
             return super(Client, self).request(method, path, **options)
 
