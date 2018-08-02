@@ -183,7 +183,7 @@ setup(
     zip_safe=False,
     install_requires=[
         'django>=1.8',
-        'asana>=0.6.2',
+        'asana>=0.7.1',
         'django-braces>=1.10',
     ],
     cmdclass={'test': RunTests,
