@@ -24,6 +24,22 @@ class BaseModel(models.Model):
     remote_id = models.BigIntegerField(
         unique=True, db_index=True,
         help_text=_('The id of this object in Asana.'))
+
+    class Meta:
+        abstract = True
+
+    def __str__(self):
+        return str(self.remote_id)
+
+    def asana_url(self, *args, **kwargs):
+        return '{}{}'.format(ASANA_BASE_URL, self.remote_id)
+
+    def get_absolute_url(self):
+        return self.asana_url()
+
+
+class NamedModel(BaseModel):
+    """An abstract base class for Asana models with names."""
     name = models.CharField(_('name'), max_length=1024)
 
     class Meta:
@@ -32,12 +48,6 @@ class BaseModel(models.Model):
 
     def __str__(self):
         return self.name[:50] or str(self.remote_id)
-
-    def asana_url(self, *args, **kwargs):
-        return '{}{}'.format(ASANA_BASE_URL, self.remote_id)
-
-    def get_absolute_url(self):
-        return self.asana_url()
 
 
 class Hearted(models.Model):
@@ -50,23 +60,28 @@ class Hearted(models.Model):
         abstract = True
 
 
-class Attachment(BaseModel):
+class Attachment(NamedModel):
     """A remote file."""
     host_choices = (
         ('asana', 'asana'),
+    )
+    type_choices = (
+        ('image', 'image'),
+        ('other', 'other'),
     )
     created_at = models.DateTimeField(auto_now_add=True)
     download_url = models.URLField(max_length=1024)
     host = models.CharField(choices=host_choices, max_length=24)
     parent = models.ForeignKey('Task', to_field='remote_id', on_delete=models.CASCADE)
     permanent_url = models.URLField(max_length=1024)
+    type = models.CharField(choices=type_choices, max_length=24, null=True, blank=True)
     view_url = models.URLField(max_length=1024)
 
     def asana_url(self, project=None):
         return self.permanent_url
 
 
-class Project(BaseModel):
+class Project(NamedModel):
     """An Asana project in a workspace having a collection of tasks."""
     colors = [
         'dark-pink', 'dark-green', 'dark-blue', 'dark-red', 'dark-teal', 'dark-brown',
@@ -84,12 +99,14 @@ class Project(BaseModel):
     color = models.CharField(choices=color_choices, max_length=16, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     current_status = models.CharField(choices=STATUS_CHOICES, max_length=16, null=True, blank=True)
+    custom_field_settings = models.TextField(null=True, blank=True)
     due_date = models.DateField(null=True, blank=True)
     followers = models.ManyToManyField('User', related_name='projects_following', blank=True)
+    html_notes = models.TextField(null=True, blank=True)
     layout = models.CharField(choices=layout_choices, max_length=16)
     members = models.ManyToManyField('User', blank=True)
     modified_at = models.DateTimeField(auto_now=True)
-    notes = models.TextField()
+    notes = models.TextField(null=True, blank=True)
     owner = models.ForeignKey(
         'User', to_field='remote_id', related_name='projects_owned',
         null=True, on_delete=models.SET_NULL)
@@ -103,7 +120,26 @@ class Project(BaseModel):
         return '{}{}/list'.format(ASANA_BASE_URL, self.remote_id)
 
 
-class Story(Hearted, BaseModel):
+class ProjectStatus(BaseModel):
+    """An Asana project in a workspace having a collection of tasks."""
+    colors = ['red', 'yellow', 'green']
+    color_choices = ((choice, _(choice)) for choice in colors)
+
+    color = models.CharField(choices=color_choices, max_length=16, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        'User', to_field='remote_id', null=True, on_delete=models.SET_NULL)
+    html_text = models.TextField(null=True, blank=True)
+    project = models.ForeignKey(
+        'Project', to_field='remote_id', null=True, blank=True, on_delete=models.SET_NULL)
+    text = models.TextField(null=True, blank=True)
+    title = models.CharField(max_length=1024)
+
+    class Meta:
+        ordering = ('-pk',)
+
+
+class Story(Hearted, NamedModel):
     """The log of a change to an Asana object."""
     source_choices = (
         ('web', _('web')),
@@ -115,11 +151,12 @@ class Story(Hearted, BaseModel):
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(
         'User', to_field='remote_id', null=True, on_delete=models.SET_NULL)
+    html_text = models.CharField(max_length=1024, null=True, blank=True)
     is_edited = models.BooleanField(default=False)
     is_pinned = models.BooleanField(default=False)
     source = models.CharField(choices=source_choices, max_length=16)
     target = models.BigIntegerField(db_index=True)
-    text = models.CharField(max_length=1024)
+    text = models.CharField(max_length=1024, null=True, blank=True)
     type = models.CharField(choices=type_choices, max_length=16)
 
     class Meta:
@@ -132,11 +169,11 @@ class SyncToken(models.Model):
     project = models.ForeignKey('Project', to_field='remote_id', on_delete=models.CASCADE)
 
 
-class Tag(BaseModel):
+class Tag(NamedModel):
     pass
 
 
-class Task(Hearted, BaseModel):
+class Task(Hearted, NamedModel):
     """An Asana task; something that needs doing."""
     assignee = models.ForeignKey(
         'User', to_field='remote_id', related_name='assigned_tasks', null=True, blank=True,
@@ -148,6 +185,7 @@ class Task(Hearted, BaseModel):
     due_at = models.DateTimeField(null=True, blank=True)
     due_on = models.DateField(null=True, blank=True)
     followers = models.ManyToManyField('User', related_name='tasks_following')
+    html_notes = models.TextField(null=True, blank=True)
     modified_at = models.DateTimeField(auto_now=True)
     notes = models.TextField(null=True, blank=True)
     parent = models.ForeignKey(
@@ -227,12 +265,14 @@ class Task(Hearted, BaseModel):
         return response
 
 
-class Team(BaseModel):
+class Team(NamedModel):
     organization_id = models.BigIntegerField(null=True)
     organization_name = models.CharField(max_length=50)
+    description = models.CharField(max_length=1024, null=True, blank=True)
+    html_description = models.CharField(max_length=1024, null=True, blank=True)
 
 
-class User(BaseModel):
+class User(NamedModel):
     """An Asana user.
 
     Note this is not related to a django User (although you can establish a relationship yourself).
@@ -260,7 +300,7 @@ class Webhook(models.Model):
     project = models.ForeignKey('Project', to_field='remote_id', on_delete=models.CASCADE)
 
 
-class Workspace(BaseModel):
+class Workspace(NamedModel):
     """An object for grouping projects"""
     is_organization = models.BooleanField(default=True)
 
