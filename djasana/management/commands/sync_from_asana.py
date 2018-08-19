@@ -274,8 +274,10 @@ class Command(BaseCommand):
                 remote_task_ids.append(task['id'])
                 self._sync_task(task, project, models)
             # Delete local tasks for this project that are no longer in Asana.
-            Task.objects.filter(projects=project).exclude(
-                remote_id__in=remote_task_ids).exclude(remote_id__isnull=True).delete()
+            tasks_to_delete = Task.objects.filter(projects=project).exclude(
+                remote_id__in=remote_task_ids).exclude(remote_id__isnull=True)
+            logger.debug("Deleting Tasks: " + str(list(tasks_to_delete.values_list('remote_id', flat=True))))
+            tasks_to_delete.delete()
         if project:
             message = 'Successfully synced project {}.'.format(project.name)
             self.stdout.write(self.style.SUCCESS(message))
@@ -307,6 +309,7 @@ class Command(BaseCommand):
         For parents and subtasks, this method is called recursively, so skip_subtasks True is
         passed when syncing a parent task from a subtask.
         """
+        was_synced = []
         try:
             task_dict = self.client.tasks.find_by_id(task['id'])
         except (ForbiddenError, NotFoundError):
@@ -325,13 +328,16 @@ class Command(BaseCommand):
                 # If this is a task we already know about, assume it was just synced.
                 parent_id = parent['id']
                 if not Task.objects.filter(remote_id=parent_id).exists():
-                    self._sync_task(parent, project, models, skip_subtasks=True)
+                    ids = self._sync_task(parent, project, models, skip_subtasks=True)
+                    was_synced.extend(ids)
                 task_dict['parent_id'] = parent_id
             task_ = sync_task(remote_id, task_dict, project, sync_tags=Tag in models)
+            was_synced.append(remote_id)
             if not skip_subtasks:
                 subtasks = self.client.tasks.subtasks(task['id'])
                 for subtask in subtasks:
-                    self._sync_task(subtask, project, models)
+                    ids = self._sync_task(subtask, project, models)
+                    was_synced.extend(ids)
         if Attachment in models and self.commit:
             for attachment in self.client.attachments.find_by_task(task['id']):
                 attachment_dict = self.client.attachments.find_by_id(attachment['id'])
@@ -343,6 +349,7 @@ class Command(BaseCommand):
         if Story in models and self.commit:
             for story in self.client.stories.find_by_task(task['id']):
                 self._sync_story(story)
+        return was_synced
 
     def _sync_team(self, team):
         team_dict = self.client.teams.find_by_id(team['id'])
