@@ -8,7 +8,8 @@ from django.utils import six
 
 from djasana.connect import client_connect
 from djasana.models import (
-    Attachment, Project, Story, SyncToken, Tag, Task, Team, User, Webhook, Workspace)
+    Attachment, CustomField, CustomFieldSettings,
+    Project, Story, SyncToken, Tag, Task, Team, User, Webhook, Workspace)
 from djasana.settings import settings
 from djasana.utils import set_webhook, sync_story, sync_task
 
@@ -253,6 +254,7 @@ class Command(BaseCommand):
             Team.objects.get_or_create(remote_id=team['id'], defaults={'name': team['name']})
             project_dict['team_id'] = team['id']
             project_dict['workspace'] = workspace
+            custom_field_settings = project_dict.pop('custom_field_settings', None)
             # Convert string to boolean:
             project_dict['archived'] = project_dict['archived'] == 'true'
             members_dict = project_dict.pop('members')
@@ -265,6 +267,18 @@ class Command(BaseCommand):
             follower_ids = [follower['id'] for follower in followers_dict]
             followers = User.objects.filter(id__in=follower_ids)
             project.followers.set(followers)
+            if custom_field_settings:
+                for setting in custom_field_settings:
+                    custom_field_dict = setting.pop('custom_field')
+                    setting.pop('project')
+                    custom_field_remote_id = custom_field_dict.pop('id')
+                    CustomField.objects.update_or_create(
+                        remote_id=custom_field_remote_id, defaults=custom_field_dict)
+                    setting_remote_id = setting.pop('id')
+                    setting['custom_field_id'] = custom_field_remote_id
+                    setting['project_id'] = project_id
+                    CustomFieldSettings.objects.update_or_create(
+                        remote_id=setting_remote_id, workspace=workspace, defaults=setting)
         else:
             project = None
 

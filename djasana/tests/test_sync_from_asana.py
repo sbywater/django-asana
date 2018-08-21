@@ -6,7 +6,8 @@ from django.db import IntegrityError
 from django.test import override_settings, TestCase
 from djasana.management.commands.sync_from_asana import Command
 from djasana.models import (
-    Attachment, Project, Story, SyncToken, Tag, Task, Team, Webhook, Workspace, User)
+    Attachment, CustomField, CustomFieldSettings, Project, Story,
+    SyncToken, Tag, Task, Team, Webhook, Workspace, User)
 from djasana.tests.fixtures import (
     attachment, project, story, tag, task, team, user, webhook, workspace)
 
@@ -232,7 +233,7 @@ class SyncFromAsanaTestCase(TestCase):
         parent, child = tuple(Task.objects.order_by('remote_id'))
         self.assertEqual(parent, child.parent)
 
-    def __test_task_not_in_asana_is_deleted(self):
+    def test_task_not_in_asana_is_deleted(self):
         workspace_ = Workspace.objects.create(remote_id=1, name='Workspace')
         team_ = Team.objects.create(remote_id=2, name='Team')
         project_ = Project.objects.create(
@@ -274,3 +275,18 @@ class SyncFromAsanaTestCase(TestCase):
         self.command.client.tasks.subtasks.side_effect = [[child_task], [], []]
         self.command.handle(interactive=False)
         self.assertTrue(Task.objects.filter(remote_id=99, name='Subtask').exists())
+
+    def test_custom_fields(self):
+        workspace_ = Workspace.objects.create(remote_id=1, name='Workspace')
+        team_ = Team.objects.create(remote_id=2, name='Team')
+        Project.objects.create(
+            remote_id=3, name='New Project', public=True, team=team_, workspace=workspace_)
+        self.command.client.projects.find_by_id.return_value = project(
+            custom_field_settings=[{
+                'id': 258147,
+                'custom_field': {'id': 1646, 'name': 'Priority', 'type': 'enum'},
+                'project': {'id': 3, 'name': 'New Project'}}],
+            workspace={'id': 1, 'name': 'Workspace'})
+        self.command._sync_project_id(project_id=3, workspace=workspace_, models=[])
+        self.assertTrue(CustomField.objects.filter(remote_id=1646, name='Priority').exists())
+        self.assertTrue(CustomFieldSettings.objects.filter(remote_id=258147, project_id=3).exists())

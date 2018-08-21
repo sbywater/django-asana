@@ -1,7 +1,7 @@
 import logging
 
 from django.core.cache import cache
-from django.core.validators import MinValueValidator
+from django.core.validators import MinLengthValidator
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
@@ -81,6 +81,29 @@ class Attachment(NamedModel):
         return self.permanent_url
 
 
+class CustomField(NamedModel):
+    """Metadata for adding custom data to a task"""
+    type_choices = (
+        ('enum', 'enum'),
+        ('number', 'number'),
+        ('text', 'text'),
+    )
+    precision_choices = [(num, num) for num in range(0, 6)]
+    description = models.CharField(max_length=1024, null=True, blank=True)
+    enum_options = models.CharField(max_length=1024, null=True, blank=True)
+    type = models.CharField(choices=type_choices, max_length=24)
+    precision = models.SmallIntegerField(choices=precision_choices, null=True, blank=True)
+
+
+class CustomFieldSettings(BaseModel):
+    """The relation between a CustomField and a project"""
+    created_at = models.DateTimeField(auto_now_add=True)
+    custom_field = models.ForeignKey('CustomField', to_field='remote_id', on_delete=models.CASCADE)
+    is_important = models.BooleanField(default=False)
+    project = models.ForeignKey('Project', to_field='remote_id', on_delete=models.CASCADE)
+    workspace = models.ForeignKey('Workspace', to_field='remote_id', on_delete=models.CASCADE)
+
+
 class Project(NamedModel):
     """An Asana project in a workspace having a collection of tasks."""
     colors = [
@@ -99,7 +122,8 @@ class Project(NamedModel):
     color = models.CharField(choices=color_choices, max_length=16, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     current_status = models.CharField(choices=STATUS_CHOICES, max_length=16, null=True, blank=True)
-    custom_field_settings = models.TextField(null=True, blank=True)
+    custom_field_settings = models.ManyToManyField(
+        'CustomField', through='CustomFieldSettings', related_name='custom_field_settings')
     due_date = models.DateField(null=True, blank=True)
     followers = models.ManyToManyField('User', related_name='projects_following', blank=True)
     html_notes = models.TextField(null=True, blank=True)
@@ -181,6 +205,7 @@ class Task(Hearted, NamedModel):
     assignee_status = models.CharField(choices=STATUS_CHOICES, max_length=16)
     completed = models.BooleanField(default=False)
     completed_at = models.DateTimeField(null=True, blank=True)
+    custom_fields = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     due_at = models.DateTimeField(null=True, blank=True)
     due_on = models.DateField(null=True, blank=True)
@@ -296,7 +321,7 @@ class User(NamedModel):
 
 class Webhook(models.Model):
     """A secret negotiated with Asana for keeping a project synchronized."""
-    secret = models.CharField(max_length=64, validators=[MinValueValidator(32)])
+    secret = models.CharField(max_length=64, validators=[MinLengthValidator(32)])
     project = models.ForeignKey('Project', to_field='remote_id', on_delete=models.CASCADE)
 
 
