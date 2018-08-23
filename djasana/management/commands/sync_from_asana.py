@@ -149,13 +149,13 @@ class Command(BaseCommand):
         if workspaces:
             for workspace in workspaces:
                 for wks in workspaces_:
-                    if workspace == str(wks['id']) or workspace == wks['name']:
-                        workspace_ids.append(wks['id'])
+                    if workspace == wks['gid'] or workspace == wks['name']:
+                        workspace_ids.append(wks['gid'])
                         break
                 else:
                     bad_list.append(workspace)
         else:
-            workspace_ids = [wks['id'] for wks in workspaces_]
+            workspace_ids = [wks['gid'] for wks in workspaces_]
         if bad_list:
             if len(bad_list) == 1:
                 raise CommandError('{} is not an Asana workspace'.format(workspaces[0]))
@@ -173,13 +173,13 @@ class Command(BaseCommand):
         if projects:
             for project in projects:
                 for prj in projects_:
-                    if project == str(prj['id']) or project == prj['name']:
-                        project_ids.append(prj['id'])
+                    if project == prj['gid'] or project == prj['name']:
+                        project_ids.append(prj['gid'])
                         break
                 else:
                     bad_list.append(project)
         else:
-            project_ids = [prj['id'] for prj in projects_]
+            project_ids = [prj['gid'] for prj in projects_]
         if bad_list:
             if len(bad_list) == 1:
                 raise CommandError('{} is not an Asana project'.format(bad_list[0]))
@@ -246,6 +246,7 @@ class Command(BaseCommand):
         logger.debug(project_dict)
         if self.commit:
             remote_id = project_dict.pop('id')
+            project_dict.pop('gid', None)
             if project_dict['owner']:
                 owner = project_dict.pop('owner')
                 User.objects.get_or_create(remote_id=owner['id'], defaults={'name': owner['name']})
@@ -311,6 +312,7 @@ class Command(BaseCommand):
         logger.debug(tag_dict)
         if self.commit:
             remote_id = tag_dict.pop('id')
+            tag_dict.pop('gid', None)
             Tag.objects.get_or_create(
                 remote_id=remote_id,
                 defaults=tag_dict)
@@ -334,6 +336,7 @@ class Command(BaseCommand):
 
         if Task in models and self.commit:
             remote_id = task_dict.pop('id')
+            task_dict.pop('gid', None)
             parent = task_dict.pop('parent', None)
             if parent:
                 # If this is a task we already know about, assume it was just synced.
@@ -351,6 +354,7 @@ class Command(BaseCommand):
                 attachment_dict = self.client.attachments.find_by_id(attachment['id'])
                 logger.debug(attachment_dict)
                 remote_id = attachment_dict.pop('id')
+                attachment_dict.pop('gid', None)
                 if attachment_dict['parent']:
                     attachment_dict['parent'] = task_
                 Attachment.objects.get_or_create(remote_id=remote_id, defaults=attachment_dict)
@@ -363,6 +367,7 @@ class Command(BaseCommand):
         logger.debug(team_dict)
         if self.commit:
             remote_id = team_dict.pop('id')
+            team_dict.pop('gid', None)
             organization = team_dict.pop('organization')
             team_dict['organization_id'] = organization['id']
             team_dict['organization_name'] = organization['name']
@@ -375,6 +380,7 @@ class Command(BaseCommand):
         logger.debug(user_dict)
         if self.commit:
             remote_id = user_dict.pop('id')
+            user_dict.pop('gid', None)
             user_dict.pop('workspaces')
             if user_dict['photo']:
                 user_dict['photo'] = user_dict['photo']['image_128x128']
@@ -390,6 +396,7 @@ class Command(BaseCommand):
         logger.debug(workspace_dict)
         if Workspace in models and self.commit:
             remote_id = workspace_dict.pop('id')
+            workspace_dict.pop('gid', None)
             workspace_dict.pop('email_domains')
             workspace = Workspace.objects.update_or_create(
                 remote_id=remote_id, defaults=workspace_dict)[0]

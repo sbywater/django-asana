@@ -5,6 +5,9 @@ from django.utils import timezone
 
 def fake_response(**kwargs):
     response = defaultdict(lambda: None, **kwargs)
+    # https://community.asana.com/t/asana-is-moving-to-string-ids/29340
+    response['gid'] = response['id']
+    response['id'] = str(response['id'])
     return response
 
 
