@@ -283,10 +283,10 @@ class SyncFromAsanaTestCase(TestCase):
             remote_id=3, name='New Project', public=True, team=team_, workspace=workspace_)
         self.command.client.projects.find_by_id.return_value = project(
             custom_field_settings=[{
-                'id': 258147,
-                'custom_field': {'id': 1646, 'name': 'Priority', 'type': 'enum'},
-                'project': {'id': 3, 'name': 'New Project'}}],
-            workspace={'id': 1, 'name': 'Workspace'})
+                'gid': 258147,
+                'custom_field': {'gid': 1646, 'name': 'Priority', 'type': 'enum'},
+                'project': {'gid': 3, 'name': 'New Project'}}],
+            workspace={'gid': 1, 'name': 'Workspace'})
         self.command._sync_project_id(project_id=3, workspace=workspace_, models=[])
         self.assertTrue(CustomField.objects.filter(remote_id=1646, name='Priority').exists())
         self.assertTrue(CustomFieldSettings.objects.filter(remote_id=258147, project_id=3).exists())
