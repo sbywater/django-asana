@@ -272,10 +272,10 @@ class Command(BaseCommand):
                 for setting in custom_field_settings:
                     custom_field_dict = setting.pop('custom_field')
                     setting.pop('project')
-                    custom_field_remote_id = custom_field_dict.pop('id')
+                    custom_field_remote_id = custom_field_dict.pop('gid')
                     CustomField.objects.update_or_create(
                         remote_id=custom_field_remote_id, defaults=custom_field_dict)
-                    setting_remote_id = setting.pop('id')
+                    setting_remote_id = setting.pop('gid')
                     setting['custom_field_id'] = custom_field_remote_id
                     setting['project_id'] = project_id
                     CustomFieldSettings.objects.update_or_create(
