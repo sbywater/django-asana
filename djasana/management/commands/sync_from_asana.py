@@ -162,7 +162,7 @@ class Command(BaseCommand):
             else:
                 raise CommandError('Specified workspaces are not valid: {}'.format(
                     ', '.join(bad_list)))
-        # Return newer projects first so they get synced earlier
+        # Return newer workspaces first so they get synced earlier
         return sorted(workspace_ids, reverse=True)
 
     def _get_project_ids(self, projects, workspace_id):
