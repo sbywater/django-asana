@@ -34,6 +34,7 @@ class ProjectAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'owner', 'archived', asana_link)
     list_filter = ('workspace', 'team', 'archived')
     readonly_fields = ('workspace', 'team', asana_link)
+    search_fields = ('remote_id', 'name')
 
 
 class TaskForm(forms.ModelForm):
@@ -74,6 +75,15 @@ class TeamAdmin(admin.ModelAdmin):
 class UserAdmin(admin.ModelAdmin):
     list_display = ('__str__',)
     readonly_fields = (asana_link,)
+
+
+@admin.register(models.Webhook)
+class WebhookAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'project')
+    readonly_fields = ('secret', 'project',)
+
+    def has_add_permission(self, request):
+        return False
 
 
 @admin.register(models.Workspace)
