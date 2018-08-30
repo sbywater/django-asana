@@ -2,15 +2,16 @@ import hashlib
 import hmac
 import logging
 
-import django
 from asana.error import InvalidRequestError
+import django
 from django.conf import settings
+
+from djasana.models import Story, Tag, Task, User
+
 if django.VERSION >= (2, 0, 0):
     from django.urls import reverse
 else:
     from django.core.urlresolvers import reverse
-
-from djasana.models import Story, Tag, Task, User
 
 logger = logging.getLogger(__name__)
 
