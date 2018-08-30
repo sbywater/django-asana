@@ -182,10 +182,16 @@ To restrict your project to a single workspace, add the setting ASANA_WORKSPACE.
     ASANA_WORKSPACE = 'Personal Projects'
 
 
+Asana id versus gid
+-------------------
+
+Asana has begun migrating from `numeric ids to string gids <https://community.asana.com/t/asana-is-moving-to-string-ids/29340>`_. django-asana populates both of these fields, and will follow the migration path Asana has established.
+
+
 Limitations
 -----------
 
-django-asana does not yet fully support custom fields.
+django-asana support for custom fields is not well tested. If you use custom fields with django-asana, please `report any bugs you find <https://github.com/sbywater/girlsworldexpo/issues>`_.
 
 django-asana does not support updating user photo data. It will read user photo data from Asana, if available, but only the path to the 128x128 version of the photo.
 

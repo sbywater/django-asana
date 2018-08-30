@@ -24,12 +24,21 @@ class BaseModel(models.Model):
     remote_id = models.BigIntegerField(
         unique=True, db_index=True,
         help_text=_('The id of this object in Asana.'))
+    gid = models.CharField(
+        max_length=31,
+        unique=True, db_index=True,
+        null=True,
+        help_text=_('The gid of this object in Asana.'))
 
     class Meta:
         abstract = True
 
     def __str__(self):
         return str(self.remote_id)
+
+    def save(self, *args, **kwargs):
+        self.gid = self.gid or str(self.remote_id)
+        super(BaseModel, self).save(*args, **kwargs)
 
     def asana_url(self, *args, **kwargs):
         return '{}{}'.format(ASANA_BASE_URL, self.remote_id)
