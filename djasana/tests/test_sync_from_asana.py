@@ -232,6 +232,18 @@ class SyncFromAsanaTestCase(TestCase):
         parent, child = tuple(Task.objects.order_by('remote_id'))
         self.assertEqual(parent, child.parent)
 
+    def test_child_task_without_project(self):
+        # test edge case of child tasks that are disconnected from project
+        parent_task = task(projects=None)
+        child_task = task(id=2, projects=None, parent=parent_task.copy())
+
+        self.command.client.tasks.find_all.return_value = [parent_task.copy()]
+        self.command.client.tasks.subtasks.side_effect = [[child_task.copy()], []]
+        self.command.client.tasks.find_by_id.side_effect = [parent_task.copy(), child_task.copy()]
+
+        self.command.handle(interactive=False, workspace=['Test Workspace'])
+        self.assertEqual(2, Task.objects.count())
+
     def __test_task_not_in_asana_is_deleted(self):
         workspace_ = Workspace.objects.create(remote_id=1, name='Workspace')
         team_ = Team.objects.create(remote_id=2, name='Team')
