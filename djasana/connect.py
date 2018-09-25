@@ -14,7 +14,7 @@ class Client(AsanaClient, object):
     """An http client for making requests to an Asana API and receiving responses."""
 
     def request(self, method, path, **options):
-        logging.debug('%s, %s', method, path)
+        logger.debug('%s, %s', method, path)
         try:
             return super(Client, self).request(method, path, **options)
         except (SystemExit, ServerError, ChunkedEncodingError):
