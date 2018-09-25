@@ -8,7 +8,8 @@ from django.utils import six
 
 from djasana.connect import client_connect
 from djasana.models import (
-    Attachment, Project, Story, SyncToken, Tag, Task, Team, User, Webhook, Workspace)
+    Attachment, CustomField, CustomFieldSettings,
+    Project, Story, SyncToken, Tag, Task, Team, User, Webhook, Workspace)
 from djasana.settings import settings
 from djasana.utils import set_webhook, sync_story, sync_task
 
@@ -148,20 +149,20 @@ class Command(BaseCommand):
         if workspaces:
             for workspace in workspaces:
                 for wks in workspaces_:
-                    if workspace == str(wks['id']) or workspace == wks['name']:
-                        workspace_ids.append(wks['id'])
+                    if workspace == wks['gid'] or workspace == wks['name']:
+                        workspace_ids.append(wks['gid'])
                         break
                 else:
                     bad_list.append(workspace)
         else:
-            workspace_ids = [wks['id'] for wks in workspaces_]
+            workspace_ids = [wks['gid'] for wks in workspaces_]
         if bad_list:
             if len(bad_list) == 1:
                 raise CommandError('{} is not an Asana workspace'.format(workspaces[0]))
             else:
                 raise CommandError('Specified workspaces are not valid: {}'.format(
                     ', '.join(bad_list)))
-        # Return newer projects first so they get synced earlier
+        # Return newer workspaces first so they get synced earlier
         return sorted(workspace_ids, reverse=True)
 
     def _get_project_ids(self, projects, workspace_id):
@@ -172,13 +173,13 @@ class Command(BaseCommand):
         if projects:
             for project in projects:
                 for prj in projects_:
-                    if project == str(prj['id']) or project == prj['name']:
-                        project_ids.append(prj['id'])
+                    if project == prj['gid'] or project == prj['name']:
+                        project_ids.append(prj['gid'])
                         break
                 else:
                     bad_list.append(project)
         else:
-            project_ids = [prj['id'] for prj in projects_]
+            project_ids = [prj['gid'] for prj in projects_]
         if bad_list:
             if len(bad_list) == 1:
                 raise CommandError('{} is not an Asana project'.format(bad_list[0]))
@@ -253,6 +254,7 @@ class Command(BaseCommand):
             Team.objects.get_or_create(remote_id=team['id'], defaults={'name': team['name']})
             project_dict['team_id'] = team['id']
             project_dict['workspace'] = workspace
+            custom_field_settings = project_dict.pop('custom_field_settings', None)
             # Convert string to boolean:
             project_dict['archived'] = project_dict['archived'] == 'true'
             members_dict = project_dict.pop('members')
@@ -265,6 +267,18 @@ class Command(BaseCommand):
             follower_ids = [follower['id'] for follower in followers_dict]
             followers = User.objects.filter(id__in=follower_ids)
             project.followers.set(followers)
+            if custom_field_settings:
+                for setting in custom_field_settings:
+                    custom_field_dict = setting.pop('custom_field')
+                    setting.pop('project')
+                    custom_field_remote_id = custom_field_dict.pop('id')
+                    CustomField.objects.update_or_create(
+                        remote_id=custom_field_remote_id, defaults=custom_field_dict)
+                    setting_remote_id = setting.pop('id')
+                    setting['custom_field_id'] = custom_field_remote_id
+                    setting['project_id'] = project_id
+                    CustomFieldSettings.objects.update_or_create(
+                        remote_id=setting_remote_id, workspace=workspace, defaults=setting)
         else:
             project = None
 

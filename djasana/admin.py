@@ -25,7 +25,7 @@ class ParentRawIdWidget(widgets.ForeignKeyRawIdWidget):
 class AttachmentAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'name', 'parent', asana_link)
     raw_id_fields = ('parent',)
-    readonly_fields = (asana_link,)
+    readonly_fields = (asana_link, 'gid')
 
 
 @admin.register(models.Project)
@@ -33,7 +33,8 @@ class ProjectAdmin(admin.ModelAdmin):
     date_hierarchy = 'created_at'
     list_display = ('__str__', 'owner', 'archived', asana_link)
     list_filter = ('workspace', 'team', 'archived')
-    readonly_fields = ('workspace', 'team', asana_link)
+    readonly_fields = ('workspace', 'team', asana_link, 'gid')
+    search_fields = ('remote_id', 'name')
 
 
 class TaskForm(forms.ModelForm):
@@ -60,23 +61,32 @@ class TaskAdmin(admin.ModelAdmin):
     list_display = ('name', 'assignee', 'completed', 'due', asana_link)
     list_filter = ('completed', 'projects__workspace', 'projects__team', 'assignee', 'projects')
     raw_id_fields = ('assignee', 'parent')
-    readonly_fields = (asana_link,)
+    readonly_fields = (asana_link, 'gid')
     search_fields = ('remote_id', 'name')
 
 
 @admin.register(models.Team)
 class TeamAdmin(admin.ModelAdmin):
     list_display = ('__str__', asana_link)
-    readonly_fields = (asana_link,)
+    readonly_fields = (asana_link, 'gid')
 
 
 @admin.register(models.User)
 class UserAdmin(admin.ModelAdmin):
     list_display = ('__str__',)
-    readonly_fields = (asana_link,)
+    readonly_fields = (asana_link, 'gid')
+
+
+@admin.register(models.Webhook)
+class WebhookAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'project')
+    readonly_fields = ('secret', 'project')
+
+    def has_add_permission(self, request):
+        return False
 
 
 @admin.register(models.Workspace)
 class WorkspaceAdmin(admin.ModelAdmin):
     list_display = ('__str__', asana_link)
-    readonly_fields = (asana_link,)
+    readonly_fields = (asana_link, 'gid')

@@ -40,8 +40,8 @@ Requirements
 ============
 
 #. Python 3+
-#. `Django 1.9 - 2.0 <https://www.djangoproject.com/>`_
-#. `python-asana 0.6.2+ <https://github.com/Asana/python-asana>`_
+#. `Django 1.9 - 2.1+ <https://www.djangoproject.com/>`_
+#. `python-asana 0.8.0+ <https://github.com/Asana/python-asana>`_
 #. `django-braces 1.11+ <https://django-braces.readthedocs.io/en/latest/index.html>`_ for JsonRequestResponseMixin
 
 
@@ -101,7 +101,7 @@ With that value, your webhook urls will be something like this: https://mysite.c
 Command line options
 ====================
 
-========================    ======================================================
+========================    =======================================================================
 ``--workspace, -w``         Restrict work to the specified Asana workspace, by id or name. Can be
                             used multiple times. By default, all workspaces will used.
 
@@ -134,7 +134,7 @@ Command line options
                             database changes.
 
 ``--noinput``               Skip the warning that running this process will make data changes.
-========================    ======================================================
+========================    =======================================================================
 
 Note that due to option parsing limitations, it is less error prone to pass in the id of the object
 rather than the name. The easiest way to find the id of a project or task in Asana is to examine the url.
@@ -182,8 +182,16 @@ To restrict your project to a single workspace, add the setting ASANA_WORKSPACE.
     ASANA_WORKSPACE = 'Personal Projects'
 
 
+Asana id versus gid
+-------------------
+
+Asana has begun migrating from `numeric ids to string gids <https://community.asana.com/t/asana-is-moving-to-string-ids/29340>`_. django-asana populates both of these fields, and will follow the migration path Asana has established.
+
+
 Limitations
 -----------
+
+django-asana support for custom fields is not well tested. If you use custom fields with django-asana, please `report any bugs you find <https://github.com/sbywater/girlsworldexpo/issues>`_.
 
 django-asana does not support updating user photo data. It will read user photo data from Asana, if available, but only the path to the 128x128 version of the photo.
 
