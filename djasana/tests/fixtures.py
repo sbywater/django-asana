@@ -33,6 +33,7 @@ def project(**kwargs):
         'modified_at': timezone.now(),
         'public': True,
         'workspace': workspace(),
+        'resource_type': 'project',
     }
     defaults.update(kwargs)
     return fake_response(**defaults)
@@ -72,6 +73,7 @@ def task(*dummy, **kwargs):
         'projects': [project()],
         'tags': [tag()],
         'workspace': workspace(),
+        'resource_type': 'task',
     }
     defaults.update(kwargs)
     return fake_response(**defaults)
@@ -84,7 +86,8 @@ def team(**kwargs):
         'organization': {
             'id': 1,
             'name': 'Test Organization',
-        }
+        },
+        'resource_type': 'team',
     }
     defaults.update(kwargs)
     return fake_response(**defaults)
@@ -95,6 +98,7 @@ def user(**kwargs):
         'id': 1,
         'name': 'Test User',
         'workspaces': [workspace()],
+        'resource_type': 'user',
     }
     defaults.update(kwargs)
     return fake_response(**defaults)

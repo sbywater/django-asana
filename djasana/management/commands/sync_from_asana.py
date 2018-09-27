@@ -246,6 +246,7 @@ class Command(BaseCommand):
         logger.debug(project_dict)
         if self.commit:
             remote_id = project_dict.pop('id')
+            project_dict.pop('resource_type', None)
             if project_dict['owner']:
                 owner = project_dict.pop('owner')
                 User.objects.get_or_create(remote_id=owner['id'], defaults={'name': owner['name']})
@@ -293,7 +294,7 @@ class Command(BaseCommand):
             if tasks_to_delete.count() > 0:
                 id_list = list(tasks_to_delete.values_list('remote_id', flat=True))
                 tasks_to_delete.delete()
-                message = "Deleted {} Tasks No Longer Present: {} ".format(len(id_list), str(id_list))
+                message = 'Deleted {} tasks no longer present: {}'.format(len(id_list), id_list)
                 self.stdout.write(self.style.SUCCESS(message))
                 logger.info(message)
         if project:
@@ -342,6 +343,7 @@ class Command(BaseCommand):
         if Task in models and self.commit:
             remote_id = task_dict.pop('id')
             parent = task_dict.pop('parent', None)
+            task_dict.pop('resource_type', None)
             if parent:
                 # If this is a task we already know about, assume it was just synced.
                 parent_id = parent['id']
@@ -375,6 +377,7 @@ class Command(BaseCommand):
         if self.commit:
             remote_id = team_dict.pop('id')
             organization = team_dict.pop('organization')
+            team_dict.pop('resource_type', None)
             team_dict['organization_id'] = organization['id']
             team_dict['organization_name'] = organization['name']
             Team.objects.get_or_create(
@@ -386,6 +389,7 @@ class Command(BaseCommand):
         logger.debug(user_dict)
         if self.commit:
             remote_id = user_dict.pop('id')
+            user_dict.pop('resource_type', None)
             user_dict.pop('workspaces')
             if user_dict['photo']:
                 user_dict['photo'] = user_dict['photo']['image_128x128']

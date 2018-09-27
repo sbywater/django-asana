@@ -95,6 +95,7 @@ class WebhookView(JSONRequestResponseMixin, View):
         logger.debug('Sync project %s', project_dict['name'])
         logger.debug(project_dict)
         project_dict.pop('id')
+        project_dict.pop('resource_type', None)
         if project_dict['owner']:
             owner = project_dict.pop('owner')
             User.objects.get_or_create(remote_id=owner['id'], defaults={'name': owner['name']})
@@ -141,6 +142,7 @@ class WebhookView(JSONRequestResponseMixin, View):
         logger.debug('Sync task %s', task_dict['name'])
         logger.debug(task_dict)
         task_dict.pop('id')
+        task_dict.pop('resource_type', None)
         if task_dict['parent']:
             self._sync_task_id(task_dict['parent']['id'], project)
             task_dict['parent_id'] = task_dict.pop('parent')['id']
