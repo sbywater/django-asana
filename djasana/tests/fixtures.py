@@ -121,6 +121,7 @@ def workspace(**kwargs):
         'name': 'Test Workspace',
         'email_domains': None,
         'is_organization': False,
+        'resource_type': 'team',
     }
     defaults.update(kwargs)
     return fake_response(**defaults)

@@ -405,6 +405,7 @@ class Command(BaseCommand):
         logger.debug(workspace_dict)
         if Workspace in models and self.commit:
             remote_id = workspace_dict.pop('id')
+            workspace_dict.pop('resource_type', None)
             workspace_dict.pop('email_domains')
             workspace = Workspace.objects.update_or_create(
                 remote_id=remote_id, defaults=workspace_dict)[0]
