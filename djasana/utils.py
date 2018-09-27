@@ -41,6 +41,7 @@ def set_webhook(client, project_id):
 
 def sync_story(remote_id, story_dict):
     story_dict.pop('gid', None)
+    story_dict.pop('resource_type', None)
     if story_dict['created_by']:
         user = User.objects.get_or_create(
             remote_id=story_dict['created_by']['id'],

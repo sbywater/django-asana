@@ -45,6 +45,7 @@ def story(**kwargs):
         'name': 'Test Story',
         'created_by': user(),
         'target': task(),
+        'resource_type': 'story',
     }
     defaults.update(kwargs)
     return fake_response(**defaults)
