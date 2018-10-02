@@ -31,3 +31,6 @@ script:
 
 after_success:
   - coveralls
+
+notifications:
+    slack: regionalhelpwanted:9ZzIQ6Uhwf8FE3ZMdghaGTWE
