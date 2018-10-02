@@ -143,6 +143,7 @@ class WebhookView(JSONRequestResponseMixin, View):
         logger.debug(task_dict)
         task_dict.pop('id')
         task_dict.pop('resource_type', None)
+        task_dict.pop('resource_subtype', None)
         if task_dict['parent']:
             self._sync_task_id(task_dict['parent']['id'], project)
             task_dict['parent_id'] = task_dict.pop('parent')['id']
@@ -151,6 +152,7 @@ class WebhookView(JSONRequestResponseMixin, View):
             attachment_dict = self.client.attachments.find_by_id(attachment['id'])
             logger.debug(attachment_dict)
             remote_id = attachment_dict.pop('id')
+            attachment_dict.pop('resource_type', None)
             if attachment_dict['parent']:
                 attachment_dict['parent'] = task
             Attachment.objects.get_or_create(remote_id=remote_id, defaults=attachment_dict)

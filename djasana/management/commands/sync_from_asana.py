@@ -318,6 +318,7 @@ class Command(BaseCommand):
         logger.debug(tag_dict)
         if self.commit:
             remote_id = tag_dict.pop('id')
+            tag_dict.pop('resource_type', None)
             Tag.objects.get_or_create(
                 remote_id=remote_id,
                 defaults=tag_dict)
@@ -344,6 +345,7 @@ class Command(BaseCommand):
             remote_id = task_dict.pop('id')
             parent = task_dict.pop('parent', None)
             task_dict.pop('resource_type', None)
+            task_dict.pop('resource_subtype', None)
             if parent:
                 # If this is a task we already know about, assume it was just synced.
                 parent_id = parent['id']
@@ -363,6 +365,7 @@ class Command(BaseCommand):
                 attachment_dict = self.client.attachments.find_by_id(attachment['id'])
                 logger.debug(attachment_dict)
                 remote_id = attachment_dict.pop('id')
+                attachment_dict.pop('resource_type', None)
                 if attachment_dict['parent']:
                     attachment_dict['parent'] = task_
                 Attachment.objects.get_or_create(remote_id=remote_id, defaults=attachment_dict)

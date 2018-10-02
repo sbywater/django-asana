@@ -16,6 +16,7 @@ def attachment(**kwargs):
         'id': 1,
         'name': 'Test Attachment',
         'parent': task(),
+        'resource_type': 'attachment',
     }
     defaults.update(kwargs)
     return fake_response(**defaults)
@@ -46,6 +47,7 @@ def story(**kwargs):
         'created_by': user(),
         'target': task(),
         'resource_type': 'story',
+        'resource_subtype': 'default_story',
     }
     defaults.update(kwargs)
     return fake_response(**defaults)
@@ -55,6 +57,7 @@ def tag(**kwargs):
     defaults = {
         'id': 1,
         'name': 'Test Tag',
+        'resource_type': 'tag',
     }
     defaults.update(kwargs)
     return fake_response(**defaults)
@@ -75,6 +78,7 @@ def task(*dummy, **kwargs):
         'tags': [tag()],
         'workspace': workspace(),
         'resource_type': 'task',
+        'resource_subtype': 'default_task',
     }
     defaults.update(kwargs)
     return fake_response(**defaults)
@@ -122,7 +126,7 @@ def workspace(**kwargs):
         'name': 'Test Workspace',
         'email_domains': None,
         'is_organization': False,
-        'resource_type': 'team',
+        'resource_type': 'workspace',
     }
     defaults.update(kwargs)
     return fake_response(**defaults)
