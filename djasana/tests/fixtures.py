@@ -56,8 +56,10 @@ def story(**kwargs):
 def tag(**kwargs):
     defaults = {
         'id': 1,
+        'followers': [user()],
         'name': 'Test Tag',
         'resource_type': 'tag',
+        'workspace': workspace(),
     }
     defaults.update(kwargs)
     return fake_response(**defaults)

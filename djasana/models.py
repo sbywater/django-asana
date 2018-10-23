@@ -17,6 +17,12 @@ STATUS_CHOICES = (
 )
 
 ASANA_BASE_URL = 'https://app.asana.com/0/'
+COLORS = [
+    'dark-pink', 'dark-green', 'dark-blue', 'dark-red', 'dark-teal', 'dark-brown',
+    'dark-orange', 'dark-purple', 'dark-warm-gray', 'light-pink', 'light-green',
+    'light-blue', 'light-red', 'light-teal', 'light-yellow', 'light-orange',
+    'light-purple', 'light-warm-gray']
+COLOR_CHOICES = ((choice, _(choice)) for choice in COLORS)
 
 
 class BaseModel(models.Model):
@@ -118,20 +124,13 @@ class CustomFieldSettings(BaseModel):
 
 class Project(NamedModel):
     """An Asana project in a workspace having a collection of tasks."""
-    colors = [
-        'dark-pink', 'dark-green', 'dark-blue', 'dark-red', 'dark-teal', 'dark-brown',
-        'dark-orange', 'dark-purple', 'dark-warm-gray', 'light-pink', 'light-green',
-        'light-blue', 'light-red', 'light-teal', 'light-yellow', 'light-orange',
-        'light-purple', 'light-warm-gray']
-    color_choices = ((choice, _(choice)) for choice in colors)
-
     layout_choices = (
         ('board', _('board')),
         ('list', _('list')),
     )
 
     archived = models.BooleanField(default=False)
-    color = models.CharField(choices=color_choices, max_length=16, null=True, blank=True)
+    color = models.CharField(choices=COLOR_CHOICES, max_length=16, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     current_status = models.CharField(choices=STATUS_CHOICES, max_length=16, null=True, blank=True)
     custom_field_settings = models.ManyToManyField(
@@ -207,7 +206,13 @@ class SyncToken(models.Model):
 
 
 class Tag(NamedModel):
-    pass
+    """A label within a workspace or organiation that can be attached to a task."""
+    color = models.CharField(choices=COLOR_CHOICES, max_length=16, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    followers = models.ManyToManyField('User', related_name='tags_following')
+    notes = models.TextField(null=True, blank=True)
+    workspace = models.ForeignKey(
+        'Workspace', to_field='remote_id', on_delete=models.CASCADE, null=True, blank=True)
 
 
 class Task(Hearted, NamedModel):
@@ -356,12 +361,12 @@ def get_next_color():
     """
     color = cache.get('LAST_ASANA_COLOR')
     if color:
-        index = Project.colors.index(color)
-        if index == len(Project.colors) - 1:
-            color = Project.colors[0]
+        index = COLORS.index(color)
+        if index == len(COLORS) - 1:
+            color = COLORS[0]
         else:
-            color = Project.colors[index + 1]
+            color = COLORS[index + 1]
     else:
-        color = Project.colors[0]
+        color = COLORS[0]
     cache.set('LAST_ASANA_COLOR', color)
     return color

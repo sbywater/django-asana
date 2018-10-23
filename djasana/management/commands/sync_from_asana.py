@@ -312,14 +312,19 @@ class Command(BaseCommand):
         remote_id = story_dict.pop('id')
         sync_story(remote_id, story_dict)
 
-    def _sync_tag(self, tag):
+    def _sync_tag(self, tag, workspace):
         tag_dict = self.client.tags.find_by_id(tag['id'])
         logger.debug(tag_dict)
         if self.commit:
             remote_id = tag_dict.pop('id')
-            Tag.objects.get_or_create(
+            tag_dict['workspace'] = workspace
+            followers_dict = tag_dict.pop('followers')
+            tag = Tag.objects.get_or_create(
                 remote_id=remote_id,
-                defaults=tag_dict)
+                defaults=tag_dict)[0]
+            follower_ids = [follower['id'] for follower in followers_dict]
+            followers = User.objects.filter(id__in=follower_ids)
+            tag.followers.set(followers)
 
     def _sync_task(self, task, project, models, skip_subtasks=False):
         """Sync this task and parent its subtasks
@@ -416,7 +421,7 @@ class Command(BaseCommand):
 
         if Tag in models:
             for tag in self.client.tags.find_by_workspace(workspace_id):
-                self._sync_tag(tag)
+                self._sync_tag(tag, workspace)
 
         if Team in models:
             for team in self.client.teams.find_by_organization(workspace_id):

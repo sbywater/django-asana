@@ -20,7 +20,7 @@ class ProjectColorTestCase(SimpleTestCase):
     @staticmethod
     def cycle_colors():
         colors = []
-        for dummy in range(len(models.Project.colors)):
+        for dummy in range(len(models.COLORS)):
             colors.append(models.get_next_color())
         return colors
 
@@ -28,14 +28,14 @@ class ProjectColorTestCase(SimpleTestCase):
     def test_get_next_color_cycles_no_cache(self):
         cache.delete('LAST_ASANA_COLOR')
         colors = self.cycle_colors()
-        self.assertSequenceEqual(models.Project.colors, colors)
+        self.assertSequenceEqual(models.COLORS, colors)
 
     @override_settings(CACHES=LOCAL_MEMORY_CACHE)
     def test_cached_color_cycles(self):
-        cache.set('LAST_ASANA_COLOR', models.Project.colors[3])
+        cache.set('LAST_ASANA_COLOR', models.COLORS[3])
         colors = self.cycle_colors()
-        self.assertNotEqual(models.Project.colors, colors)
-        self.assertSetEqual(set(models.Project.colors), set(colors))
+        self.assertNotEqual(models.COLORS, colors)
+        self.assertSetEqual(set(models.COLORS), set(colors))
 
 
 class TaskModelTestCase(TestCase):
