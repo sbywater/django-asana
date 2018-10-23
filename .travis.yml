@@ -1,36 +1,33 @@
 language: python
 dist: xenial
 sudo: true
-
 python:
-  - 3.5
-  - 3.6
-  - 3.7
-
+- 3.5
+- 3.6
+- 3.7
 env:
   global:
-    - DJANGO_SETTINGS_MODULE="settings"
-    - PYTHONPATH="/home/travis/build/sbywater/django-asana"
-    - PIP_USE_MIRRORS=true
+  - DJANGO_SETTINGS_MODULE="settings"
+  - PYTHONPATH="/home/travis/build/sbywater/django-asana"
+  - PIP_USE_MIRRORS=true
+  - secure: epAjDXvIvQuJylcRu46TmGWXtXF0TikTag6PYjDNydkf+usaLOldE48jwKiuvZOXJawk1syb5kh2rsCnT3pYG4Rv7V3VJrpFdSYYERwCJ5V2m4vaXf350+fArkZNx8FZ4xjN9NWmfxdp6VTjZVpf8TDNE5HWnj+zWHYZ+I8JzJKYxzXyQTicU9ZStxJNayd7eb72WxwZF3yiVsa5ex+HyNzGYsxJ9jguTNs5O3cnGUmO5VPKC1tZKMPbq00zNksduvhXq7hJQpjKh/vombPYP5nGilDXoUClR1agjKmh+1Jowm1n0TwzglUzEOoT6VZoSM9D1suUIEvk0lj+BWWjDYEySw4f+zWLt5ZCw+hFhjMH5BTxkuECWJWd6o5dS1C8upLl+cmyAC0EFeVmLgx4GWs13nCA0jtS5gstWETouDBFt5iJ61rPp18h6sETjGcxPVi3LUYZhizq8vPF1JB+Z3puHtvSZT2Ya/aUG2BOW2PIbvh1c+GCC5fnH/2MoDMfxrx3WiF3w7u/ZO9nxHgc0IezS4uYDX109LNNKc6ce49SUuo7ulsCSAYdvUQYj5tU647ukMsintgy5bHyEjB9FvfaO1uHqBgoQdXMtLSkw6njkCF2gPtbjZbNyj+Boie2PkY/KQblBzoHV/H7xwlrs2+1mAnVdU79ZIrN+13kp6g=
   matrix:
-    - DJANGO_VERSION="django>=1.9,<1.10"
-    - DJANGO_VERSION="django>=1.10,<1.11"
-    - DJANGO_VERSION="django>=1.11,<1.12"
-    - DJANGO_VERSION="django>=2.0,<2.1"
-    - DJANGO_VERSION="https://github.com/django/django/archive/master.tar.gz"
+  - DJANGO_VERSION="django>=1.9,<1.10"
+  - DJANGO_VERSION="django>=1.10,<1.11"
+  - DJANGO_VERSION="django>=1.11,<1.12"
+  - DJANGO_VERSION="django>=2.0,<2.1"
+  - DJANGO_VERSION="https://github.com/django/django/archive/master.tar.gz"
   allow_failures:
-    - DJANGO_VERSION="https://github.com/django/django/archive/master.tar.gz"
-
+  - DJANGO_VERSION="https://github.com/django/django/archive/master.tar.gz"
 install:
-  - pip install $DJANGO_VERSION
-  - pip install -r requirements.txt
-  - pip install .
-
+- pip install $DJANGO_VERSION
+- pip install -r requirements.txt
+- pip install .
 script:
-  - coverage run manage.py test
-
+- coverage run manage.py test
 after_success:
-  - coveralls
-
+- coveralls
 notifications:
-    slack: regionalhelpwanted:9ZzIQ6Uhwf8FE3ZMdghaGTWE
+  slack:
+    rooms:
+    - secure: secure: "YaC7mvbpqYw5p+yw2kdQ2qLtwLyMKvk6kdZFQFHeiIFzbo4CUKIQ6QLOaYP//75WslFEnNBVbIjhS+cPrumSOarJybJWiyGlH+yOBF9lvSvXrocmREljNRN6EjKQ6VXJLgjsoaCsM29tQaKxaV9G4895suGCq47bWyYwu68JbwQ2q55lw0+lrkoINfzhhk+O19zH21EBtFavQ4wA15FT2yqIcHvnIX+qnbNw5lDoZzMXj8jVeme8MmXDknjH33Y9ZbOTIpKfEN9rLrLIMZhWZg+FCYY7qFWQcfydRVwGX1vRZ3x75/+uXKWQyHfptIK+c9a4rYZKoLvmU90sGQmOL22XxVsEL8R5E/AvtjjzdzSCipgZlpVpVM/2WpKkJ7zuTvpBFD3jhGan3a//z1F1o8Ff9QYDFCt411p0gslA6Kb3Ttj1/aVNlMDl5nI+cqnhd15inyXhqFFzzLEwhwVCymgsvLqnNx0RxRJy+6VlvPH2FRELHC5QpFsnrNbbS3IySQhn6QZLYSgBW1eNQrC8YuXqXCFzZLRMLBKvSk+jYI9fV/6PUL6POgyoevvSykh/aTjd2L2wNinpQ4EEE6dgFGaSadSAiMJWp2qHHSWpxeJLzn9mmlQttgtlboc3u/Oi35qqTgXkiWmcFFQ9OJchcheo7piZZxZkz29FIZRpP2w="
