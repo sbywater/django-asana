@@ -246,7 +246,6 @@ class Command(BaseCommand):
         logger.debug(project_dict)
         if self.commit:
             remote_id = project_dict.pop('id')
-            project_dict.pop('resource_type', None)
             if project_dict['owner']:
                 owner = project_dict.pop('owner')
                 User.objects.get_or_create(remote_id=owner['id'], defaults={'name': owner['name']})
@@ -318,7 +317,6 @@ class Command(BaseCommand):
         logger.debug(tag_dict)
         if self.commit:
             remote_id = tag_dict.pop('id')
-            tag_dict.pop('resource_type', None)
             Tag.objects.get_or_create(
                 remote_id=remote_id,
                 defaults=tag_dict)
@@ -344,8 +342,6 @@ class Command(BaseCommand):
         if Task in models and self.commit:
             remote_id = task_dict.pop('id')
             parent = task_dict.pop('parent', None)
-            task_dict.pop('resource_type', None)
-            task_dict.pop('resource_subtype', None)
             if parent:
                 # If this is a task we already know about, assume it was just synced.
                 parent_id = parent['id']
@@ -365,7 +361,6 @@ class Command(BaseCommand):
                 attachment_dict = self.client.attachments.find_by_id(attachment['id'])
                 logger.debug(attachment_dict)
                 remote_id = attachment_dict.pop('id')
-                attachment_dict.pop('resource_type', None)
                 if attachment_dict['parent']:
                     attachment_dict['parent'] = task_
                 Attachment.objects.get_or_create(remote_id=remote_id, defaults=attachment_dict)
@@ -380,7 +375,6 @@ class Command(BaseCommand):
         if self.commit:
             remote_id = team_dict.pop('id')
             organization = team_dict.pop('organization')
-            team_dict.pop('resource_type', None)
             team_dict['organization_id'] = organization['id']
             team_dict['organization_name'] = organization['name']
             Team.objects.get_or_create(
@@ -392,7 +386,6 @@ class Command(BaseCommand):
         logger.debug(user_dict)
         if self.commit:
             remote_id = user_dict.pop('id')
-            user_dict.pop('resource_type', None)
             user_dict.pop('workspaces')
             if user_dict['photo']:
                 user_dict['photo'] = user_dict['photo']['image_128x128']
@@ -408,7 +401,6 @@ class Command(BaseCommand):
         logger.debug(workspace_dict)
         if Workspace in models and self.commit:
             remote_id = workspace_dict.pop('id')
-            workspace_dict.pop('resource_type', None)
             workspace_dict.pop('email_domains')
             workspace = Workspace.objects.update_or_create(
                 remote_id=remote_id, defaults=workspace_dict)[0]

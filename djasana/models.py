@@ -29,6 +29,7 @@ class BaseModel(models.Model):
         unique=True, db_index=True,
         null=True,
         help_text=_('The gid of this object in Asana.'))
+    resource_type = models.CharField(max_length=24, null=True, blank=True)
 
     class Meta:
         abstract = True
@@ -98,10 +99,12 @@ class CustomField(NamedModel):
         ('text', 'text'),
     )
     precision_choices = [(num, num) for num in range(0, 6)]
+
     description = models.CharField(max_length=1024, null=True, blank=True)
     enum_options = models.CharField(max_length=1024, null=True, blank=True)
-    type = models.CharField(choices=type_choices, max_length=24)
     precision = models.SmallIntegerField(choices=precision_choices, null=True, blank=True)
+    resource_subtype = models.CharField(choices=type_choices, max_length=24, null=True, blank=True)
+    type = models.CharField(choices=type_choices, max_length=24)
 
 
 class CustomFieldSettings(BaseModel):
@@ -187,6 +190,7 @@ class Story(Hearted, NamedModel):
     html_text = models.CharField(max_length=1024, null=True, blank=True)
     is_edited = models.BooleanField(default=False)
     is_pinned = models.BooleanField(default=False)
+    resource_subtype = models.CharField(choices=type_choices, max_length=16, null=True, blank=True)
     source = models.CharField(choices=source_choices, max_length=16)
     target = models.BigIntegerField(db_index=True)
     text = models.CharField(max_length=1024, null=True, blank=True)
@@ -208,6 +212,10 @@ class Tag(NamedModel):
 
 class Task(Hearted, NamedModel):
     """An Asana task; something that needs doing."""
+    type_choices = (
+        ('default_task', _('default_task')),
+    )
+
     assignee = models.ForeignKey(
         'User', to_field='remote_id', related_name='assigned_tasks', null=True, blank=True,
         on_delete=models.SET_NULL)
@@ -225,6 +233,8 @@ class Task(Hearted, NamedModel):
     parent = models.ForeignKey(
         'self', to_field='remote_id', null=True, blank=True, on_delete=models.SET_NULL)
     projects = models.ManyToManyField('Project')
+    resource_subtype = models.CharField(
+        choices=type_choices, max_length=16, default='default_task')
     start_on = models.DateField(null=True, blank=True)
     tags = models.ManyToManyField('Tag')
 

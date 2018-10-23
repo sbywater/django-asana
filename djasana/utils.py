@@ -41,8 +41,6 @@ def set_webhook(client, project_id):
 
 def sync_story(remote_id, story_dict):
     story_dict.pop('gid', None)
-    story_dict.pop('resource_type', None)
-    story_dict.pop('resource_subtype', None)
     if story_dict['created_by']:
         user = User.objects.get_or_create(
             remote_id=story_dict['created_by']['id'],
@@ -59,8 +57,6 @@ def sync_story(remote_id, story_dict):
 
 def sync_task(remote_id, task_dict, project, sync_tags=False):
     task_dict.pop('gid', None)
-    task_dict.pop('resource_type', None)
-    task_dict.pop('resource_subtype', None)
     if task_dict['assignee']:
         user = User.objects.get_or_create(
             remote_id=task_dict['assignee']['id'],
