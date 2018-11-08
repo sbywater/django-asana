@@ -176,6 +176,10 @@ setup(
     author=meta['author'],
     author_email=meta['contact'],
     url=meta['homepage'],
+    project_urls={
+        'Documentation': 'https://django-asana.readthedocs.io/en/latest',
+        'Source': 'https://github.com/sbywater/django-asana',
+    },
     platforms=['any'],
     license='MIT',
     packages=packages,
@@ -186,6 +190,7 @@ setup(
         'asana>=0.8.0',
         'django-braces>=1.10',
     ],
+    python_requires='~=3.5',
     cmdclass={'test': RunTests,
               'quicktest': QuickRunTests,
               'citest': CIRunTests},
