@@ -183,13 +183,17 @@ class Story(Hearted, NamedModel):
         ('comment', _('comment')),
         ('system', _('system')),
     )
+    subtype_choices = type_choices + (
+        ('marked_incomplete', ('marked_incomplete')),
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(
         'User', to_field='remote_id', null=True, on_delete=models.SET_NULL)
     html_text = models.CharField(max_length=1024, null=True, blank=True)
     is_edited = models.BooleanField(default=False)
     is_pinned = models.BooleanField(default=False)
-    resource_subtype = models.CharField(choices=type_choices, max_length=16, null=True, blank=True)
+    resource_subtype = models.CharField(
+        choices=subtype_choices, max_length=24, null=True, blank=True)
     source = models.CharField(choices=source_choices, max_length=16)
     target = models.BigIntegerField(db_index=True)
     text = models.CharField(max_length=1024, null=True, blank=True)
@@ -239,7 +243,7 @@ class Task(Hearted, NamedModel):
         'self', to_field='remote_id', null=True, blank=True, on_delete=models.SET_NULL)
     projects = models.ManyToManyField('Project')
     resource_subtype = models.CharField(
-        choices=type_choices, max_length=16, default='default_task')
+        choices=type_choices, max_length=24, default='default_task')
     start_on = models.DateField(null=True, blank=True)
     tags = models.ManyToManyField('Tag')
 
