@@ -197,6 +197,8 @@ django-asana does not support updating user photo data. It will read user photo 
 
 If a project or task that has been synced to Django is deleted in Asana, and webhooks are not used, it is not deleted in Django with the sync_from_asana command. This is forthcoming functionality.
 
+The Asana development team adds new features to their API without advance notice or documentation. When they add a new field to the API of a model, it raises a "Programming Error: column *n* does not exist" error until django-asana adds support for it. Typically this happens rather quickly.
+
 Running tests
 =============
 
