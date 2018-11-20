@@ -187,7 +187,7 @@ setup(
     zip_safe=False,
     install_requires=[
         'django>=1.8',
-        'asana>=0.8.0',
+        'asana>=0.8.2',
         'django-braces>=1.10',
     ],
     python_requires='~=3.5',
