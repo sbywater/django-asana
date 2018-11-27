@@ -191,6 +191,8 @@ Asana has begun migrating from `numeric ids to string gids <https://community.as
 Limitations
 -----------
 
+django-asana is designed for copying data from Asana to Django. Although it contains a useful client for connecting the two, for creating data in Asana (as in, wholesale syncing to Asana from Django) the developer is mostly left to use python-asana directly. For more info see For more info see :doc:`create_data`.
+
 django-asana support for custom fields is not well tested. If you use custom fields with django-asana, please `report any bugs you find <https://github.com/sbywater/girlsworldexpo/issues>`_.
 
 django-asana does not support updating user photo data. It will read user photo data from Asana, if available, but only the path to the 128x128 version of the photo.
@@ -207,3 +209,5 @@ After installing django-asana and adding it to your project, run tests against i
 .. code:: bash
 
     python manage.py test djasana
+
+For more info see :doc:`testing`.
