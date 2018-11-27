@@ -288,6 +288,22 @@ class SyncFromAsanaTestCase(TestCase):
         self.command.handle(interactive=False)
         self.assertTrue(Task.objects.filter(remote_id=99, name='Subtask').exists())
 
+    def test_dependencies_synced(self):
+        main_task = task(id=98, name='Is a dependency for 99', dependents=[task(id=99)])
+        dependent_task = task(id=99, name='Requires task 98', dependencies=[task(id=98)])
+        # When processed, tasks get modified in place; we need to pass the original twice.
+        dependent_copy = dependent_task.copy(), dependent_task.copy()
+        self.command.client.tasks.find_all.return_value = [main_task, dependent_task]
+        self.command.client.tasks.find_by_id.side_effect = [
+            main_task, dependent_task, dependent_copy]
+        self.command.handle(interactive=False)
+        self.assertTrue(Task.objects.filter(remote_id=98).exists())
+        self.assertTrue(Task.objects.filter(remote_id=99).exists())
+        main_task = Task.objects.get(remote_id=98)
+        dependent_task = Task.objects.get(remote_id=99)
+        self.assertTrue(main_task in dependent_task.dependencies.all())
+        self.assertTrue(dependent_task in main_task.dependents.all())
+
     def test_custom_fields(self):
         workspace_ = Workspace.objects.create(remote_id=1, name='Workspace')
         team_ = Team.objects.create(remote_id=2, name='Team')

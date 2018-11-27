@@ -156,7 +156,7 @@ class Project(NamedModel):
 
 
 class ProjectStatus(BaseModel):
-    """An Asana project in a workspace having a collection of tasks."""
+    """An update on the progess of a project."""
     colors = ['red', 'yellow', 'green']
     color_choices = ((choice, _(choice)) for choice in colors)
 
@@ -233,6 +233,7 @@ class Task(Hearted, NamedModel):
     completed_at = models.DateTimeField(null=True, blank=True)
     custom_fields = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    dependencies = models.ManyToManyField('self', symmetrical=False, related_name='dependents')
     due_at = models.DateTimeField(null=True, blank=True)
     due_on = models.DateField(null=True, blank=True)
     followers = models.ManyToManyField('User', related_name='tasks_following')
@@ -281,6 +282,8 @@ class Task(Hearted, NamedModel):
                 defaults={'name': task_dict['assignee']['name']})[0]
             task_dict['assignee'] = user
         task_dict.pop('id')
+        task_dict.pop('dependents', None)
+        dependencies = task_dict.pop('dependencies', None)
         task_dict.pop('hearts', None)
         task_dict.pop('memberships')
         task_dict.pop('num_hearts', None)
@@ -299,6 +302,8 @@ class Task(Hearted, NamedModel):
                 remote_id=tag_['id'],
                 defaults={'name': tag_['name']})[0]
             self.tags.add(tag)
+        if dependencies:
+            self.dependencies.set([dep['id'] for dep in dependencies])
 
     def sync_to_asana(self, fields=None):
         """Updates Asana to match values from this task."""

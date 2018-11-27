@@ -72,6 +72,8 @@ def task(*dummy, **kwargs):
         'name': 'Test Task',
         'assignee': user(),
         'completed': False,
+        'dependencies': None,
+        'dependents': None,
         'followers': [user()],
         'memberships': None,
         'modified_at': timezone.now(),

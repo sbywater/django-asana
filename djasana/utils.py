@@ -57,6 +57,8 @@ def sync_story(remote_id, story_dict):
 
 def sync_task(remote_id, task_dict, project, sync_tags=False):
     task_dict.pop('gid', None)
+    task_dict.pop('dependents', None)
+    task_dict.pop('dependencies', None)
     if task_dict['assignee']:
         user = User.objects.get_or_create(
             remote_id=task_dict['assignee']['id'],
