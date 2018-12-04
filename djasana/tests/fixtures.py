@@ -22,11 +22,51 @@ def attachment(**kwargs):
     return fake_response(**defaults)
 
 
+def custom_field(**kwargs):
+    defaults = {
+        'id': 1,
+        'description': 'Priority',
+        'enum_options': '''[
+            {
+              "id": 789,
+              "gid": "789",
+              "name": "Low",
+              "enabled": true,
+              "color": "blue",
+              "resource_type": "enum_option"
+            },
+            {
+              "id": 790,
+              "gid": "790",
+              "name": "Medium",
+              "enabled": true,
+              "color": "yellow",
+              "resource_type": "enum_option"
+            },
+            {
+              "id": 791,
+              "gid": "791",
+              "name": "High",
+              "enabled": true,
+              "color": "red",
+              "resource_type": "enum_option"
+            }
+          ]''',
+        'name': 'Test Custom Field',
+        'resource_type': 'custom_field',
+        'resource_subtype': 'enum',
+    }
+    defaults.update(kwargs)
+    return fake_response(**defaults)
+
+
 def project(**kwargs):
     defaults = {
         'id': 1,
         'name': 'Test Project',
         'archived': 'false',
+        'custom_fields': [],
+        'current_status': None,
         'followers': [user()],
         'owner': user(),
         'team': team(),
@@ -35,6 +75,21 @@ def project(**kwargs):
         'public': True,
         'workspace': workspace(),
         'resource_type': 'project',
+    }
+    defaults.update(kwargs)
+    return fake_response(**defaults)
+
+
+def project_status(**kwargs):
+    defaults = {
+        'id': 1,
+        'color': 'green',
+        'created_at': None,
+        'created_by': None,
+        'html_text': '<body>Test</body>',
+        'resource_type': 'project_status',
+        'text': 'Test',
+        'title': 'Project Status',
     }
     defaults.update(kwargs)
     return fake_response(**defaults)
@@ -75,8 +130,10 @@ def task(*dummy, **kwargs):
         'dependencies': None,
         'dependents': None,
         'followers': [user()],
+        'html_notes': '<body>A note.</body>',
         'memberships': None,
         'modified_at': timezone.now(),
+        'notes': 'A note.',
         'parent': None,
         'projects': [project()],
         'tags': [tag()],

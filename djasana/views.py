@@ -11,7 +11,7 @@ from requests.packages.urllib3.exceptions import RequestError
 
 from .connect import client_connect
 from .models import Attachment, Project, Task, Team, User, Webhook
-from .utils import sign_sha256_hmac, sync_story, sync_task
+from .utils import sign_sha256_hmac, sync_story, sync_task, sync_custom_fields
 
 logger = logging.getLogger(__name__)
 
@@ -107,7 +107,8 @@ class WebhookView(JSONRequestResponseMixin, View):
         project_dict['archived'] = project_dict['archived'] == 'true'
         members_dict = project_dict.pop('members')
         followers_dict = project_dict.pop('followers')
-
+        project_dict.pop('custom_fields', None)
+        custom_field_settings = project_dict.pop('custom_field_settings', None)
         Project.objects.update_or_create(
             remote_id=project.remote_id, defaults=project_dict)
         member_ids = [member['id'] for member in members_dict]
@@ -116,6 +117,10 @@ class WebhookView(JSONRequestResponseMixin, View):
         follower_ids = [follower['id'] for follower in followers_dict]
         followers = User.objects.filter(id__in=follower_ids)
         project.followers.set(followers)
+        if custom_field_settings:
+            sync_custom_fields(
+                self.client, custom_field_settings,
+                project_dict['workspace_id'], project.remote_id)
 
     def _sync_story_id(self, story_id):
         try:

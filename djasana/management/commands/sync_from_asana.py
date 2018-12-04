@@ -8,10 +8,10 @@ from django.utils import six
 
 from djasana.connect import client_connect
 from djasana.models import (
-    Attachment, CustomField, CustomFieldSettings,
-    Project, Story, SyncToken, Tag, Task, Team, User, Webhook, Workspace)
+    Attachment, Project, ProjectStatus, Story, SyncToken,
+    Tag, Task, Team, User, Webhook, Workspace)
 from djasana.settings import settings
-from djasana.utils import set_webhook, sync_story, sync_task
+from djasana.utils import set_webhook, sync_story, sync_task, sync_custom_fields
 
 logger = logging.getLogger(__name__)
 
@@ -255,11 +255,13 @@ class Command(BaseCommand):
             Team.objects.get_or_create(remote_id=team['id'], defaults={'name': team['name']})
             project_dict['team_id'] = team['id']
             project_dict['workspace'] = workspace
+            project_dict.pop('custom_fields', None)
             custom_field_settings = project_dict.pop('custom_field_settings', None)
             # Convert string to boolean:
             project_dict['archived'] = project_dict['archived'] == 'true'
             members_dict = project_dict.pop('members')
             followers_dict = project_dict.pop('followers')
+            project_status_dict = project_dict.pop('current_status', None)
             project = Project.objects.update_or_create(
                 remote_id=remote_id, defaults=project_dict)[0]
             member_ids = [member['id'] for member in members_dict]
@@ -268,18 +270,14 @@ class Command(BaseCommand):
             follower_ids = [follower['id'] for follower in followers_dict]
             followers = User.objects.filter(id__in=follower_ids)
             project.followers.set(followers)
+            if project_status_dict:
+                current_status_id = project_status_dict.pop('id')
+                project_status = ProjectStatus.objects.update_or_create(
+                    remote_id=current_status_id, defaults=project_status_dict)[0]
+                project.current_status = project_status
+                project.save(update_fields=['current_status'])
             if custom_field_settings:
-                for setting in custom_field_settings:
-                    custom_field_dict = setting.pop('custom_field')
-                    setting.pop('project')
-                    custom_field_remote_id = custom_field_dict.pop('id')
-                    CustomField.objects.update_or_create(
-                        remote_id=custom_field_remote_id, defaults=custom_field_dict)
-                    setting_remote_id = setting.pop('id')
-                    setting['custom_field_id'] = custom_field_remote_id
-                    setting['project_id'] = project_id
-                    CustomFieldSettings.objects.update_or_create(
-                        remote_id=setting_remote_id, workspace=workspace, defaults=setting)
+                sync_custom_fields(self.client, custom_field_settings, workspace, project_id)
         else:
             project = None
 
@@ -326,7 +324,7 @@ class Command(BaseCommand):
             tag.followers.set(followers)
 
     def _sync_task(self, task, project, models, skip_subtasks=False):
-        """Sync this task and its parent, dependancies, and subtasks
+        """Sync this task and its parent, dependencies, and subtasks
 
         For parents and subtasks, this method is called recursively, so skip_subtasks True is
         passed when syncing a parent task from a subtask.

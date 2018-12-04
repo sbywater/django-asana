@@ -6,7 +6,7 @@ from asana.error import InvalidRequestError
 import django
 from django.conf import settings
 
-from djasana.models import Story, Tag, Task, User
+from djasana.models import CustomField, CustomFieldSettings, Story, Tag, Task, User
 
 if django.VERSION >= (2, 0, 0):
     from django.urls import reverse
@@ -83,3 +83,21 @@ def sync_task(remote_id, task_dict, project, sync_tags=False):
             task.tags.add(tag)
     task.projects.add(project)
     return task
+
+
+def sync_custom_fields(client, custom_field_settings, workspace, project_id):
+    synced_ids = []
+    for setting in custom_field_settings:
+        custom_field_mini_dict = setting.pop('custom_field')
+        setting.pop('project')
+        custom_field_remote_id = custom_field_mini_dict.pop('id')
+        if custom_field_remote_id not in synced_ids:
+            custom_field_dict = client.custom_fields.find_by_id(custom_field_remote_id)
+            CustomField.objects.update_or_create(
+                remote_id=custom_field_remote_id, defaults=custom_field_dict)
+            synced_ids.append(custom_field_remote_id)
+        setting_remote_id = setting.pop('id')
+        setting['custom_field_id'] = custom_field_remote_id
+        setting['project_id'] = project_id
+        CustomFieldSettings.objects.update_or_create(
+            remote_id=setting_remote_id, workspace=workspace, defaults=setting)

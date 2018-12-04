@@ -10,12 +10,6 @@ from .connect import client_connect
 logger = logging.getLogger(__name__)
 
 
-STATUS_CHOICES = (
-    ('inbox', _('inbox')),
-    ('upcoming', _('upcoming')),
-    ('later', _('later')),
-)
-
 ASANA_BASE_URL = 'https://app.asana.com/0/'
 COLORS = [
     'dark-pink', 'dark-green', 'dark-blue', 'dark-red', 'dark-teal', 'dark-brown',
@@ -132,7 +126,8 @@ class Project(NamedModel):
     archived = models.BooleanField(default=False)
     color = models.CharField(choices=COLOR_CHOICES, max_length=16, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    current_status = models.CharField(choices=STATUS_CHOICES, max_length=16, null=True, blank=True)
+    current_status = models.ForeignKey(
+        'ProjectStatus', null=True, on_delete=models.SET_NULL, related_name='current_status')
     custom_field_settings = models.ManyToManyField(
         'CustomField', through='CustomFieldSettings', related_name='custom_field_settings')
     due_date = models.DateField(null=True, blank=True)
@@ -156,7 +151,7 @@ class Project(NamedModel):
 
 
 class ProjectStatus(BaseModel):
-    """An update on the progess of a project."""
+    """An update on the progress of a project."""
     colors = ['red', 'yellow', 'green']
     color_choices = ((choice, _(choice)) for choice in colors)
 
@@ -210,7 +205,7 @@ class SyncToken(models.Model):
 
 
 class Tag(NamedModel):
-    """A label within a workspace or organiation that can be attached to a task."""
+    """A label within a workspace or organization that can be attached to a task."""
     color = models.CharField(choices=COLOR_CHOICES, max_length=16, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     followers = models.ManyToManyField('User', related_name='tags_following')
@@ -221,6 +216,11 @@ class Tag(NamedModel):
 
 class Task(Hearted, NamedModel):
     """An Asana task; something that needs doing."""
+    status_choices = (
+        ('inbox', _('inbox')),
+        ('upcoming', _('upcoming')),
+        ('later', _('later')),
+    )
     type_choices = (
         ('default_task', _('default_task')),
     )
@@ -228,7 +228,7 @@ class Task(Hearted, NamedModel):
     assignee = models.ForeignKey(
         'User', to_field='remote_id', related_name='assigned_tasks', null=True, blank=True,
         on_delete=models.SET_NULL)
-    assignee_status = models.CharField(choices=STATUS_CHOICES, max_length=16)
+    assignee_status = models.CharField(choices=status_choices, max_length=16)
     completed = models.BooleanField(default=False)
     completed_at = models.DateTimeField(null=True, blank=True)
     custom_fields = models.TextField(null=True, blank=True)

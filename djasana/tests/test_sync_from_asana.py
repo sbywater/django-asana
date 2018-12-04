@@ -9,7 +9,7 @@ from djasana.models import (
     Attachment, CustomField, CustomFieldSettings, Project, Story,
     SyncToken, Tag, Task, Team, Webhook, Workspace, User)
 from djasana.tests.fixtures import (
-    attachment, project, story, tag, task, team, user, webhook, workspace)
+    attachment, custom_field, project, story, tag, task, team, user, webhook, workspace)
 
 
 def mock_connect():
@@ -233,14 +233,14 @@ class SyncFromAsanaTestCase(TestCase):
         parent, child = tuple(Task.objects.order_by('remote_id'))
         self.assertEqual(parent, child.parent)
 
-    def test_child_task_without_project(self):
-        # test edge case of child tasks that are disconnected from project
-        parent_task = task(projects=None)
-        child_task = task(id=2, projects=None, parent=parent_task.copy())
+    def test_subtask(self):
+        """Asserts subtask (task related to a task but not a project) is supported."""
+        parent_task = task(projects=None)  # Parent is also a subtask
+        subtask = task(id=2, projects=None, parent=parent_task.copy())
 
         self.command.client.tasks.find_all.return_value = [parent_task.copy()]
-        self.command.client.tasks.subtasks.side_effect = [[child_task.copy()], []]
-        self.command.client.tasks.find_by_id.side_effect = [parent_task.copy(), child_task.copy()]
+        self.command.client.tasks.subtasks.side_effect = [[subtask.copy()], []]
+        self.command.client.tasks.find_by_id.side_effect = [parent_task.copy(), subtask.copy()]
 
         self.command.handle(interactive=False, workspace=['Test Workspace'])
         self.assertEqual(2, Task.objects.count())
@@ -309,12 +309,14 @@ class SyncFromAsanaTestCase(TestCase):
         team_ = Team.objects.create(remote_id=2, name='Team')
         Project.objects.create(
             remote_id=3, name='New Project', public=True, team=team_, workspace=workspace_)
+        self.command.client.custom_fields.find_by_id.return_value = custom_field().copy()
         self.command.client.projects.find_by_id.return_value = project(
             custom_field_settings=[{
                 'id': 258147,
-                'custom_field': {'id': 1646, 'name': 'Priority', 'type': 'enum'},
+                'custom_field': custom_field().copy(),
                 'project': {'id': 3, 'name': 'New Project'}}],
             workspace={'id': 1, 'name': 'Workspace'})
         self.command._sync_project_id(project_id=3, workspace=workspace_, models=[])
-        self.assertTrue(CustomField.objects.filter(remote_id=1646, name='Priority').exists())
-        self.assertTrue(CustomFieldSettings.objects.filter(remote_id=258147, project_id=3).exists())
+        self.assertTrue(CustomField.objects.filter(remote_id=1, name='Test Custom Field').exists())
+        self.assertTrue(
+            CustomFieldSettings.objects.filter(remote_id=258147, project_id=3).exists())
