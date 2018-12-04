@@ -19,21 +19,28 @@ django-asana
 
 .. inclusion-marker-do-not-remove
 
-django-asana leverages python-asana, the official python client library for Asana. To this, django-asana adds
-django models and commands for importing data from Asana into these models, and for keeping a django project in sync with related Asana data.
+django-asana leverages `python-asana <https://github.com/Asana/python-asana>`_, the official python client library for Asana.
+To this, django-asana adds django models and commands for importing data from Asana into these models, and for keeping a django project in sync with related Asana data.
 
 * Documentation: https://django-asana.readthedocs.io/en/latest/
 
 About
 =====
 
-``django-asana`` aims to allow for rich interaction between Django projects and Asana projects. The vision is to allow automated processes done in Django to interact with human Asana users toward project completion. For example, an Asana project might include a workflow of ten tasks that must all be completed in order. This tool will monitor the Asana project status, complete the automated steps when they are ready to be done, and report completion back to Asana so the workflow may continue.
+``django-asana`` aims to allow for rich interaction between Django projects and Asana projects.
+The vision is to allow automated processes done in Django to interact with human Asana users toward project completion.
+For example, an Asana project might include a workflow of ten tasks, several of which are automated, that must all be completed in order.
+This tool will monitor the Asana project status, complete the automated steps when they are ready to be done, and report completion back to Asana so the workflow may continue.
 
-This tool can do a one time sync from Asana, storing the current status of workspaces, projects, tasks, users, teams and tags in Django models. Depending on the size of the Asana workspaces, this initial sync may take some time. Successive syncs are faster if they are performed within the hour, which is the timeout for Asana's sync token. You may specify to sync only specific workspaces, projects or models.
+This tool can do a one time sync from Asana, storing the current status of workspaces, projects, tasks, users, teams and tags in Django models.
+Depending on the size of the Asana workspaces, this initial sync may take some time. Successive syncs are faster if they are performed within the hour, which is the timeout for Asana's sync token.
+You may specify to sync only specific workspaces, projects or models.
 
-Optionally, Webhook receivers are registered so the Django project will remain synced to Asana in real-time. The Asana API only supports webhooks for projects and tasks, so even if you use django-asana webhooks to keep your projects in sync in real-time you will still periodically want to run the sync-from-asana task to get new projects and reflect additions and changes to workspaces, users, etc.
+Optionally, Webhook receivers are registered so the Django project will remain synced to Asana in real-time.
+The Asana API only supports webhooks for projects and tasks, so even if you use django-asana webhooks to keep your projects in sync in real-time you will still periodically want to run the sync-from-asana task to get new projects and reflect additions and changes to workspaces, users, etc.
 
-Task.sync_to_asana() can be used to update Asana to reflect local changes, like task completion. Task.add_comment() can be used to add a comment to a task in Asana.
+Task.sync_to_asana() can be used to update Asana to reflect local changes, like task completion.
+Task.add_comment() can be used to add a comment to a task in Asana.
 
 
 Requirements
@@ -41,14 +48,14 @@ Requirements
 
 #. Python 3+
 #. `Django 1.9 - 2.1+ <https://www.djangoproject.com/>`_
-#. `python-asana 0.8.0+ <https://github.com/Asana/python-asana>`_
+#. `python-asana 0.8.2+ <https://github.com/Asana/python-asana>`_
 #. `django-braces 1.11+ <https://django-braces.readthedocs.io/en/latest/index.html>`_ for JsonRequestResponseMixin
 
 
 Installation
 ============
 
-This will also install `python-asana <https://github.com/Asana/python-asana>`_.
+This will also install all requirements.
 
 .. code:: bash
 
@@ -57,7 +64,11 @@ This will also install `python-asana <https://github.com/Asana/python-asana>`_.
 Quick start
 ===========
 
-1. Configure your django settings file. Asana allows two different connection methods. For Oauth2, provide values for the following settings: ASANA_CLIENT_ID, ASANA_CLIENT_SECRET, and ASANA_OAUTH_REDIRECT_URI. To use an access token, provide a value for ASANA_ACCESS_TOKEN. Then add "django-asana" to your INSTALLED_APPS setting.
+1. Configure your django settings file.
+Asana allows two different connection methods.
+For Oauth2, provide values for the following settings: ASANA_CLIENT_ID, ASANA_CLIENT_SECRET, and ASANA_OAUTH_REDIRECT_URI.
+To use an access token, provide a value for ASANA_ACCESS_TOKEN.
+Then add "django-asana" to your INSTALLED_APPS setting.
 
 .. code:: python
 
@@ -72,7 +83,9 @@ If you have multiple Asana workspaces but only ever need to sync one with Django
 
     ASANA_WORKSPACE = 'This Workspace'
 
-In the production version of your settings, set a base url and pattern for the webhooks. It must be reachable by Asana and secured by SSL. In your dev environment it is fine to leave this setting out; your project will be synced whenever you run the management command.
+In the production version of your settings, set a base url and pattern for the webhooks.
+It must be reachable by Asana and secured by SSL.
+In your dev environment it is fine to leave this setting out; your project will be synced whenever you run the management command.
 
 .. code:: python
 
@@ -82,7 +95,8 @@ In the production version of your settings, set a base url and pattern for the w
 With that value, your webhook urls will be something like this: https://mysite.com/djasana/webhooks/project/1337/
 
 
-2. If your project is "live" and has a webserver to which Asana can send requests, you can enable webhooks. To enable webhooks so Asana can keep your data in sync, add the following to your base urls.py
+2. If your project is "live" and has a webserver to which Asana can send requests, you can enable webhooks.
+To enable webhooks so Asana can keep your data in sync, add the following to your base urls.py
 
 .. code:: python
 
@@ -136,8 +150,8 @@ Command line options
 ``--noinput``               Skip the warning that running this process will make data changes.
 ========================    =======================================================================
 
-Note that due to option parsing limitations, it is less error prone to pass in the id of the object
-rather than the name. The easiest way to find the id of a project or task in Asana is to examine the url.
+Note that due to option parsing limitations, it is less error prone to pass in the id of the object rather than the name.
+The easiest way to find the id of a project or task in Asana is to examine the url.
 The list view in Asana is like `https://app.asana.com/0/{project_id}/list` and for a specific task `https://app.asana.com/0/{project_id}/{task_id}`.
 
 Good example:
@@ -154,7 +168,8 @@ Bad example:
 
     ``python manage.py sync_from_asana: error: unrecognized arguments: Projects``
 
-Further note that when including a model, the models it depends on will also be included. You cannot sync tasks without syncing the projects those tasks belong to.
+Further note that when including a model, the models it depends on will also be included.
+You cannot sync tasks without syncing the projects those tasks belong to.
 
 The dependency chain for models it this, from the bottom up:
 
@@ -185,21 +200,29 @@ To restrict your project to a single workspace, add the setting ASANA_WORKSPACE.
 Asana id versus gid
 -------------------
 
-Asana has begun migrating from `numeric ids to string gids <https://community.asana.com/t/asana-is-moving-to-string-ids/29340>`_. django-asana populates both of these fields, and will follow the migration path Asana has established.
+Asana has begun migrating from `numeric ids to string gids <https://community.asana.com/t/asana-is-moving-to-string-ids/29340>`_.
+django-asana populates both of these fields, and will follow the migration path Asana has established.
 
 
 Limitations
 -----------
 
-django-asana is designed for copying data from Asana to Django. Although it contains a useful client for connecting the two, for creating data in Asana (as in, wholesale syncing to Asana from Django) the developer is mostly left to use python-asana directly. For more info see For more info see :doc:`create_data`.
+django-asana is designed for copying data from Asana to Django.
+Although it contains a useful client for connecting the two, for creating data in Asana (as in, wholesale syncing to Asana from Django) the developer is mostly left to use python-asana directly.
+For more info see For more info see :doc:`create_data`.
 
-django-asana support for custom fields is not well tested. If you use custom fields with django-asana, please `report any bugs you find <https://github.com/sbywater/girlsworldexpo/issues>`_.
+django-asana support for custom fields is not well tested.
+If you use custom fields with django-asana, please `report any bugs you find <https://github.com/sbywater/girlsworldexpo/issues>`_.
 
-django-asana does not support updating user photo data. It will read user photo data from Asana, if available, but only the path to the 128x128 version of the photo.
+django-asana does not support updating user photo data.
+It will read user photo data from Asana, if available, but only the path to the 128x128 version of the photo.
 
-If a project or task that has been synced to Django is deleted in Asana, and webhooks are not used, it is not deleted in Django with the sync_from_asana command. This is forthcoming functionality.
+If a project or task that has been synced to Django is deleted in Asana, and webhooks are not used, it is not deleted in Django with the sync_from_asana command.
+This is forthcoming functionality.
 
-The Asana development team adds new features to their API without advance notice or documentation. When they add a new field to the API of a model, it raises a "Programming Error: column *n* does not exist" error until django-asana adds support for it. Typically this happens rather quickly.
+The Asana development team adds new features to their API without advance notice or documentation.
+When they add a new field to the API of a model, it raises a "Programming Error: column *n* does not exist" error until django-asana adds support for it.
+Typically this happens rather quickly.
 
 Running tests
 =============
