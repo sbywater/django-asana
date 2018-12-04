@@ -186,7 +186,7 @@ setup(
     package_data=package_data,
     zip_safe=False,
     install_requires=[
-        'django>=1.8',
+        'django>=1.9',
         'asana>=0.8.2',
         'django-braces>=1.10',
     ],
