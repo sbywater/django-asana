@@ -48,7 +48,7 @@ def sync_story(remote_id, story_dict):
         story_dict['created_by'] = user
     if story_dict['target']:
         story_dict['target'] = story_dict['target']['id']
-    for key in ('hearts', 'liked', 'likes', 'num_likes'):
+    for key in ('hearts', 'liked', 'likes', 'num_likes', 'previews'):
         story_dict.pop(key, None)
     if 'text' in story_dict:
         story_dict['text'] = story_dict['text'][:1024]  # Truncate text if too long

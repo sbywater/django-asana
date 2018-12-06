@@ -100,6 +100,7 @@ def story(**kwargs):
         'id': 1,
         'name': 'Test Story',
         'created_by': user(),
+        'previews': [],
         'target': task(),
         'resource_type': 'story',
         'resource_subtype': 'default_story',
