@@ -1,7 +1,8 @@
 Testing Your Code
 =================
 
-Asana does not provide a testing sandbox API. When testing the integration of your application with Asana, you will likely want to mock any connections to Asana that would write data to avoid creating a lot of junk data in Asana.
+Asana does not provide a testing sandbox API (although you can request a “Non-Productive Use” Order Form from their API support email address to get an account for testing purposes).
+When testing the integration of your application with Asana, you will likely want to mock any connections to Asana that would write data to avoid creating a lot of junk data in Asana.
 
 Some strategies for testing with django-asana are as follows:
 
@@ -20,10 +21,10 @@ Some strategies for testing with django-asana are as follows:
     from unittest.mock import patch
 
     def counter():
-    count = 1
-    while True:
-        yield count
-        count += 1
+        count = 1
+        while True:
+            yield count
+            count += 1
 
 
     COUNTER = counter()
@@ -58,12 +59,12 @@ Some strategies for testing with django-asana are as follows:
     @override_settings(ASANA_ACCESS_TOKEN='foo')  # Assures your credentials are not real
     class TestTask(TestCase):
 
-    @patch('djasana.models.client_connect')
-    def test_update_date_tasks(self, mock_connect):
-        """Demonstrates how to mock for testing purposes."""
-        mock_client = mock_connect.return_value
-        mock_client.tasks.find_all.return_value = [task()]
-        mock_client.tasks.create.side_effect = new_task
-        mock_client.tasks.update.side_effect = update_task
-        mock_client.tasks.set_parent.side_effect = new_task
-        # Do something with those mocks
+        @patch('djasana.models.client_connect')
+        def test_update_date_tasks(self, mock_connect):
+            """Demonstrates how to mock for testing purposes."""
+            mock_client = mock_connect.return_value
+            mock_client.tasks.find_all.return_value = [task()]
+            mock_client.tasks.create.side_effect = new_task
+            mock_client.tasks.update.side_effect = update_task
+            mock_client.tasks.set_parent.side_effect = new_task
+            # Do something with those mocks
