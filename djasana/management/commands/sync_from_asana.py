@@ -354,11 +354,13 @@ class Command(BaseCommand):
             task_ = sync_task(remote_id, task_dict, project, sync_tags=Tag in models)
             self.synced_ids.append(remote_id)
             if not skip_subtasks:
-                subtasks = self.client.tasks.subtasks(task['id'])
-                for subtask in subtasks + dependencies:
+                for subtask in self.client.tasks.subtasks(task['id']):
                     if subtask['id'] not in self.synced_ids:
                         self._sync_task(subtask, project, models)
                 if dependencies:
+                    for subtask in dependencies:
+                        if subtask['id'] not in self.synced_ids:
+                            self._sync_task(subtask, project, models)
                     task_.dependencies.set(
                         Task.objects.filter(remote_id__in=[dep['id'] for dep in dependencies]))
         if Attachment in models and self.commit:
