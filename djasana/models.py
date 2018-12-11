@@ -112,7 +112,7 @@ class CustomField(NamedModel):
 
 
 class CustomFieldSetting(BaseModel):
-    """The relation between a CustomField and a project"""
+    """Settings for a custom field of a project"""
     created_at = models.DateTimeField(auto_now_add=True)
     custom_field = models.ForeignKey('CustomField', to_field='remote_id', on_delete=models.CASCADE)
     is_important = models.BooleanField(default=False)
