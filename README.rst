@@ -212,7 +212,7 @@ Although it contains a useful client for connecting the two, for creating data i
 For more info see For more info see :doc:`create_data`.
 
 django-asana support for custom fields is not well tested.
-If you use custom fields with django-asana, please `report any bugs you find <https://github.com/sbywater/girlsworldexpo/issues>`_.
+If you use custom fields with django-asana, please `report any bugs you find <https://github.com/sbywater/django-asana/issues>`_.
 
 django-asana does not support updating user photo data.
 It will read user photo data from Asana, if available, but only the path to the 128x128 version of the photo.
