@@ -186,7 +186,7 @@ setup(
     package_data=package_data,
     zip_safe=False,
     install_requires=[
-        'django>=1.9',
+        'django>=1.10',
         'asana>=0.8.2',
         'django-braces>=1.10',
     ],
@@ -199,7 +199,6 @@ setup(
         'Framework :: Django',
         'Framework :: Django :: 1.10',
         'Framework :: Django :: 1.11',
-        'Framework :: Django :: 1.9',
         'Framework :: Django :: 2.0',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
