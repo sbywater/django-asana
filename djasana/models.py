@@ -1,3 +1,4 @@
+import json
 import logging
 
 from django.core.cache import cache
@@ -29,7 +30,6 @@ class BaseModel(models.Model):
         unique=True, db_index=True,
         null=True,
         help_text=_('The gid of this object in Asana.'))
-    resource_type = models.CharField(max_length=24, null=True, blank=True)
 
     class Meta:
         abstract = True
@@ -84,6 +84,7 @@ class Attachment(NamedModel):
     host = models.CharField(choices=host_choices, max_length=24)
     parent = models.ForeignKey('Task', to_field='remote_id', on_delete=models.CASCADE)
     permanent_url = models.URLField(max_length=1024)
+    resource_type = models.CharField(max_length=24, null=True, blank=True, default='attachment')
     type = models.CharField(choices=type_choices, max_length=24, null=True, blank=True)
     view_url = models.URLField(max_length=1024)
 
@@ -93,26 +94,31 @@ class Attachment(NamedModel):
 
 class CustomField(NamedModel):
     """Metadata for adding custom data to a task"""
-    type_choices = (
+    subtype_choices = (
         ('enum', 'enum'),
         ('number', 'number'),
         ('text', 'text'),
     )
-    precision_choices = [(num, num) for num in range(0, 6)]
+    precision_choices = [(num, num) for num in range(0, 7)]
 
     description = models.CharField(max_length=1024, null=True, blank=True)
     enum_options = models.CharField(max_length=1024, null=True, blank=True)
     precision = models.SmallIntegerField(choices=precision_choices, null=True, blank=True)
-    resource_subtype = models.CharField(choices=type_choices, max_length=24, null=True, blank=True)
-    type = models.CharField(choices=type_choices, max_length=24)
+    resource_subtype = models.CharField(
+        choices=subtype_choices, max_length=24, null=True, blank=True)
+    resource_type = models.CharField(max_length=24, null=True, blank=True, default='custom_field')
+    type = models.CharField(  # Deprecated; use resource_subtype
+        choices=subtype_choices, max_length=24, null=True, blank=True)
 
 
-class CustomFieldSettings(BaseModel):
+class CustomFieldSetting(BaseModel):
     """The relation between a CustomField and a project"""
     created_at = models.DateTimeField(auto_now_add=True)
     custom_field = models.ForeignKey('CustomField', to_field='remote_id', on_delete=models.CASCADE)
     is_important = models.BooleanField(default=False)
     project = models.ForeignKey('Project', to_field='remote_id', on_delete=models.CASCADE)
+    resource_type = models.CharField(
+        max_length=24, null=True, blank=True, default='custom_field_setting')
     workspace = models.ForeignKey('Workspace', to_field='remote_id', on_delete=models.CASCADE)
 
 
@@ -129,7 +135,7 @@ class Project(NamedModel):
     current_status = models.ForeignKey(
         'ProjectStatus', null=True, on_delete=models.SET_NULL, related_name='current_status')
     custom_field_settings = models.ManyToManyField(
-        'CustomField', through='CustomFieldSettings', related_name='custom_field_settings')
+        'CustomField', through='CustomFieldSetting', related_name='custom_field_settings')
     due_date = models.DateField(null=True, blank=True)
     followers = models.ManyToManyField('User', related_name='projects_following', blank=True)
     html_notes = models.TextField(null=True, blank=True)
@@ -141,6 +147,7 @@ class Project(NamedModel):
         'User', to_field='remote_id', related_name='projects_owned',
         null=True, on_delete=models.SET_NULL)
     public = models.BooleanField(default=False)
+    resource_type = models.CharField(max_length=24, null=True, blank=True, default='project')
     start_on = models.DateField(null=True, blank=True)
     team = models.ForeignKey('Team', to_field='remote_id', null=True, on_delete=models.SET_NULL)
     workspace = models.ForeignKey('Workspace', to_field='remote_id', on_delete=models.CASCADE)
@@ -162,6 +169,8 @@ class ProjectStatus(BaseModel):
     html_text = models.TextField(null=True, blank=True)
     project = models.ForeignKey(
         'Project', to_field='remote_id', null=True, blank=True, on_delete=models.SET_NULL)
+    resource_type = models.CharField(
+        max_length=24, null=True, blank=True, default='project_status')
     text = models.TextField(null=True, blank=True)
     title = models.CharField(max_length=1024)
 
@@ -172,6 +181,9 @@ class ProjectStatus(BaseModel):
 class Story(Hearted, NamedModel):
     """The log of a change to an Asana object."""
     source_choices = (
+        ('api', _('api')),
+        ('email', _('email')),
+        ('mobile', _('mobile')),
         ('web', _('web')),
     )
     type_choices = (
@@ -179,7 +191,20 @@ class Story(Hearted, NamedModel):
         ('system', _('system')),
     )
     subtype_choices = type_choices + (
-        ('marked_incomplete', ('marked_incomplete')),
+        ('added_to_project', _('added to project')),
+        ('assigned', _('assigned')),
+        ('comment_added', _('comment added')),
+        ('description_changed', _('description changed')),
+        ('due_date_changed', _('due date changed')),
+        ('due_today', _('due today')),
+        ('follower_added', _('follower added')),
+        ('liked', _('liked')),
+        ('marked_complete', _('marked complete')),
+        ('marked_incomplete', _('marked_incomplete')),
+        ('marked_today', _('marked today')),
+        ('member_added', _('member added')),
+        ('name_changed', _('name changed')),
+        ('notes_changed', _('notes changed')),
     )
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(
@@ -189,10 +214,12 @@ class Story(Hearted, NamedModel):
     is_pinned = models.BooleanField(default=False)
     resource_subtype = models.CharField(
         choices=subtype_choices, max_length=24, null=True, blank=True)
+    resource_type = models.CharField(max_length=24, null=True, blank=True, default='story')
     source = models.CharField(choices=source_choices, max_length=16)
     target = models.BigIntegerField(db_index=True)
     text = models.CharField(max_length=1024, null=True, blank=True)
-    type = models.CharField(choices=type_choices, max_length=16)
+    type = models.CharField(  # Deprecated; use resource_subtype
+        choices=type_choices, max_length=16, null=True, blank=True)
 
     class Meta:
         verbose_name_plural = 'stories'
@@ -210,6 +237,7 @@ class Tag(NamedModel):
     created_at = models.DateTimeField(auto_now_add=True)
     followers = models.ManyToManyField('User', related_name='tags_following')
     notes = models.TextField(null=True, blank=True)
+    resource_type = models.CharField(max_length=24, null=True, blank=True, default='tag')
     workspace = models.ForeignKey(
         'Workspace', to_field='remote_id', on_delete=models.CASCADE, null=True, blank=True)
 
@@ -221,8 +249,9 @@ class Task(Hearted, NamedModel):
         ('upcoming', _('upcoming')),
         ('later', _('later')),
     )
-    type_choices = (
-        ('default_task', _('default_task')),
+    subtype_choices = (
+        ('default_task', _('default task')),
+        ('section', _('section')),
     )
 
     assignee = models.ForeignKey(
@@ -244,7 +273,8 @@ class Task(Hearted, NamedModel):
         'self', to_field='remote_id', null=True, blank=True, on_delete=models.SET_NULL)
     projects = models.ManyToManyField('Project')
     resource_subtype = models.CharField(
-        choices=type_choices, max_length=24, default='default_task')
+        choices=subtype_choices, max_length=24, default='default_task')
+    resource_type = models.CharField(max_length=24, null=True, blank=True, default='task')
     start_on = models.DateField(null=True, blank=True)
     tags = models.ManyToManyField('Tag')
 
@@ -322,12 +352,29 @@ class Task(Hearted, NamedModel):
         logger.debug('Added comment for task %s: %s', self.name, text)
         return response
 
+    def get_custom_fields(self):
+        """Returns custom_fields as a dict"""
+        response = json.loads(self.custom_fields)
+        custom_field_values = {}
+        for custom_field in response:
+            if custom_field['resource_subtype'] == 'enum':
+                custom_field_values[custom_field['name']] = custom_field['enum_value']['name']
+            elif custom_field['resource_subtype'] == 'number':
+                if custom_field.get('precision', 0):
+                    custom_field_values[custom_field['name']] = float(custom_field['number_value'])
+                else:
+                    custom_field_values[custom_field['name']] = int(custom_field['number_value'])
+            else:
+                custom_field_values[custom_field['name']] = custom_field['text_value']
+        return custom_field_values
+
 
 class Team(NamedModel):
     organization_id = models.BigIntegerField(null=True)
     organization_name = models.CharField(max_length=50)
     description = models.CharField(max_length=1024, null=True, blank=True)
     html_description = models.CharField(max_length=1024, null=True, blank=True)
+    resource_type = models.CharField(max_length=24, null=True, blank=True, default='team')
 
 
 class User(NamedModel):
@@ -338,6 +385,7 @@ class User(NamedModel):
     """
     email = models.EmailField(_('email address'), null=True, blank=True)
     photo = models.CharField(_('photo'), max_length=255, null=True)
+    resource_type = models.CharField(max_length=24, null=True, blank=True, default='user')
     workspaces = models.ManyToManyField('Workspace')
 
     def refresh_from_asana(self):
@@ -356,11 +404,13 @@ class Webhook(models.Model):
     """A secret negotiated with Asana for keeping a project synchronized."""
     secret = models.CharField(max_length=64, validators=[MinLengthValidator(32)])
     project = models.ForeignKey('Project', to_field='remote_id', on_delete=models.CASCADE)
+    resource_type = models.CharField(max_length=24, null=True, blank=True, default='webhook')
 
 
 class Workspace(NamedModel):
     """An object for grouping projects"""
     is_organization = models.BooleanField(default=True)
+    resource_type = models.CharField(max_length=24, null=True, blank=True, default='workspace')
 
 
 def get_next_color():

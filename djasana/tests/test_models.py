@@ -96,6 +96,32 @@ class TaskModelTestCase(TestCase):
         self.task.add_comment(text='Test comment')
         self.assertTrue(mock_client.tasks.add_comment.called)
 
+    def test_custom_fields_enum(self):
+        """Asserts en enum custom field value is returned
+
+        Presumes a field like CustomField(
+            remote_id=1, name='Priority', resource_subtype='enum',
+            enum_options='''[
+            {"id": 10, "gid": "10", "name": "Low"},
+            {"id": 11, "gid": "11", "name": "High"}]''')
+        """
+        task = models.Task(custom_fields="""[{ 
+        "id": 1, "gid": "1", "name": "Priority", "resource_type": "custom_field", 
+        "resource_subtype": "enum", "enum_value": {"id": 11, "gid": "11", "name": "High"}}]""")
+        self.assertEqual('High', task.get_custom_fields()['Priority'])
+
+    def test_custom_fields_number(self):
+        task = models.Task(custom_fields="""[{ 
+        "id": 0, "gid": "0", "name": "Count", "resource_type": "custom_field", 
+        "resource_subtype": "number", "number_value": "1", "precision": "0"}]""")
+        self.assertEqual(1, task.get_custom_fields()['Count'])
+
+    def test_custom_fields_text(self):
+        task = models.Task(custom_fields="""[{ 
+        "id": 0, "gid": "0", "name": "Flavor", "resource_type": "custom_field", 
+        "resource_subtype": "text", "text_value": "vanilla"}]""")
+        self.assertEqual('vanilla', task.get_custom_fields()['Flavor'])
+
 
 class UserModelTestCase(TestCase):
 

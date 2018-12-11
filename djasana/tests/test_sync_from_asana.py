@@ -6,7 +6,7 @@ from django.db import IntegrityError
 from django.test import override_settings, TestCase
 from djasana.management.commands.sync_from_asana import Command
 from djasana.models import (
-    Attachment, CustomField, CustomFieldSettings, Project, Story,
+    Attachment, CustomField, CustomFieldSetting, Project, Story,
     SyncToken, Tag, Task, Team, Webhook, Workspace, User)
 from djasana.tests.fixtures import (
     attachment, custom_field, project, story, tag, task, team, user, webhook, workspace)
@@ -319,4 +319,4 @@ class SyncFromAsanaTestCase(TestCase):
         self.command._sync_project_id(project_id=3, workspace=workspace_, models=[])
         self.assertTrue(CustomField.objects.filter(remote_id=1, name='Test Custom Field').exists())
         self.assertTrue(
-            CustomFieldSettings.objects.filter(remote_id=258147, project_id=3).exists())
+            CustomFieldSetting.objects.filter(remote_id=258147, project_id=3).exists())
