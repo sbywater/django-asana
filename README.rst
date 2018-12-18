@@ -65,7 +65,7 @@ Quick start
 ===========
 
 1. Configure your django settings file.
-Asana allows two different connection methods.
+Asana allows two different `authentication methods <https://asana.com/developers/documentation/getting-started/auth>`_.
 For Oauth2, provide values for the following settings: ASANA_CLIENT_ID, ASANA_CLIENT_SECRET, and ASANA_OAUTH_REDIRECT_URI.
 To use an access token, provide a value for ASANA_ACCESS_TOKEN.
 Then add "django-asana" to your INSTALLED_APPS setting.
