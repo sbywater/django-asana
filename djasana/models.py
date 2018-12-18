@@ -192,8 +192,10 @@ class Story(Hearted, NamedModel):
     )
     subtype_choices = type_choices + (
         ('added_to_project', _('added to project')),
+        ('all_dependencies_marked_complete', _('all_dependencies_marked_complete')),
         ('assigned', _('assigned')),
         ('comment_added', _('comment added')),
+        ('dependency_marked_complete', _('dependency marked complete')),
         ('description_changed', _('description changed')),
         ('due_date_changed', _('due date changed')),
         ('due_today', _('due today')),
@@ -213,7 +215,7 @@ class Story(Hearted, NamedModel):
     is_edited = models.BooleanField(default=False)
     is_pinned = models.BooleanField(default=False)
     resource_subtype = models.CharField(
-        choices=subtype_choices, max_length=24, null=True, blank=True)
+        choices=subtype_choices, max_length=48, null=True, blank=True)
     resource_type = models.CharField(max_length=24, null=True, blank=True, default='story')
     source = models.CharField(choices=source_choices, max_length=16)
     target = models.BigIntegerField(db_index=True)
