@@ -10,8 +10,8 @@ from django.views.generic import View
 from requests.packages.urllib3.exceptions import RequestError
 
 from .connect import client_connect
-from .models import Attachment, Project, Task, Team, User, Webhook
-from .utils import sign_sha256_hmac, sync_story, sync_task, sync_custom_fields
+from .models import Project, Task, Team, User, Webhook
+from .utils import sign_sha256_hmac, sync_story, sync_task, sync_custom_fields, sync_attachment
 
 logger = logging.getLogger(__name__)
 
@@ -151,9 +151,4 @@ class WebhookView(JSONRequestResponseMixin, View):
             task_dict['parent_id'] = task_dict.pop('parent')['id']
         task = sync_task(task_id, task_dict, project, sync_tags=True)
         for attachment in self.client.attachments.find_by_task(task_id):
-            attachment_dict = self.client.attachments.find_by_id(attachment['id'])
-            logger.debug(attachment_dict)
-            remote_id = attachment_dict.pop('id')
-            if attachment_dict['parent']:
-                attachment_dict['parent'] = task
-            Attachment.objects.get_or_create(remote_id=remote_id, defaults=attachment_dict)
+            sync_attachment(self.client, task, attachment['id'])

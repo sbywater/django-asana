@@ -11,7 +11,7 @@ from djasana.models import (
     Attachment, Project, ProjectStatus, Story, SyncToken,
     Tag, Task, Team, User, Webhook, Workspace)
 from djasana.settings import settings
-from djasana.utils import set_webhook, sync_story, sync_task, sync_custom_fields
+from djasana.utils import set_webhook, sync_attachment, sync_story, sync_task, sync_custom_fields
 
 logger = logging.getLogger(__name__)
 
@@ -365,12 +365,7 @@ class Command(BaseCommand):
                         Task.objects.filter(remote_id__in=[dep['id'] for dep in dependencies]))
         if Attachment in models and self.commit:
             for attachment in self.client.attachments.find_by_task(task['id']):
-                attachment_dict = self.client.attachments.find_by_id(attachment['id'])
-                logger.debug(attachment_dict)
-                remote_id = attachment_dict.pop('id')
-                if attachment_dict['parent']:
-                    attachment_dict['parent'] = task_
-                Attachment.objects.get_or_create(remote_id=remote_id, defaults=attachment_dict)
+                sync_attachment(self.client, task_, attachment['id'])
         if Story in models and self.commit:
             for story in self.client.stories.find_by_task(task['id']):
                 self._sync_story(story)

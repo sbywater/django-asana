@@ -6,7 +6,7 @@ from asana.error import InvalidRequestError
 import django
 from django.conf import settings
 
-from djasana.models import CustomField, CustomFieldSetting, Story, Tag, Task, User
+from djasana.models import Attachment, CustomField, CustomFieldSetting, Story, Tag, Task, User
 
 if django.VERSION >= (2, 0, 0):
     from django.urls import reverse
@@ -37,6 +37,16 @@ def set_webhook(client, project_id):
     except InvalidRequestError as error:
         logger.warning(error)
         logger.warning('Target url: %s', target)
+
+
+def sync_attachment(client, task, attachment_id):
+    attachment_dict = client.attachments.find_by_id(attachment_id)
+    logger.debug(attachment_dict)
+    remote_id = attachment_dict.pop('id')
+    attachment_dict.pop('num_annotations')
+    if attachment_dict['parent']:
+        attachment_dict['parent'] = task
+    Attachment.objects.get_or_create(remote_id=remote_id, defaults=attachment_dict)
 
 
 def sync_story(remote_id, story_dict):

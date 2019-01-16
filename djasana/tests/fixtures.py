@@ -15,6 +15,7 @@ def attachment(**kwargs):
     defaults = {
         'id': 1,
         'name': 'Test Attachment',
+        'num_annotations': 0,
         'parent': task(),
         'resource_type': 'attachment',
     }
