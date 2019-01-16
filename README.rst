@@ -224,6 +224,14 @@ The Asana development team adds new features to their API without advance notice
 When they add a new field to the API of a model, it raises a "Programming Error: column *n* does not exist" error until django-asana adds support for it.
 Typically this happens rather quickly.
 
+Asana has not documented the possibly choices for ``Story.resource_subtype`` and will likely add more without notice.
+If you find a resource_subtype in the wild that is not supported yet, feel free to add a patch for it.
+You can check what values you have by running code like this:
+
+.. code:: python
+
+    [s for s in Story.objects.distinct().values_list('resource_subtype', flat=True)]
+
 Running tests
 =============
 
