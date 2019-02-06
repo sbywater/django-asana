@@ -10,8 +10,8 @@ from django.views.generic import View
 from requests.packages.urllib3.exceptions import RequestError
 
 from .connect import client_connect
-from .models import Project, Task, Team, User, Webhook
-from .utils import sign_sha256_hmac, sync_story, sync_task, sync_custom_fields, sync_attachment
+from .models import Project, Task, Webhook
+from .utils import sign_sha256_hmac, sync_project, sync_story, sync_task, sync_attachment
 
 logger = logging.getLogger(__name__)
 
@@ -94,33 +94,7 @@ class WebhookView(JSONRequestResponseMixin, View):
         project_dict = self.client.projects.find_by_id(project.remote_id)
         logger.debug('Sync project %s', project_dict['name'])
         logger.debug(project_dict)
-        project_dict.pop('id')
-        if project_dict['owner']:
-            owner = project_dict.pop('owner')
-            User.objects.get_or_create(remote_id=owner['id'], defaults={'name': owner['name']})
-            project_dict['owner_id'] = owner['id']
-        team = project_dict.pop('team')
-        Team.objects.get_or_create(remote_id=team['id'], defaults={'name': team['name']})
-        project_dict['workspace_id'] = project_dict.pop('workspace')['id']
-        project_dict['team_id'] = team['id']
-        # Convert string to boolean:
-        project_dict['archived'] = project_dict['archived'] == 'true'
-        members_dict = project_dict.pop('members')
-        followers_dict = project_dict.pop('followers')
-        project_dict.pop('custom_fields', None)
-        custom_field_settings = project_dict.pop('custom_field_settings', None)
-        Project.objects.update_or_create(
-            remote_id=project.remote_id, defaults=project_dict)
-        member_ids = [member['id'] for member in members_dict]
-        members = User.objects.filter(id__in=member_ids)
-        project.members.set(members)
-        follower_ids = [follower['id'] for follower in followers_dict]
-        followers = User.objects.filter(id__in=follower_ids)
-        project.followers.set(followers)
-        if custom_field_settings:
-            sync_custom_fields(
-                self.client, custom_field_settings,
-                project_dict['workspace_id'], project.remote_id)
+        sync_project(self.client, project_dict)
 
     def _sync_story_id(self, story_id):
         try:

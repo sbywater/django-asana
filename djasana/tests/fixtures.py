@@ -76,6 +76,7 @@ def project(**kwargs):
         'public': True,
         'workspace': workspace(),
         'resource_type': 'project',
+        'section_migration_status': 'not_migrated',
     }
     defaults.update(kwargs)
     return fake_response(**defaults)

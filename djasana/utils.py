@@ -6,7 +6,9 @@ from asana.error import InvalidRequestError
 import django
 from django.conf import settings
 
-from djasana.models import Attachment, CustomField, CustomFieldSetting, Story, Tag, Task, User
+from djasana.models import (
+    Attachment, CustomField, CustomFieldSetting, Project, ProjectStatus,
+    Story, Tag, Task, Team, User)
 
 if django.VERSION >= (2, 0, 0):
     from django.urls import reverse
@@ -47,6 +49,44 @@ def sync_attachment(client, task, attachment_id):
     if attachment_dict['parent']:
         attachment_dict['parent'] = task
     Attachment.objects.get_or_create(remote_id=remote_id, defaults=attachment_dict)
+
+
+def sync_project(client, project_dict):
+    remote_id = project_dict.pop('id')
+    if project_dict['owner']:
+        owner = project_dict.pop('owner')
+        User.objects.get_or_create(remote_id=owner['id'], defaults={'name': owner['name']})
+        project_dict['owner_id'] = owner['id']
+    team = project_dict.pop('team')
+    Team.objects.get_or_create(remote_id=team['id'], defaults={'name': team['name']})
+    project_dict['team_id'] = team['id']
+    project_dict['workspace_id'] = project_dict.pop('workspace')['id']
+    project_dict.pop('custom_fields', None)
+    project_dict.pop('section_migration_status', None)
+    custom_field_settings = project_dict.pop('custom_field_settings', None)
+    # Convert string to boolean:
+    project_dict['archived'] = project_dict['archived'] == 'true'
+    members_dict = project_dict.pop('members')
+    followers_dict = project_dict.pop('followers')
+    project_status_dict = project_dict.pop('current_status', None)
+    project = Project.objects.update_or_create(
+        remote_id=remote_id, defaults=project_dict)[0]
+    member_ids = [member['id'] for member in members_dict]
+    members = User.objects.filter(id__in=member_ids)
+    project.members.set(members)
+    follower_ids = [follower['id'] for follower in followers_dict]
+    followers = User.objects.filter(id__in=follower_ids)
+    project.followers.set(followers)
+    if project_status_dict:
+        current_status_id = project_status_dict.pop('id')
+        project_status = ProjectStatus.objects.update_or_create(
+            remote_id=current_status_id, defaults=project_status_dict)[0]
+        project.current_status = project_status
+        project.save(update_fields=['current_status'])
+    if custom_field_settings:
+        sync_custom_fields(
+            client, custom_field_settings, project_dict['workspace_id'], project.remote_id)
+    return project
 
 
 def sync_story(remote_id, story_dict):
@@ -95,7 +135,7 @@ def sync_task(remote_id, task_dict, project, sync_tags=False):
     return task
 
 
-def sync_custom_fields(client, custom_field_settings, workspace, project_id):
+def sync_custom_fields(client, custom_field_settings, workspace_id, project_id):
     synced_ids = []
     for setting in custom_field_settings:
         custom_field_mini_dict = setting.pop('custom_field')
@@ -110,4 +150,4 @@ def sync_custom_fields(client, custom_field_settings, workspace, project_id):
         setting['custom_field_id'] = custom_field_remote_id
         setting['project_id'] = project_id
         CustomFieldSetting.objects.update_or_create(
-            remote_id=setting_remote_id, workspace=workspace, defaults=setting)
+            remote_id=setting_remote_id, workspace_id=workspace_id, defaults=setting)

@@ -311,12 +311,13 @@ class SyncFromAsanaTestCase(TestCase):
             remote_id=3, name='New Project', public=True, team=team_, workspace=workspace_)
         self.command.client.custom_fields.find_by_id.return_value = custom_field().copy()
         self.command.client.projects.find_by_id.return_value = project(
+            id=3,
             custom_field_settings=[{
                 'id': 258147,
                 'custom_field': custom_field().copy(),
                 'project': {'id': 3, 'name': 'New Project'}}],
             workspace={'id': 1, 'name': 'Workspace'})
-        self.command._sync_project_id(project_id=3, workspace=workspace_, models=[])
+        self.command._sync_project_id(project_id=3, models=[])
         self.assertTrue(CustomField.objects.filter(remote_id=1, name='Test Custom Field').exists())
         self.assertTrue(
             CustomFieldSetting.objects.filter(remote_id=258147, project_id=3).exists())

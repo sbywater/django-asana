@@ -8,10 +8,10 @@ from django.utils import six
 
 from djasana.connect import client_connect
 from djasana.models import (
-    Attachment, Project, ProjectStatus, Story, SyncToken,
+    Attachment, Project, Story, SyncToken,
     Tag, Task, Team, User, Webhook, Workspace)
 from djasana.settings import settings
-from djasana.utils import set_webhook, sync_attachment, sync_story, sync_task, sync_custom_fields
+from djasana.utils import set_webhook, sync_attachment, sync_project, sync_story, sync_task
 
 logger = logging.getLogger(__name__)
 
@@ -126,7 +126,7 @@ class Command(BaseCommand):
             sync_token = SyncToken.objects.get(project_id=project_id)
             try:
                 events = self.client.events.get({'resource': project_id, 'sync': sync_token.sync})
-                self._process_events(project_id, events, workspace, models)
+                self._process_events(project_id, events, models)
                 self._set_webhook(workspace, project_id)
                 return
             except InvalidTokenError as error:
@@ -137,7 +137,7 @@ class Command(BaseCommand):
                 self.client.events.get({'resource': project_id})
             except InvalidTokenError as error:
                 new_sync = error.sync
-        is_archived = self._sync_project_id(project_id, workspace, models)
+        is_archived = self._sync_project_id(project_id, models)
         if not is_archived:
             self._set_webhook(workspace, project_id)
         if new_sync:
@@ -207,7 +207,7 @@ class Command(BaseCommand):
                 Webhook.objects.filter(id__in=webhooks_.values_list('id', flat=True)[1:]).delete()
             set_webhook(self.client, project_id)
 
-    def _process_events(self, project_id, events, workspace, models):
+    def _process_events(self, project_id, events, models):
         project = Project.objects.get(remote_id=project_id)
         ignored_tasks = 0
         for event in events['data']:
@@ -216,7 +216,7 @@ class Command(BaseCommand):
                     if event['action'] == 'removed':
                         Project.objects.get(remote_id=event['resource']['id']).delete()
                     else:
-                        self._sync_project_id(project_id, workspace, models)
+                        self._sync_project_id(project_id, models)
                 else:
                     ignored_tasks += 1
             elif event['type'] == 'task':
@@ -233,53 +233,21 @@ class Command(BaseCommand):
                 else:
                     ignored_tasks += 1
         tasks_done = len(events['data']) - ignored_tasks
-        message = 'Successfully synced {0} events for project {1}.'.format(
-            tasks_done, project.name)
-        if ignored_tasks:
-            message += ' {0} events ignored for excluded models.'.format(ignored_tasks)
-        self.stdout.write(self.style.SUCCESS(message))
-        logger.info(message)
+        if self.commit:
+            message = 'Successfully synced {0} events for project {1}.'.format(
+                tasks_done, project.name)
+            if ignored_tasks:
+                message += ' {0} events ignored for excluded models.'.format(ignored_tasks)
+            self.stdout.write(self.style.SUCCESS(message))
+            logger.info(message)
 
-    def _sync_project_id(self, project_id, workspace, models):
+    def _sync_project_id(self, project_id, models):
         """Sync this project by polling it. Returns boolean 'is archived?'"""
         project_dict = self.client.projects.find_by_id(project_id)
         logger.debug('Sync project %s', project_dict['name'])
         logger.debug(project_dict)
         if self.commit:
-            remote_id = project_dict.pop('id')
-            if project_dict['owner']:
-                owner = project_dict.pop('owner')
-                User.objects.get_or_create(remote_id=owner['id'], defaults={'name': owner['name']})
-                project_dict['owner_id'] = owner['id']
-            team = project_dict.pop('team')
-            Team.objects.get_or_create(remote_id=team['id'], defaults={'name': team['name']})
-            project_dict['team_id'] = team['id']
-            project_dict['workspace'] = workspace
-            project_dict.pop('custom_fields', None)
-            custom_field_settings = project_dict.pop('custom_field_settings', None)
-            # Convert string to boolean:
-            project_dict['archived'] = project_dict['archived'] == 'true'
-            members_dict = project_dict.pop('members')
-            followers_dict = project_dict.pop('followers')
-            project_status_dict = project_dict.pop('current_status', None)
-            project = Project.objects.update_or_create(
-                remote_id=remote_id, defaults=project_dict)[0]
-            member_ids = [member['id'] for member in members_dict]
-            members = User.objects.filter(id__in=member_ids)
-            project.members.set(members)
-            follower_ids = [follower['id'] for follower in followers_dict]
-            followers = User.objects.filter(id__in=follower_ids)
-            project.followers.set(followers)
-            if project_status_dict:
-                current_status_id = project_status_dict.pop('id')
-                project_status = ProjectStatus.objects.update_or_create(
-                    remote_id=current_status_id, defaults=project_status_dict)[0]
-                project.current_status = project_status
-                project.save(update_fields=['current_status'])
-            if custom_field_settings:
-                sync_custom_fields(self.client, custom_field_settings, workspace, project_id)
-        else:
-            project = None
+            project = sync_project(self.client, project_dict)
 
         if Task in models and not project_dict['archived'] or self.process_archived:
             for task in self.client.tasks.find_all({'project': project_id}):
@@ -293,7 +261,7 @@ class Command(BaseCommand):
                 message = 'Deleted {} tasks no longer present: {}'.format(len(id_list), id_list)
                 self.stdout.write(self.style.SUCCESS(message))
                 logger.info(message)
-        if project:
+        if self.commit:
             message = 'Successfully synced project {}.'.format(project.name)
             self.stdout.write(self.style.SUCCESS(message))
             logger.info(message)

@@ -47,7 +47,7 @@ class WebhookViewTestCase(TestCase):
     def _get_mock_response(self, mock_client, data):
         message = json.dumps(data)
         signature = sign_sha256_hmac(self.secret, message)
-        mock_client.access_token().projects.find_by_id.return_value = project()
+        mock_client.access_token().projects.find_by_id.return_value = project(id=3)
         mock_client.access_token().tasks.find_by_id.return_value = task()
         request = self.factory.post(
             '', content_type='application/json', data=message,
