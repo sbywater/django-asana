@@ -188,7 +188,7 @@ setup(
     install_requires=[
         'django>=1.10',
         'asana>=0.8.2',
-        'django-braces>=1.10',
+        'django-braces>=1.13.0',
     ],
     python_requires='~=3.5',
     cmdclass={'test': RunTests,
