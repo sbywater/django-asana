@@ -14,8 +14,11 @@ def fake_response(**kwargs):
 def attachment(**kwargs):
     defaults = {
         'id': 1,
+        'download_url': 'http://foo.foo',
+        'host': 'asana',
         'name': 'Test Attachment',
         'num_annotations': 0,
+        'num_incomplete_annotations': 0,
         'parent': task(),
         'resource_type': 'attachment',
     }
