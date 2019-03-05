@@ -11,7 +11,8 @@ from djasana.models import (
     Attachment, Project, Story, SyncToken,
     Tag, Task, Team, User, Webhook, Workspace)
 from djasana.settings import settings
-from djasana.utils import set_webhook, sync_attachment, sync_project, sync_story, sync_task
+from djasana.utils import (
+    pop_unsupported_fields, set_webhook, sync_attachment, sync_project, sync_story, sync_task)
 
 logger = logging.getLogger(__name__)
 
@@ -284,6 +285,7 @@ class Command(BaseCommand):
             remote_id = tag_dict.pop('id')
             tag_dict['workspace'] = workspace
             followers_dict = tag_dict.pop('followers')
+            pop_unsupported_fields(tag_dict, Tag)
             tag = Tag.objects.get_or_create(
                 remote_id=remote_id,
                 defaults=tag_dict)[0]
@@ -347,6 +349,7 @@ class Command(BaseCommand):
             organization = team_dict.pop('organization')
             team_dict['organization_id'] = organization['id']
             team_dict['organization_name'] = organization['name']
+            pop_unsupported_fields(team_dict, Team)
             Team.objects.get_or_create(
                 remote_id=remote_id,
                 defaults=team_dict)

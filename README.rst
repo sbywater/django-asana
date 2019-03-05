@@ -220,11 +220,7 @@ It will read user photo data from Asana, if available, but only the path to the 
 If a project or task that has been synced to Django is deleted in Asana, and webhooks are not used, it is not deleted in Django with the sync_from_asana command.
 This is forthcoming functionality.
 
-The Asana development team adds new features to their API without advance notice or documentation.
-When they add a new field to the API of a model, it raises a "Programming Error: column *n* does not exist" error until django-asana adds support for it.
-Typically this happens rather quickly.
-
-Asana has not documented the possibly choices for ``Story.resource_subtype`` and will likely add more without notice.
+Asana has not documented the possible choices for ``Story.resource_subtype`` and will likely add more without notice.
 If you find a resource_subtype in the wild that is not supported yet, feel free to add a patch for it.
 You can check what values you have by running code like this:
 

@@ -9,11 +9,21 @@ Unreleased
 ---------------
 Added
 ~~~~~
-- Support task depedancies
 
+1.4.0 (2019-03-05)
+----------------
+Added
+~~~~~
+- Improves forward compatibility with Asana API changes by popping unexpected fields before update_or_create. In the past, undocumented and unannounced changes to the Asana API would often break django-asana.
+
+1.3.6 (2018-12-04)
+------------------
+Added
+~~~~~
+- Support task dependencies
 
 1.3.5 (2018-11-20)
---------------------
+------------------
 Added
 ~~~~~
 - Added missing migration
