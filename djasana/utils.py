@@ -66,7 +66,7 @@ def sync_attachment(client, task, attachment_id):
     attachment_dict = client.attachments.find_by_id(attachment_id)
     logger.debug(attachment_dict)
     remote_id = attachment_dict.pop('id')
-    attachment_dict.pop('num_annotations')
+    attachment_dict.pop('num_annotations', None)
     attachment_dict.pop('num_incomplete_annotations', None)
     if attachment_dict['parent']:
         attachment_dict['parent'] = task
