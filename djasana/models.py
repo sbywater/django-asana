@@ -137,6 +137,7 @@ class Project(NamedModel):
     custom_field_settings = models.ManyToManyField(
         'CustomField', through='CustomFieldSetting', related_name='custom_field_settings')
     due_date = models.DateField(null=True, blank=True)
+    due_on = models.DateField(null=True, blank=True)
     followers = models.ManyToManyField('User', related_name='projects_following', blank=True)
     html_notes = models.TextField(null=True, blank=True)
     layout = models.CharField(choices=layout_choices, max_length=16)
