@@ -151,7 +151,7 @@ class Command(BaseCommand):
         if workspaces:
             for workspace in workspaces:
                 for wks in workspaces_:
-                    if workspace == wks['gid'] or workspace == wks['name']:
+                    if workspace in (wks['gid'], ['name']):
                         workspace_ids.append(wks['gid'])
                         break
                 else:
@@ -161,9 +161,8 @@ class Command(BaseCommand):
         if bad_list:
             if len(bad_list) == 1:
                 raise CommandError('{} is not an Asana workspace'.format(workspaces[0]))
-            else:
-                raise CommandError('Specified workspaces are not valid: {}'.format(
-                    ', '.join(bad_list)))
+            raise CommandError('Specified workspaces are not valid: {}'.format(
+                ', '.join(bad_list)))
         # Return newer workspaces first so they get synced earlier
         return sorted(workspace_ids, reverse=True)
 
@@ -175,7 +174,7 @@ class Command(BaseCommand):
         if projects:
             for project in projects:
                 for prj in projects_:
-                    if project == prj['gid'] or project == prj['name']:
+                    if project in (prj['gid'], prj['name']):
                         project_ids.append(prj['gid'])
                         break
                 else:
@@ -185,9 +184,7 @@ class Command(BaseCommand):
         if bad_list:
             if len(bad_list) == 1:
                 raise CommandError('{} is not an Asana project'.format(bad_list[0]))
-            else:
-                raise CommandError('Specified projects are not valid: {}'.format(
-                    ', '.join(bad_list)))
+            raise CommandError('Specified projects are not valid: {}'.format(', '.join(bad_list)))
         # Return newer projects first so they get synced earlier
         return sorted(project_ids, reverse=True)
 

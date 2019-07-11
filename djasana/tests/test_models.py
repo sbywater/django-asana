@@ -55,7 +55,8 @@ class TaskModelTestCase(TestCase):
         self.assertEqual('https://app.asana.com/0/1/4/list', self.task.asana_url())
 
     def test_asana_url_with_project(self):
-        self.assertEqual('https://app.asana.com/0/1/4/list', self.task.asana_url(self.project))
+        self.assertEqual(
+            'https://app.asana.com/0/1/4/list', self.task.asana_url(project=self.project))
 
     def test_asana_url_multiple_projects(self):
         project = models.Project.objects.create(
@@ -105,20 +106,20 @@ class TaskModelTestCase(TestCase):
             {"id": 10, "gid": "10", "name": "Low"},
             {"id": 11, "gid": "11", "name": "High"}]''')
         """
-        task = models.Task(custom_fields="""[{ 
-        "id": 1, "gid": "1", "name": "Priority", "resource_type": "custom_field", 
+        task = models.Task(custom_fields="""[{
+        "id": 1, "gid": "1", "name": "Priority", "resource_type": "custom_field",
         "resource_subtype": "enum", "enum_value": {"id": 11, "gid": "11", "name": "High"}}]""")
         self.assertEqual('High', task.get_custom_fields()['Priority'])
 
     def test_custom_fields_number(self):
-        task = models.Task(custom_fields="""[{ 
-        "id": 0, "gid": "0", "name": "Count", "resource_type": "custom_field", 
+        task = models.Task(custom_fields="""[{
+        "id": 0, "gid": "0", "name": "Count", "resource_type": "custom_field",
         "resource_subtype": "number", "number_value": "1", "precision": "0"}]""")
         self.assertEqual(1, task.get_custom_fields()['Count'])
 
     def test_custom_fields_text(self):
-        task = models.Task(custom_fields="""[{ 
-        "id": 0, "gid": "0", "name": "Flavor", "resource_type": "custom_field", 
+        task = models.Task(custom_fields="""[{
+        "id": 0, "gid": "0", "name": "Flavor", "resource_type": "custom_field",
         "resource_subtype": "text", "text_value": "vanilla"}]""")
         self.assertEqual('vanilla', task.get_custom_fields()['Flavor'])
 

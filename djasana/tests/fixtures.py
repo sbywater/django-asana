@@ -126,7 +126,7 @@ def tag(**kwargs):
     return fake_response(**defaults)
 
 
-def task(*dummy, **kwargs):
+def task(*_dummy, **kwargs):
     """When called as a mock side effect, this will have a positional argument"""
     defaults = {
         'id': 1,

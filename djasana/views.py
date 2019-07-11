@@ -46,8 +46,7 @@ class WebhookView(JSONRequestResponseMixin, View):
         if signature != target_signature:
             logger.debug('Signature mismatch')
             return HttpResponseForbidden()
-        else:
-            logger.debug('Signatures match!!')
+        logger.debug('Signatures match!!')
         if self.request_json['events']:
             self._process_events(self.request_json['events'], project)
         return HttpResponse()

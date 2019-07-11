@@ -41,7 +41,7 @@ class BaseModel(models.Model):
         self.gid = self.gid or str(self.remote_id)
         super(BaseModel, self).save(*args, **kwargs)
 
-    def asana_url(self, *args, **kwargs):
+    def asana_url(self, **kwargs):
         return '{}{}'.format(ASANA_BASE_URL, self.remote_id)
 
     def get_absolute_url(self):
@@ -88,7 +88,7 @@ class Attachment(NamedModel):
     type = models.CharField(choices=type_choices, max_length=24, null=True, blank=True)
     view_url = models.URLField(max_length=1024)
 
-    def asana_url(self, project=None):
+    def asana_url(self, **kwargs):
         return self.permanent_url
 
 
@@ -153,7 +153,7 @@ class Project(NamedModel):
     team = models.ForeignKey('Team', to_field='remote_id', null=True, on_delete=models.SET_NULL)
     workspace = models.ForeignKey('Workspace', to_field='remote_id', on_delete=models.CASCADE)
 
-    def asana_url(self):
+    def asana_url(self, **kwargs):
         """Returns the absolute url for this project at Asana."""
         return '{}{}/list'.format(ASANA_BASE_URL, self.remote_id)
 
@@ -306,10 +306,10 @@ class Task(Hearted, NamedModel):
     def _asana_project_url(self, project):
         return '{}{}/{}/list'.format(ASANA_BASE_URL, project.workspace.remote_id, self.remote_id)
 
-    def asana_url(self, project=None):
+    def asana_url(self, **kwargs):
         """Returns the absolute url for this task at Asana."""
-        if project:
-            return self._asana_project_url(project)
+        if 'project' in kwargs:
+            return self._asana_project_url(kwargs['project'])
         projects = self.projects.all()
         if len(projects) == 1:
             project = projects[0]
