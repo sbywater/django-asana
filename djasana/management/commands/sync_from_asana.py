@@ -151,7 +151,7 @@ class Command(BaseCommand):
         if workspaces:
             for workspace in workspaces:
                 for wks in workspaces_:
-                    if workspace in (wks['gid'], ['name']):
+                    if workspace in (wks['gid'], wks['name']):
                         workspace_ids.append(wks['gid'])
                         break
                 else:
