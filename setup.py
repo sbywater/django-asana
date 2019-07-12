@@ -163,7 +163,7 @@ class CIRunTests(RunTests):
 
 
 this_directory = os.path.abspath(os.path.dirname(__file__))
-with open(os.path.join(this_directory, 'README.md'), encoding='utf-8') as f:
+with open(os.path.join(this_directory, 'README.rst')) as f:
     long_description = f.read()
 
 setup(
@@ -212,6 +212,7 @@ setup(
         'Programming Language :: Python :: Implementation :: PyPy',
         'Programming Language :: Python :: Implementation :: Jython',
     ],
-    long_description=long_description,
+    long_description='''django-asana leverages `python-asana <https://github.com/Asana/python-asana>`_, the official python client library for Asana.
+To this, django-asana adds django models and commands for importing data from Asana into these models, and for keeping a django project in sync with related Asana data.''',
     **extra
 )
