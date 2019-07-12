@@ -46,7 +46,7 @@ Task.add_comment() can be used to add a comment to a task in Asana.
 Requirements
 ============
 
-#. Python 3.6+
+#. Python 3.5+
 #. `Django 1.11 - 2.2+ <https://www.djangoproject.com/>`_
 #. `python-asana 0.8.2+ <https://github.com/Asana/python-asana>`_
 #. `django-braces 1.13+ <https://django-braces.readthedocs.io/en/latest/index.html>`_ for JsonRequestResponseMixin
@@ -209,7 +209,8 @@ Limitations
 
 django-asana is designed for copying data from Asana to Django.
 Although it contains a useful client for connecting the two, for creating data in Asana (as in, wholesale syncing to Asana from Django) the developer is mostly left to use python-asana directly.
-For more info see For more info see :doc:`create_data`.
+The Task methods sync_to_asana and add_comment cover two typical use cases and can be used as examples on writing to Asana.
+For more info see :doc:`create_data`.
 
 django-asana support for custom fields is not well tested.
 If you use custom fields with django-asana, please `report any bugs you find <https://github.com/sbywater/django-asana/issues>`_.
@@ -226,7 +227,8 @@ You can check what values you have by running code like this:
 
 .. code:: python
 
-    [s for s in Story.objects.distinct().values_list('resource_subtype', flat=True)]
+    [s for s in Story.objects.distinct().values_list(
+        'resource_subtype', flat=True).order_by('resource_subtype')]
 
 Running tests
 =============

@@ -362,7 +362,21 @@ class Task(Hearted, NamedModel):
             self.dependencies.set([dep['id'] for dep in dependencies])
 
     def sync_to_asana(self, fields=None):
-        """Updates Asana to match values from this task."""
+        """Updates Asana to match values from this task.
+
+        With no arguments, can be used to update the 'completed' status of a Task:
+
+        >> task.completed = True
+        >> task.save()
+        >> task.sync_to_asana()
+
+        Optionally, a sequence of fields can be passed:
+
+        >> task.notes = 'Get it done!'
+        >> task.due_on = today
+        >> task.save()
+        >> task.sync_to_asana(fields=('notes', 'due_on'))
+        """
         fields = fields or ['completed']
         data = {}
         for field in fields:

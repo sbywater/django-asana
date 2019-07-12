@@ -1,7 +1,42 @@
 Creating Data in Asana
 ======================
 
-To create data in Asana, use the client provided by django-asana but beyond that use `python-asana <https://github.com/Asana/python-asana>`_ directly.
+There are two methods on Task for writing to Asana: sync_to_asana() and add_comment().
+
+
+Task.sync_to_asana(fields=None)
+-------------------------------
+
+With no arguments, can be used to update the 'completed' status of a Task:
+
+.. code:: python
+
+        task.completed = True
+        task.save()
+        task.sync_to_asana()
+
+Optionally, a sequence of fields can be passed:
+
+.. code:: python
+
+        task.notes = 'Get it done!'
+        task.due_on = today
+        task.save()
+        task.sync_to_asana(fields=('notes', 'due_on'))
+
+
+Task.add_comment(text)
+----------------------
+
+.. code:: python
+
+    task.add_comment('Email sent to 123 users.')
+
+
+Everything else
+---------------
+
+Other than those use cases, to create data in Asana, use the client provided by django-asana but beyond that use `python-asana <https://github.com/Asana/python-asana>`_ directly.
 
 .. code:: python
 

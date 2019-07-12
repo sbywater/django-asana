@@ -91,6 +91,14 @@ class TaskModelTestCase(TestCase):
 
     @override_settings(ASANA_ACCESS_TOKEN='foo')
     @patch('djasana.models.client_connect')
+    def test_sync_to_asana_(self, mock_connect):
+        mock_client = mock_connect.return_value
+        mock_client.tasks.sync_to_asana.return_value = fixtures.task()
+        self.task.sync_to_asana()
+        self.assertTrue(mock_client.tasks.update.called)
+
+    @override_settings(ASANA_ACCESS_TOKEN='foo')
+    @patch('djasana.models.client_connect')
     def test_add_comment(self, mock_connect):
         mock_client = mock_connect.return_value
         mock_client.tasks.add_comment.return_value = fixtures.story()
