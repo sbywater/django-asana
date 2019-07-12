@@ -103,6 +103,7 @@ class CustomField(NamedModel):
 
     description = models.CharField(max_length=1024, null=True, blank=True)
     enum_options = models.CharField(max_length=1024, null=True, blank=True)
+    is_global_to_workspace = models.BooleanField(default=False)
     precision = models.SmallIntegerField(choices=precision_choices, null=True, blank=True)
     resource_subtype = models.CharField(
         choices=subtype_choices, max_length=24, null=True, blank=True)
