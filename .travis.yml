@@ -11,7 +11,6 @@ env:
   - PIP_USE_MIRRORS=true
   - secure: epAjDXvIvQuJylcRu46TmGWXtXF0TikTag6PYjDNydkf+usaLOldE48jwKiuvZOXJawk1syb5kh2rsCnT3pYG4Rv7V3VJrpFdSYYERwCJ5V2m4vaXf350+fArkZNx8FZ4xjN9NWmfxdp6VTjZVpf8TDNE5HWnj+zWHYZ+I8JzJKYxzXyQTicU9ZStxJNayd7eb72WxwZF3yiVsa5ex+HyNzGYsxJ9jguTNs5O3cnGUmO5VPKC1tZKMPbq00zNksduvhXq7hJQpjKh/vombPYP5nGilDXoUClR1agjKmh+1Jowm1n0TwzglUzEOoT6VZoSM9D1suUIEvk0lj+BWWjDYEySw4f+zWLt5ZCw+hFhjMH5BTxkuECWJWd6o5dS1C8upLl+cmyAC0EFeVmLgx4GWs13nCA0jtS5gstWETouDBFt5iJ61rPp18h6sETjGcxPVi3LUYZhizq8vPF1JB+Z3puHtvSZT2Ya/aUG2BOW2PIbvh1c+GCC5fnH/2MoDMfxrx3WiF3w7u/ZO9nxHgc0IezS4uYDX109LNNKc6ce49SUuo7ulsCSAYdvUQYj5tU647ukMsintgy5bHyEjB9FvfaO1uHqBgoQdXMtLSkw6njkCF2gPtbjZbNyj+Boie2PkY/KQblBzoHV/H7xwlrs2+1mAnVdU79ZIrN+13kp6g=
   matrix:
-  - DJANGO_VERSION="django>=1.10,<1.11"
   - DJANGO_VERSION="django>=1.11,<1.12"
   - DJANGO_VERSION="django>=2.0,<2.1"
   - DJANGO_VERSION="django>=2.1,<2.2"
@@ -19,8 +18,6 @@ env:
   - DJANGO_VERSION="https://github.com/django/django/archive/master.tar.gz"
 matrix:
   allow_failures:
-    - env: DJANGO_VERSION="django>=2.1,<2.2"
-    - env: DJANGO_VERSION="django>=2.2,<2.3"
     - env: DJANGO_VERSION="https://github.com/django/django/archive/master.tar.gz"
 install:
 - pip install $DJANGO_VERSION
