@@ -48,7 +48,7 @@ Requirements
 
 #. Python 3.5+
 #. `Django 1.11 - 2.2+ <https://www.djangoproject.com/>`_
-#. `python-asana 0.8.2+ <https://github.com/Asana/python-asana>`_
+#. `python-asana 0.9.0+ <https://github.com/Asana/python-asana>`_
 #. `django-braces 1.13+ <https://django-braces.readthedocs.io/en/latest/index.html>`_ for JsonRequestResponseMixin
 
 
@@ -210,7 +210,7 @@ Limitations
 django-asana is designed for copying data from Asana to Django.
 Although it contains a useful client for connecting the two, for creating data in Asana (as in, wholesale syncing to Asana from Django) the developer is mostly left to use python-asana directly.
 The Task methods sync_to_asana and add_comment cover two typical use cases and can be used as examples on writing to Asana.
-For more info see :doc:`create_data`.
+For more info see `Create Data`_.
 
 django-asana support for custom fields is not well tested.
 If you use custom fields with django-asana, please `report any bugs you find <https://github.com/sbywater/django-asana/issues>`_.
@@ -239,4 +239,7 @@ After installing django-asana and adding it to your project, run tests against i
 
     python manage.py test djasana
 
-For more info see :doc:`testing`.
+For more info see `Testing Your Code`_.
+
+.. _Create Data: /create_data
+.. _Testing Your Code: /testing.html

@@ -184,7 +184,7 @@ setup(
     zip_safe=False,
     install_requires=[
         'django>=1.10',
-        'asana>=0.8.2',
+        'asana>=0.9.0',
         'django-braces>=1.13.0',
     ],
     python_requires='~=3.5',
@@ -214,7 +214,7 @@ setup(
         'Programming Language :: Python :: Implementation :: PyPy',
         'Programming Language :: Python :: Implementation :: Jython',
     ],
-    long_description='''django-asana leverages `python-asana <https://github.com/Asana/python-asana>`_, the official python client library for Asana.
-To this, django-asana adds django models and commands for importing data from Asana into these models, and for keeping a django project in sync with related Asana data.''',
+    long_description=long_description,
+    long_description_content_type='text/x-rst',
     **extra
 )
