@@ -378,7 +378,7 @@ class Command(BaseCommand):
             workspace = None
         project_ids = self._get_project_ids(projects, workspace_id)
         if workspace_id != self.client.options['workspace_id']:
-            self.client.options['workspace_id'] = workspace_id
+            self.client.options['workspace_id'] = str(workspace_id)
 
         if User in models:
             for user in self.client.users.find_all({'workspace': workspace_id}):
