@@ -141,6 +141,7 @@ class Project(NamedModel):
     due_on = models.DateField(null=True, blank=True)
     followers = models.ManyToManyField('User', related_name='projects_following', blank=True)
     html_notes = models.TextField(null=True, blank=True)
+    is_template = models.BooleanField(default=False)
     layout = models.CharField(choices=layout_choices, max_length=16)
     members = models.ManyToManyField('User', blank=True)
     modified_at = models.DateTimeField(auto_now=True)
