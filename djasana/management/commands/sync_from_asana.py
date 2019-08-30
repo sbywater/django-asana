@@ -297,7 +297,7 @@ class Command(BaseCommand):
         passed when syncing a parent task from a subtask.
         """
         try:
-            task_dict = self.client.tasks.find_by_id(task['id'])
+            task_dict = self.client.tasks.find_by_id(task['gid'])
         except (ForbiddenError, NotFoundError):
             try:
                 Task.objects.get(remote_id=task['id']).delete()
