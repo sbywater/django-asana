@@ -266,8 +266,9 @@ class Command(BaseCommand):
         return project_dict['archived']
 
     def _sync_story(self, story):
+        story_id = story.get('gid', story.get('id', None))
         try:
-            story_dict = self.client.stories.find_by_id(story['id'])
+            story_dict = self.client.stories.find_by_id(story_id)
         except NotFoundError as error:
             logger.info(error.response)
             return
@@ -296,8 +297,9 @@ class Command(BaseCommand):
         For parents and subtasks, this method is called recursively, so skip_subtasks True is
         passed when syncing a parent task from a subtask.
         """
+        task_id = task.get('gid', task.get('id', None))
         try:
-            task_dict = self.client.tasks.find_by_id(task['gid'])
+            task_dict = self.client.tasks.find_by_id(task_id)
         except (ForbiddenError, NotFoundError):
             try:
                 Task.objects.get(remote_id=task['id']).delete()
@@ -308,7 +310,7 @@ class Command(BaseCommand):
         logger.debug(task_dict)
 
         if Task in models and self.commit:
-            remote_id = task_dict.pop('id')
+            remote_id = task_dict.pop('id', task_dict.pop('gid', None))
             parent = task_dict.pop('parent', None)
             dependencies = task_dict.pop('dependencies', None) or []
             if parent:
@@ -321,7 +323,7 @@ class Command(BaseCommand):
             task_ = sync_task(remote_id, task_dict, project, sync_tags=Tag in models)
             self.synced_ids.append(remote_id)
             if not skip_subtasks:
-                for subtask in self.client.tasks.subtasks(task['id']):
+                for subtask in self.client.tasks.subtasks(task_id):
                     if subtask['id'] not in self.synced_ids:
                         self._sync_task(subtask, project, models)
                 if dependencies:
@@ -331,10 +333,10 @@ class Command(BaseCommand):
                     task_.dependencies.set(
                         Task.objects.filter(remote_id__in=[dep['id'] for dep in dependencies]))
         if Attachment in models and self.commit:
-            for attachment in self.client.attachments.find_by_task(task['id']):
+            for attachment in self.client.attachments.find_by_task(task_id):
                 sync_attachment(self.client, task_, attachment['id'])
         if Story in models and self.commit:
-            for story in self.client.stories.find_by_task(task['id']):
+            for story in self.client.stories.find_by_task(task_id):
                 self._sync_story(story)
         return
 

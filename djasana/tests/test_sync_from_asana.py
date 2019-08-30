@@ -159,33 +159,33 @@ class SyncFromAsanaTestCase(TestCase):
                     'created_at': '2017-08-21T18:20:37.972Z',
                     'parent': None,
                     'resource': {
-                        'id': 1,
+                        'gid': '1',
                         'name': 'Test Project'
                     },
                     'type': 'project',
-                    'user': 1123
+                    'user': '1123'
                 },
                 {
                     'action': 'changed',
                     'created_at': '2017-08-21T18:20:37.972Z',
                     'parent': None,
                     'resource': {
-                        'id': 1337,
+                        'gid': '1337',
                         'name': 'Test Task'
                     },
                     'type': 'task',
-                    'user': 1123
+                    'user': '1123'
                 },
                 {
                     'action': 'added',
                     'created_at': '2017-08-21T18:20:37.972Z',
                     'parent': None,
                     'resource': {
-                        'id': 1,
+                        'gid': '1',
                         'name': 'Test Story'
                     },
                     'type': 'story',
-                    'user': 1123
+                    'user': '1123'
                 }
             ]
         }
