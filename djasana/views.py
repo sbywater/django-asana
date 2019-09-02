@@ -76,18 +76,18 @@ class WebhookView(JSONRequestResponseMixin, View):
         for event in events:
             if event['action'] == 'sync_error':
                 logger.warning(event['message'])
-            elif event['type'] == 'project':
+            elif event['resource']['resource_type'] == 'project':
                 if event['action'] == 'removed':
-                    Project.objects.get(remote_id=event['resource']).delete()
+                    Project.objects.get(remote_id=event['resource']['gid']).delete()
                 else:
                     self._sync_project(project)
-            elif event['type'] == 'task':
+            elif event['resource']['resource_type'] == 'task':
                 if event['action'] == 'removed':
-                    Task.objects.get(remote_id=event['resource']).delete()
+                    Task.objects.get(remote_id=event['resource']['gid']).delete()
                 else:
-                    self._sync_task_id(event['resource'], project)
-            elif event['type'] == 'story':
-                self._sync_story_id(event['resource'])
+                    self._sync_task_id(event['resource']['gid'], project)
+            elif event['resource']['resource_type'] == 'story':
+                self._sync_story_id(event['resource']['gid'])
 
     def _sync_project(self, project):
         project_dict = self.client.projects.find_by_id(project.remote_id)

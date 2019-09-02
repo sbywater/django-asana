@@ -37,9 +37,14 @@ class WebhookViewTestCase(TestCase):
                     'action': 'changed',
                     'created_at': '2017-08-21T18:20:37.972Z',
                     'parent': None,
-                    'resource': 1337,
-                    'type': 'task',
-                    'user': 1123
+                    'resource': {
+                        'gid': '1337',
+                        'resource_type': 'task',
+                    },
+                    'user': {
+                        'gid': '1123',
+                        'resource_type': 'user',
+                    },
                 },
             ]
         }
@@ -132,9 +137,14 @@ class WebhookViewTestCase(TestCase):
                     'action': 'changed',
                     'created_at': '2017-08-21T18:20:37.972Z',
                     'parent': None,
-                    'resource': 99,
-                    'type': 'task',
-                    'user': 1123
+                    'resource': {
+                        'gid': '99',
+                        'resource_type': 'task',
+                    },
+                    'user': {
+                        'gid': '1123',
+                        'resource_type': 'user',
+                    },
                 },
             ]
         }
@@ -171,9 +181,14 @@ class WebhookViewTestCase(TestCase):
                     'action': 'added',
                     'created_at': '2017-08-21T18:20:37.972Z',
                     'parent': {'id': 10},
-                    'resource': 1337,
-                    'type': 'task',
-                    'user': 1123
+                    'resource': {
+                        'gid': '1337',
+                        'resource_type': 'task',
+                    },
+                    'user': {
+                        'gid': '1123',
+                        'resource_type': 'user',
+                    },
                 },
             ]
         }
@@ -213,9 +228,14 @@ class WebhookViewTestCase(TestCase):
                     'action': 'changed',
                     'created_at': '2017-08-21T18:20:37.972Z',
                     'parent': None,
-                    'resource': 3,
-                    'type': 'project',
-                    'user': 1123
+                    'resource': {
+                        'gid': '3',
+                        'resource_type': 'project',
+                    },
+                    'user': {
+                        'gid': '1123',
+                        'resource_type': 'user',
+                    },
                 },
             ]
         }
@@ -234,9 +254,14 @@ class WebhookViewTestCase(TestCase):
                     'action': 'removed',
                     'created_at': '2017-08-21T18:20:37.972Z',
                     'parent': None,
-                    'resource': 3,
-                    'type': 'project',
-                    'user': 1123
+                    'resource': {
+                        'gid': '3',
+                        'resource_type': 'project',
+                    },
+                    'user': {
+                        'gid': '1123',
+                        'resource_type': 'user',
+                    },
                 },
             ]
         }
@@ -256,10 +281,19 @@ class WebhookViewTestCase(TestCase):
                 {
                     'action': 'added',
                     'created_at': '2017-08-21T18:20:37.972Z',
-                    'parent': None,
-                    'resource': 12,
-                    'type': 'story',
-                    'user': 1123
+                    'parent': {
+                        'gid': '1337',
+                        'resource_type': 'task',
+                    },
+                    'resource': {
+                        'gid': '12',
+                        'resource_type': 'story',
+                        'resource_subtype': 'comment_added',
+                    },
+                    'user': {
+                        'gid': '1123',
+                        'resource_type': 'user',
+                    },
                 },
             ]
         }
