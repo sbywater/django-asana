@@ -395,6 +395,8 @@ class Task(Hearted, NamedModel):
 
     def get_custom_fields(self):
         """Returns custom_fields as a dict"""
+        if not self.custom_fields:
+            return {}
         response = json.loads(self.custom_fields)
         custom_field_values = {}
         for custom_field in response:
