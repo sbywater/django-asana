@@ -202,17 +202,34 @@ class WebhookViewTestCase(TestCase):
         parent, child = tuple(models.Task.objects.order_by('remote_id'))
         self.assertEqual(parent, child.parent)
 
-    @patch('djasana.connect.Client')
-    def test_task_deleted(self, mock_client):
-        models.Webhook.objects.create(project=self.project, secret=self.secret)
-        task_ = models.Task.objects.create(remote_id=1337, name='Old task Name')
+    @staticmethod
+    def setup_task_for_delete(mock_client):
         mock_client.access_token().tasks.find_by_id.return_value = task()
         mock_client.access_token().attachments.find_by_task.return_value = [attachment()]
         mock_client.access_token().attachments.find_by_id.return_value = attachment()
         mock_client.access_token().stories.find_by_task.return_value = [story()]
         mock_client.access_token().stories.find_by_id.return_value = story()
+
+    @patch('djasana.connect.Client')
+    def test_task_removed(self, mock_client):
+        models.Webhook.objects.create(project=self.project, secret=self.secret)
+        task_ = models.Task.objects.create(remote_id=1337, name='Name')
+        self.setup_task_for_delete(mock_client)
         data = self.data.copy()
         data['events'][0]['action'] = 'removed'
+        response = self._get_mock_response(mock_client, data)
+        self.assertEqual(200, response.status_code)
+        self.assertFalse('x-hook-secret' in response)
+        with self.assertRaises(models.Task.DoesNotExist):
+            models.Task.objects.get(pk=task_.pk)
+
+    @patch('djasana.connect.Client')
+    def test_task_deleted(self, mock_client):
+        models.Webhook.objects.create(project=self.project, secret=self.secret)
+        task_ = models.Task.objects.create(remote_id=1337, name='Name')
+        self.setup_task_for_delete(mock_client)
+        data = self.data.copy()
+        data['events'][0]['action'] = 'deleted'
         response = self._get_mock_response(mock_client, data)
         self.assertEqual(200, response.status_code)
         self.assertFalse('x-hook-secret' in response)

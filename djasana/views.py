@@ -74,7 +74,10 @@ class WebhookView(JSONRequestResponseMixin, View):
         logger.debug('Processing events')
         self.client = client_connect()
         for event in events:
-            if event['action'] == 'sync_error':
+            if event['action'] == 'deleted':
+                # Assumes its a task
+                Task.objects.filter(remote_id=event['resource']['gid']).delete()
+            elif event['action'] == 'sync_error':
                 logger.warning(event['message'])
             elif event['resource']['resource_type'] == 'project':
                 if event['action'] == 'removed':
