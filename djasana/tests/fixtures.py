@@ -91,6 +91,7 @@ def project_status(**kwargs):
         'color': 'green',
         'created_at': None,
         'created_by': None,
+        'default_view': 'list',
         'html_text': '<body>Test</body>',
         'resource_type': 'project_status',
         'text': 'Test',

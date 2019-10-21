@@ -125,9 +125,11 @@ class CustomFieldSetting(BaseModel):
 
 class Project(NamedModel):
     """An Asana project in a workspace having a collection of tasks."""
-    layout_choices = (
+    default_view_choices = (
         ('board', _('board')),
+        ('calendar', _('calendar')),
         ('list', _('list')),
+        ('timeline', _('timeline')),
     )
 
     archived = models.BooleanField(default=False)
@@ -137,12 +139,14 @@ class Project(NamedModel):
         'ProjectStatus', null=True, on_delete=models.SET_NULL, related_name='current_status')
     custom_field_settings = models.ManyToManyField(
         'CustomField', through='CustomFieldSetting', related_name='custom_field_settings')
+    default_view = models.CharField(
+        choices=default_view_choices, max_length=16, null=True, blank=True)
     due_date = models.DateField(null=True, blank=True)
     due_on = models.DateField(null=True, blank=True)
     followers = models.ManyToManyField('User', related_name='projects_following', blank=True)
     html_notes = models.TextField(null=True, blank=True)
     is_template = models.BooleanField(default=False)
-    layout = models.CharField(choices=layout_choices, max_length=16)
+    layout = models.CharField(choices=default_view_choices, max_length=16)
     members = models.ManyToManyField('User', blank=True)
     modified_at = models.DateTimeField(auto_now=True)
     notes = models.TextField(null=True, blank=True)
