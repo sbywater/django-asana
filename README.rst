@@ -2,7 +2,7 @@
 django-asana
 ============
 
-:License: MIT
+:License: `MIT`_
 
 .. image:: https://travis-ci.org/sbywater/django-asana.svg?branch=master
     :target: https://travis-ci.org/sbywater/django-asana
@@ -241,5 +241,6 @@ After installing django-asana and adding it to your project, run tests against i
 
 For more info see `Testing Your Code`_.
 
-.. _Create Data: /create_data
-.. _Testing Your Code: /testing.html
+.. _Create Data: create_data.html
+.. _Testing Your Code: testing.html
+.. _MIT: LICENSE
