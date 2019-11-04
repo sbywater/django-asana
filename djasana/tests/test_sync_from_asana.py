@@ -225,7 +225,7 @@ class SyncFromAsanaTestCase(TestCase):
         # When processed, tasks get modified in place; we need to pass the original twice.
         parent_task = task()
         parent_copy = parent_task.copy()
-        child_task = task(id=2, parent=parent_task)
+        child_task = task(gid='2', parent=parent_task)
         self.command.client.tasks.find_all.return_value = [child_task, parent_task]
         self.command.client.tasks.find_by_id.side_effect = [child_task, parent_task, parent_copy]
         self.command.handle(interactive=False, project=['Test Project'])
@@ -236,7 +236,7 @@ class SyncFromAsanaTestCase(TestCase):
     def test_subtask(self):
         """Asserts subtask (task related to a task but not a project) is supported."""
         parent_task = task(projects=None)  # Parent is also a subtask
-        subtask = task(id=2, projects=None, parent=parent_task.copy())
+        subtask = task(gid='2', projects=None, parent=parent_task.copy())
 
         self.command.client.tasks.find_all.return_value = [parent_task.copy()]
         self.command.client.tasks.subtasks.side_effect = [[subtask.copy()], []]
@@ -252,7 +252,7 @@ class SyncFromAsanaTestCase(TestCase):
             remote_id=3, name='Another Project', public=True, team=team_, workspace=workspace_)
         task_ = Task.objects.create(remote_id=4, name='Orphan Task', completed=False)
         task_.projects.add(project_)
-        project_dict = project(id=3)
+        project_dict = project(gid='3')
         self.command.client.projects.find_all.return_value = [project_dict]
         self.command.client.projects.find_by_id.return_value = project_dict
         self.command.client.tasks.find_all.return_value = []
@@ -268,7 +268,7 @@ class SyncFromAsanaTestCase(TestCase):
         secret = 'x' * 32
         Webhook.objects.create(secret=secret, project=project_)
         Webhook.objects.create(secret=secret, project=project_)
-        project_dict = project(id=3)
+        project_dict = project(gid='3')
         self.command.client.projects.find_all.return_value = [project_dict]
         self.command.client.projects.find_by_id.return_value = project_dict
         webhook_ = webhook(project=project_dict)
@@ -279,7 +279,7 @@ class SyncFromAsanaTestCase(TestCase):
 
     def test_subtasks_synced(self):
         parent_task = task()
-        child_task = task(id=99, name='Subtask', parent=task())
+        child_task = task(gid='99', name='Subtask', parent=task())
         # When processed, tasks get modified in place; we need to pass the original twice.
         child_copy = child_task.copy()
         self.command.client.tasks.find_all.return_value = [parent_task, child_task]
@@ -289,8 +289,8 @@ class SyncFromAsanaTestCase(TestCase):
         self.assertTrue(Task.objects.filter(remote_id=99, name='Subtask').exists())
 
     def test_dependencies_synced(self):
-        main_task = task(id=98, name='Is a dependency for 99', dependents=[task(id=99)])
-        dependent_task = task(id=99, name='Requires task 98', dependencies=[task(id=98)])
+        main_task = task(gid='98', name='Is a dependency for 99', dependents=[task(gid='99')])
+        dependent_task = task(gid='99', name='Requires task 98', dependencies=[task(gid='98')])
         # When processed, tasks get modified in place; we need to pass the original twice.
         dependent_copy = dependent_task.copy(), dependent_task.copy()
         self.command.client.tasks.find_all.return_value = [main_task, dependent_task]
@@ -311,12 +311,12 @@ class SyncFromAsanaTestCase(TestCase):
             remote_id=3, name='New Project', public=True, team=team_, workspace=workspace_)
         self.command.client.custom_fields.find_by_id.return_value = custom_field().copy()
         self.command.client.projects.find_by_id.return_value = project(
-            id=3,
+            gid='3',
             custom_field_settings=[{
-                'id': 258147,
+                'gid': '258147',
                 'custom_field': custom_field().copy(),
-                'project': {'id': 3, 'name': 'New Project'}}],
-            workspace={'id': 1, 'name': 'Workspace'})
+                'project': {'gid': '3', 'name': 'New Project'}}],
+            workspace={'gid': '1', 'name': 'Workspace'})
         self.command._sync_project_id(project_id=3, models=[])
         self.assertTrue(CustomField.objects.filter(remote_id=1, name='Test Custom Field').exists())
         self.assertTrue(

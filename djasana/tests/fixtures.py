@@ -6,14 +6,13 @@ from django.utils import timezone
 def fake_response(**kwargs):
     response = defaultdict(lambda: None, **kwargs)
     # https://community.asana.com/t/asana-is-moving-to-string-ids/29340
-    response['id'] = str(response['id'])
-    response['gid'] = response['id']
+    # response['id'] = str(response['id'])
     return response
 
 
 def attachment(**kwargs):
     defaults = {
-        'id': 1,
+        'gid': '1',
         'download_url': 'http://foo.foo',
         'host': 'asana',
         'name': 'Test Attachment',
@@ -28,11 +27,10 @@ def attachment(**kwargs):
 
 def custom_field(**kwargs):
     defaults = {
-        'id': 1,
+        'gid': '1',
         'description': 'Priority',
         'enum_options': '''[
             {
-              "id": 789,
               "gid": "789",
               "name": "Low",
               "enabled": true,
@@ -40,7 +38,6 @@ def custom_field(**kwargs):
               "resource_type": "enum_option"
             },
             {
-              "id": 790,
               "gid": "790",
               "name": "Medium",
               "enabled": true,
@@ -48,7 +45,6 @@ def custom_field(**kwargs):
               "resource_type": "enum_option"
             },
             {
-              "id": 791,
               "gid": "791",
               "name": "High",
               "enabled": true,
@@ -66,7 +62,7 @@ def custom_field(**kwargs):
 
 def project(**kwargs):
     defaults = {
-        'id': 1,
+        'gid': '1',
         'name': 'Test Project',
         'archived': 'false',
         'custom_fields': [],
@@ -87,7 +83,7 @@ def project(**kwargs):
 
 def project_status(**kwargs):
     defaults = {
-        'id': 1,
+        'gid': '1',
         'color': 'green',
         'created_at': None,
         'created_by': None,
@@ -103,7 +99,7 @@ def project_status(**kwargs):
 
 def story(**kwargs):
     defaults = {
-        'id': 1,
+        'gid': '1',
         'name': 'Test Story',
         'created_by': user(),
         'previews': [],
@@ -117,7 +113,7 @@ def story(**kwargs):
 
 def tag(**kwargs):
     defaults = {
-        'id': 1,
+        'gid': '1',
         'followers': [user()],
         'name': 'Test Tag',
         'resource_type': 'tag',
@@ -130,7 +126,7 @@ def tag(**kwargs):
 def task(*_dummy, **kwargs):
     """When called as a mock side effect, this will have a positional argument"""
     defaults = {
-        'id': 1,
+        'gid': '1',
         'name': 'Test Task',
         'assignee': user(),
         'completed': False,
@@ -154,10 +150,10 @@ def task(*_dummy, **kwargs):
 
 def team(**kwargs):
     defaults = {
-        'id': 1,
+        'gid': '1',
         'name': 'Test Team',
         'organization': {
-            'id': 1,
+            'gid': '1',
             'name': 'Test Organization',
         },
         'resource_type': 'team',
@@ -168,7 +164,7 @@ def team(**kwargs):
 
 def user(**kwargs):
     defaults = {
-        'id': 1,
+        'gid': '1',
         'name': 'Test User',
         'workspaces': [workspace()],
         'resource_type': 'user',
@@ -190,7 +186,7 @@ def webhook(**kwargs):
 
 def workspace(**kwargs):
     defaults = {
-        'id': 1,
+        'gid': '1',
         'name': 'Test Workspace',
         'email_domains': None,
         'is_organization': False,

@@ -212,7 +212,7 @@ class Command(BaseCommand):
             if event['type'] == 'project':
                 if Project in models:
                     if event['action'] == 'removed':
-                        Project.objects.get(remote_id=event['resource']['id']).delete()
+                        Project.objects.get(remote_id=event['resource']['gid']).delete()
                     else:
                         self._sync_project_id(project_id, models)
                 else:
@@ -220,7 +220,7 @@ class Command(BaseCommand):
             elif event['type'] == 'task':
                 if Task in models:
                     if event['action'] == 'removed':
-                        Task.objects.get(remote_id=event['resource']['id']).delete()
+                        Task.objects.get(remote_id=event['resource']['gid']).delete()
                     else:
                         self._sync_task(event['resource'], project, models)
                 else:
@@ -266,28 +266,28 @@ class Command(BaseCommand):
         return project_dict['archived']
 
     def _sync_story(self, story):
-        story_id = story.get('gid', story.get('id', None))
+        story_id = story.get('gid')
         try:
             story_dict = self.client.stories.find_by_id(story_id)
         except NotFoundError as error:
             logger.info(error.response)
             return
         logger.debug(story_dict)
-        remote_id = story_dict.pop('id')
+        remote_id = story_dict['gid']
         sync_story(remote_id, story_dict)
 
     def _sync_tag(self, tag, workspace):
-        tag_dict = self.client.tags.find_by_id(tag['id'])
+        tag_dict = self.client.tags.find_by_id(tag['gid'])
         logger.debug(tag_dict)
         if self.commit:
-            remote_id = tag_dict.pop('id')
+            remote_id = tag_dict['gid']
             tag_dict['workspace'] = workspace
             followers_dict = tag_dict.pop('followers')
             pop_unsupported_fields(tag_dict, Tag)
             tag = Tag.objects.get_or_create(
                 remote_id=remote_id,
                 defaults=tag_dict)[0]
-            follower_ids = [follower['id'] for follower in followers_dict]
+            follower_ids = [follower['gid'] for follower in followers_dict]
             followers = User.objects.filter(id__in=follower_ids)
             tag.followers.set(followers)
 
@@ -297,7 +297,7 @@ class Command(BaseCommand):
         For parents and subtasks, this method is called recursively, so skip_subtasks True is
         passed when syncing a parent task from a subtask.
         """
-        task_id = task.get('gid', task.get('id', None))
+        task_id = task['gid']
         try:
             task_dict = self.client.tasks.find_by_id(task_id)
         except (ForbiddenError, NotFoundError):
@@ -310,12 +310,12 @@ class Command(BaseCommand):
         logger.debug(task_dict)
 
         if Task in models and self.commit:
-            remote_id = task_dict.pop('id', task_dict.pop('gid', None))
+            remote_id = task_dict['gid']
             parent = task_dict.pop('parent', None)
             dependencies = task_dict.pop('dependencies', None) or []
             if parent:
                 # If this is a task we already know about, assume it was just synced.
-                parent_id = parent['id']
+                parent_id = parent['gid']
                 if parent_id not in self.synced_ids and \
                         not Task.objects.filter(remote_id=parent_id).exists():
                     self._sync_task(parent, project, models, skip_subtasks=True)
@@ -324,29 +324,29 @@ class Command(BaseCommand):
             self.synced_ids.append(remote_id)
             if not skip_subtasks:
                 for subtask in self.client.tasks.subtasks(task_id):
-                    if subtask['id'] not in self.synced_ids:
+                    if subtask['gid'] not in self.synced_ids:
                         self._sync_task(subtask, project, models)
                 if dependencies:
                     for subtask in dependencies:
-                        if subtask['id'] not in self.synced_ids:
+                        if subtask['gid'] not in self.synced_ids:
                             self._sync_task(subtask, project, models)
                     task_.dependencies.set(
-                        Task.objects.filter(remote_id__in=[dep['id'] for dep in dependencies]))
+                        Task.objects.filter(remote_id__in=[dep['gid'] for dep in dependencies]))
         if Attachment in models and self.commit:
             for attachment in self.client.attachments.find_by_task(task_id):
-                sync_attachment(self.client, task_, attachment['id'])
+                sync_attachment(self.client, task_, attachment['gid'])
         if Story in models and self.commit:
             for story in self.client.stories.find_by_task(task_id):
                 self._sync_story(story)
         return
 
     def _sync_team(self, team):
-        team_dict = self.client.teams.find_by_id(team['id'])
+        team_dict = self.client.teams.find_by_id(team['gid'])
         logger.debug(team_dict)
         if self.commit:
-            remote_id = team_dict.pop('id')
+            remote_id = team_dict['gid']
             organization = team_dict.pop('organization')
-            team_dict['organization_id'] = organization['id']
+            team_dict['organization_id'] = organization['gid']
             team_dict['organization_name'] = organization['name']
             pop_unsupported_fields(team_dict, Team)
             Team.objects.get_or_create(
@@ -354,10 +354,10 @@ class Command(BaseCommand):
                 defaults=team_dict)
 
     def _sync_user(self, user, workspace):
-        user_dict = self.client.users.find_by_id(user['id'])
+        user_dict = self.client.users.find_by_id(user['gid'])
         logger.debug(user_dict)
         if self.commit:
-            remote_id = user_dict.pop('id')
+            remote_id = user_dict['gid']
             user_dict.pop('workspaces')
             if user_dict['photo']:
                 user_dict['photo'] = user_dict['photo']['image_128x128']
@@ -372,7 +372,7 @@ class Command(BaseCommand):
         logger.debug('Sync workspace %s', workspace_dict['name'])
         logger.debug(workspace_dict)
         if Workspace in models and self.commit:
-            remote_id = workspace_dict.pop('id')
+            remote_id = workspace_dict['gid']
             workspace_dict.pop('email_domains')
             workspace = Workspace.objects.update_or_create(
                 remote_id=remote_id, defaults=workspace_dict)[0]

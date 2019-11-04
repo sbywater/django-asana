@@ -32,27 +32,27 @@ Some strategies for testing with django-asana are as follows:
 
     def get_task(**kwargs):
         if 'assignee' in kwargs:
-            kwargs['assignee'] = {'id': kwargs['assignee']}
+            kwargs['assignee'] = {'gid': kwargs['assignee']}
         if 'parent' in kwargs:
-            kwargs['parent'] = {'id': kwargs['parent']}
+            kwargs['parent'] = {'gid': kwargs['parent']}
         return task(**kwargs)
 
 
     def new_task(**kwargs):
         """Returns a mock Asana response for a task create."""
         task_ = get_task(**kwargs)
-        task_['id'] = next(COUNTER)
+        task_['gid'] = next(COUNTER)
         return task_
 
 
     def update_task(*args):
         """Returns a mock Asana response for an update.
 
-        update gets passed a tuple: (id, dict)
+        update gets passed a tuple: (gid, dict)
         """
         kwargs = {key: value for key, value in args[1].items()}
         task_ = get_task(**kwargs)
-        task_['id'] = args[0]
+        task_['gid'] = args[0]
         return task_
 
 

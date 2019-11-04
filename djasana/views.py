@@ -107,7 +107,7 @@ class WebhookView(JSONRequestResponseMixin, View):
         except ForbiddenError:
             return
         logger.debug(story_dict)
-        story_dict.pop('id')
+        story_dict.pop('gid', None)
         sync_story(story_id, story_dict)
 
     def _sync_task_id(self, task_id, project):
@@ -121,10 +121,10 @@ class WebhookView(JSONRequestResponseMixin, View):
             return
         logger.debug('Sync task %s', task_dict['name'])
         logger.debug(task_dict)
-        task_dict.pop('id')
+        task_dict.pop('gid', None)
         if task_dict['parent']:
-            self._sync_task_id(task_dict['parent']['id'], project)
-            task_dict['parent_id'] = task_dict.pop('parent')['id']
+            self._sync_task_id(task_dict['parent']['gid'], project)
+            task_dict['parent_id'] = task_dict.pop('parent')['gid']
         task = sync_task(task_id, task_dict, project, sync_tags=True)
         for attachment in self.client.attachments.find_by_task(task_id):
-            sync_attachment(self.client, task, attachment['id'])
+            sync_attachment(self.client, task, attachment['gid'])

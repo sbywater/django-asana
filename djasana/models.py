@@ -339,10 +339,10 @@ class Task(Hearted, NamedModel):
         task_dict = client.tasks.find_by_id(self.remote_id)
         if task_dict['assignee']:
             user = User.objects.get_or_create(
-                remote_id=task_dict['assignee']['id'],
+                remote_id=task_dict['assignee']['gid'],
                 defaults={'name': task_dict['assignee']['name']})[0]
             task_dict['assignee'] = user
-        task_dict.pop('id')
+        task_dict['gid']
         task_dict.pop('dependents', None)
         dependencies = task_dict.pop('dependencies', None)
         task_dict.pop('hearts', None)
@@ -355,16 +355,16 @@ class Task(Hearted, NamedModel):
         for field, value in task_dict.items():
             setattr(self, field, value)
         self.save()
-        follower_ids = [follower['id'] for follower in followers_dict]
+        follower_ids = [follower['gid'] for follower in followers_dict]
         followers = User.objects.filter(id__in=follower_ids)
         self.followers.set(followers)
         for tag_ in tags_dict:
             tag = Tag.objects.get_or_create(
-                remote_id=tag_['id'],
+                remote_id=tag_['gid'],
                 defaults={'name': tag_['name']})[0]
             self.tags.add(tag)
         if dependencies:
-            self.dependencies.set([dep['id'] for dep in dependencies])
+            self.dependencies.set([dep['gid'] for dep in dependencies])
 
     def sync_to_asana(self, fields=None):
         """Updates Asana to match values from this task.
@@ -438,7 +438,7 @@ class User(NamedModel):
     def refresh_from_asana(self):
         client = client_connect()
         user_dict = client.users.find_by_id(self.remote_id)
-        user_dict.pop('id')
+        user_dict.pop('gid', None)
         user_dict.pop('workspaces')
         if user_dict['photo']:
             user_dict['photo'] = user_dict['photo']['image_128x128']

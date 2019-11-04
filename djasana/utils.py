@@ -65,7 +65,7 @@ def pop_unsupported_fields(instance_dict, model):
 def sync_attachment(client, task, attachment_id):
     attachment_dict = client.attachments.find_by_id(attachment_id)
     logger.debug(attachment_dict)
-    remote_id = attachment_dict.pop('id')
+    remote_id = attachment_dict['gid']
     attachment_dict.pop('num_annotations', None)
     attachment_dict.pop('num_incomplete_annotations', None)
     if attachment_dict['parent']:
@@ -75,15 +75,15 @@ def sync_attachment(client, task, attachment_id):
 
 
 def sync_project(client, project_dict):
-    remote_id = project_dict.pop('id')
+    remote_id = project_dict['gid']
     if project_dict['owner']:
         owner = project_dict.pop('owner')
-        User.objects.get_or_create(remote_id=owner['id'], defaults={'name': owner['name']})
-        project_dict['owner_id'] = owner['id']
+        User.objects.get_or_create(remote_id=owner['gid'], defaults={'name': owner['name']})
+        project_dict['owner_id'] = owner['gid']
     team = project_dict.pop('team')
-    Team.objects.get_or_create(remote_id=team['id'], defaults={'name': team['name']})
-    project_dict['team_id'] = team['id']
-    project_dict['workspace_id'] = project_dict.pop('workspace')['id']
+    Team.objects.get_or_create(remote_id=team['gid'], defaults={'name': team['name']})
+    project_dict['team_id'] = team['gid']
+    project_dict['workspace_id'] = project_dict.pop('workspace')['gid']
     custom_field_settings = project_dict.pop('custom_field_settings', None)
     # Convert string to boolean:
     project_dict['archived'] = project_dict['archived'] == 'true'
@@ -93,14 +93,14 @@ def sync_project(client, project_dict):
     pop_unsupported_fields(project_dict, Project)
     project = Project.objects.update_or_create(
         remote_id=remote_id, defaults=project_dict)[0]
-    member_ids = [member['id'] for member in members_dict]
+    member_ids = [member['gid'] for member in members_dict]
     members = User.objects.filter(id__in=member_ids)
     project.members.set(members)
-    follower_ids = [follower['id'] for follower in followers_dict]
+    follower_ids = [follower['gid'] for follower in followers_dict]
     followers = User.objects.filter(id__in=follower_ids)
     project.followers.set(followers)
     if project_status_dict:
-        current_status_id = project_status_dict.pop('id')
+        current_status_id = project_status_dict.pop('gid')
         project_status = ProjectStatus.objects.update_or_create(
             remote_id=current_status_id, defaults=project_status_dict)[0]
         project.current_status = project_status
@@ -114,11 +114,11 @@ def sync_project(client, project_dict):
 def sync_story(remote_id, story_dict):
     if story_dict['created_by']:
         user = User.objects.get_or_create(
-            remote_id=story_dict['created_by']['id'],
+            remote_id=story_dict['created_by']['gid'],
             defaults={'name': story_dict['created_by']['name']})[0]
         story_dict['created_by'] = user
     if story_dict['target']:
-        story_dict['target'] = story_dict['target']['id']
+        story_dict['target'] = story_dict['target']['gid']
     pop_unsupported_fields(story_dict, Story)
     if 'text' in story_dict:
         story_dict['text'] = story_dict['text'][:1024]  # Truncate text if too long
@@ -128,7 +128,7 @@ def sync_story(remote_id, story_dict):
 def sync_task(remote_id, task_dict, project, sync_tags=False):
     if task_dict['assignee']:
         user = User.objects.get_or_create(
-            remote_id=task_dict['assignee']['id'],
+            remote_id=task_dict['assignee']['gid'],
             defaults={'name': task_dict['assignee']['name']})[0]
         task_dict['assignee'] = user
     for key in (
@@ -140,13 +140,13 @@ def sync_task(remote_id, task_dict, project, sync_tags=False):
     pop_unsupported_fields(task_dict, Task)
     task = Task.objects.update_or_create(
         remote_id=remote_id, defaults=task_dict)[0]
-    follower_ids = [follower['id'] for follower in followers_dict]
+    follower_ids = [follower['gid'] for follower in followers_dict]
     followers = User.objects.filter(id__in=follower_ids)
     task.followers.set(followers)
     if sync_tags:
         for tag_ in tags_dict:
             tag = Tag.objects.get_or_create(
-                remote_id=tag_['id'],
+                remote_id=tag_['gid'],
                 defaults={'name': tag_['name']})[0]
             task.tags.add(tag)
     task.projects.add(project)
@@ -158,13 +158,13 @@ def sync_custom_fields(client, custom_field_settings, workspace_id, project_id):
     for setting in custom_field_settings:
         custom_field_mini_dict = setting.pop('custom_field')
         setting.pop('project')
-        custom_field_remote_id = custom_field_mini_dict.pop('id')
+        custom_field_remote_id = custom_field_mini_dict['gid']
         if custom_field_remote_id not in synced_ids:
             custom_field_dict = client.custom_fields.find_by_id(custom_field_remote_id)
             CustomField.objects.update_or_create(
                 remote_id=custom_field_remote_id, defaults=custom_field_dict)
             synced_ids.append(custom_field_remote_id)
-        setting_remote_id = setting.pop('id')
+        setting_remote_id = setting['gid']
         pop_unsupported_fields(setting, CustomFieldSetting)
         setting['custom_field_id'] = custom_field_remote_id
         setting['project_id'] = project_id

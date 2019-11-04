@@ -52,7 +52,7 @@ class WebhookViewTestCase(TestCase):
     def _get_mock_response(self, mock_client, data):
         message = json.dumps(data)
         signature = sign_sha256_hmac(self.secret, message)
-        mock_client.access_token().projects.find_by_id.return_value = project(id=3)
+        mock_client.access_token().projects.find_by_id.return_value = project(gid='3')
         mock_client.access_token().tasks.find_by_id.return_value = task()
         request = self.factory.post(
             '', content_type='application/json', data=message,
@@ -128,7 +128,7 @@ class WebhookViewTestCase(TestCase):
     def test_valid_request(self, mock_client):
         models.Webhook.objects.create(project=self.project, secret=self.secret)
         task_ = models.Task.objects.create(remote_id=99, name='Old task Name')
-        mock_client.access_token().tasks.find_by_id.return_value = task(id=99)
+        mock_client.access_token().tasks.find_by_id.return_value = task(gid='99')
         mock_client.access_token().attachments.find_by_task.return_value = [attachment()]
         mock_client.access_token().attachments.find_by_id.return_value = attachment()
         data = {
@@ -180,7 +180,7 @@ class WebhookViewTestCase(TestCase):
                 {
                     'action': 'added',
                     'created_at': '2017-08-21T18:20:37.972Z',
-                    'parent': {'id': 10},
+                    'parent': {'gid': '10'},
                     'resource': {
                         'gid': '1337',
                         'resource_type': 'task',

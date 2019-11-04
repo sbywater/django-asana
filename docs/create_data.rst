@@ -56,9 +56,9 @@ Other than those use cases, to create data in Asana, use the client provided by 
         }
         # projects.create is a method provided by python-asana:
         project_response = client.projects.create(data)
-        project_remote_id = project_response.pop('id')
+        project_remote_id = project_response['gid']
         for key in (
-                'gid', 'followers', 'members', 'owner', 'team', 'workspace'):
+                'followers', 'members', 'owner', 'team', 'workspace'):
             project_response.pop(key, None)
         # Convert string to boolean:
         response['archived'] = response['archived'] == 'true'
@@ -71,14 +71,14 @@ Other than those use cases, to create data in Asana, use the client provided by 
         task = {'name': 'A test task', projects: [project_remote_id]}
         # tasks.create is a method provided by python-asana:
         task_response = client.tasks.create(workspace=workspace_id, **task)
-        task_response['remote_id'] = task_response.pop('id')
-        task_response['assignee_id'] = task_response.pop('assignee')['id']
+        task_response['remote_id'] = task_response['gid']
+        task_response['assignee_id'] = task_response.pop('assignee')['gid']
         if 'due_on' in task_response and isinstance(task_response['due_on'], str):
             task_response['due_on'] = parse(task_response['due_on'])
         if 'parent' in task_response and task_response['parent']:
-            task_response['parent_id'] = task_response.pop('parent')['id']
+            task_response['parent_id'] = task_response.pop('parent')['gid']
         for key in (
-                'gid', 'followers', 'hearts', 'liked', 'likes', 'num_likes', 'num_hearts',
+                'followers', 'hearts', 'liked', 'likes', 'num_likes', 'num_hearts',
                 'memberships', 'projects', 'tags', 'workspace'):
             task_response.pop(key, None)
         Task.objects.create(**task_response)
