@@ -342,7 +342,6 @@ class Task(Hearted, NamedModel):
                 remote_id=task_dict['assignee']['gid'],
                 defaults={'name': task_dict['assignee']['name']})[0]
             task_dict['assignee'] = user
-        task_dict['gid']
         task_dict.pop('dependents', None)
         dependencies = task_dict.pop('dependencies', None)
         task_dict.pop('hearts', None)
