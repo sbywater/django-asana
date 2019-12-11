@@ -382,9 +382,7 @@ class Task(Hearted, NamedModel):
         >> task.sync_to_asana(fields=('notes', 'due_on'))
         """
         fields = fields or ['completed']
-        data = {}
-        for field in fields:
-            data[field] = getattr(self, field)
+        data = {field: getattr(self, field) for field in fields}
         client = client_connect()
         client.tasks.update(self.remote_id, data)
         logger.debug('Updated asana for task %s', self.name)

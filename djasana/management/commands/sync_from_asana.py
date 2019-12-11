@@ -190,20 +190,20 @@ class Command(BaseCommand):
 
     def _set_webhook(self, workspace, project_id):
         """Sets a webhook if the setting is configured and a webhook does not currently exist"""
-        if self.commit and settings.DJASANA_WEBHOOK_URL:
-            webhooks = [webhook for webhook in self.client.webhooks.get_all({
-                'workspace': workspace.remote_id, 'resource': project_id})]
-            if webhooks:
-                # If there is exactly one, and it is active, we are good to go,
-                # else delete them and start a new one.
-                webhooks_ = Webhook.objects.filter(project_id=project_id)
-                if len(webhooks) == webhooks_.count() == 1:
-                    if webhooks[0]['active']:
-                        return
-                for webhook in webhooks:
-                    self.client.webhooks.delete_by_id(webhook['id'])
-                Webhook.objects.filter(id__in=webhooks_.values_list('id', flat=True)[1:]).delete()
-            set_webhook(self.client, project_id)
+        if not (self.commit and settings.DJASANA_WEBHOOK_URL):
+            return
+        webhooks = [webhook for webhook in self.client.webhooks.get_all({
+            'workspace': workspace.remote_id, 'resource': project_id})]
+        if webhooks:
+            # If there is exactly one, and it is active, we are good to go,
+            # else delete them and start a new one.
+            webhooks_ = Webhook.objects.filter(project_id=project_id)
+            if len(webhooks) == webhooks_.count() == 1 and webhooks[0]['active']:
+                return
+            for webhook in webhooks:
+                self.client.webhooks.delete_by_id(webhook['id'])
+            Webhook.objects.filter(id__in=webhooks_.values_list('id', flat=True)[1:]).delete()
+        set_webhook(self.client, project_id)
 
     def _process_events(self, project_id, events, models):
         project = Project.objects.get(remote_id=project_id)
