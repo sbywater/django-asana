@@ -10,6 +10,13 @@ def asana_link(obj):
     return mark_safe('<a href="{}" target="_blank">View on Asana</a>'.format(obj.asana_url()))
 
 
+def text_short(obj):
+    if len(obj.text) > 200:
+        return obj.text[:300] + '...'
+    else:
+        return obj.text
+
+
 class ParentRawIdWidget(widgets.ForeignKeyRawIdWidget):
 
     def url_parameters(self):
@@ -78,6 +85,25 @@ class TaskAdmin(admin.ModelAdmin):
     raw_id_fields = ('assignee', 'parent')
     readonly_fields = (asana_link, 'gid')
     search_fields = ('remote_id', 'name')
+
+
+@admin.register(models.Story)
+class StoryAdmin(admin.ModelAdmin):
+    list_display = [
+        'type',
+        'resource_subtype',
+        text_short,
+        'created_by',
+        'created_at',
+        asana_link,
+    ]
+    list_filter = [
+        'type',
+        'resource_type',
+        'resource_subtype',
+        'created_at',
+        'created_by',
+    ]
 
 
 @admin.register(models.Team)
