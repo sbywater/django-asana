@@ -414,7 +414,7 @@ class Command(BaseCommand):
                 try:
                     self._check_sync_project_id(project_id, workspace, models)
                 except Exception:
-                    logger.exception("Skipping a project sync")
+                    logger.exception("Skipping a project sync check")
 
         if workspace:
             message = 'Successfully synced workspace {}.'.format(workspace.name)
