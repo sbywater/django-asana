@@ -334,10 +334,16 @@ class Command(BaseCommand):
                         Task.objects.filter(remote_id__in=[dep['gid'] for dep in dependencies]))
         if Attachment in models and self.commit:
             for attachment in self.client.attachments.find_by_task(task_id):
-                sync_attachment(self.client, task_, attachment['gid'])
+                try:
+                    sync_attachment(self.client, task_, attachment['gid'])
+                except Exception:
+                    logger.exception("Skipping an attachment sync")
         if Story in models and self.commit:
             for story in self.client.stories.find_by_task(task_id):
-                self._sync_story(story)
+                try:
+                    self._sync_story(story)
+                except Exception:
+                    logger.exception("Skipping a story sync")
         return
 
     def _sync_team(self, team):
@@ -384,19 +390,31 @@ class Command(BaseCommand):
 
         if User in models:
             for user in self.client.users.find_all({'workspace': workspace_id}):
-                self._sync_user(user, workspace)
+                try:
+                    self._sync_user(user, workspace)
+                except Exception:
+                    logger.exception("Skipping a user sync")
 
         if Tag in models:
             for tag in self.client.tags.find_by_workspace(workspace_id):
-                self._sync_tag(tag, workspace)
+                try:
+                    self._sync_tag(tag, workspace)
+                except Exception:
+                    logger.exception("Skipping a tag sync")
 
         if Team in models:
             for team in self.client.teams.find_by_organization(workspace_id):
-                self._sync_team(team)
+                try:
+                    self._sync_team(team)
+                except Exception:
+                    logger.exception("Skipping a team sync")
 
         if Project in models:
             for project_id in project_ids:
-                self._check_sync_project_id(project_id, workspace, models)
+                try:
+                    self._check_sync_project_id(project_id, workspace, models)
+                except Exception:
+                    logger.exception("Skipping a project sync")
 
         if workspace:
             message = 'Successfully synced workspace {}.'.format(workspace.name)
