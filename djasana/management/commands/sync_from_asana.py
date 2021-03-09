@@ -4,7 +4,6 @@ import logging
 from asana.error import NotFoundError, InvalidTokenError, ForbiddenError
 from django.apps import apps
 from django.core.management.base import BaseCommand, CommandError
-from django.utils import six
 
 from djasana.connect import client_connect
 from djasana.models import (
@@ -92,7 +91,7 @@ class Command(BaseCommand):
 
     @staticmethod
     def _confirm():
-        yes_or_no = six.moves.input("Are you sure you wish to continue? [y/N] ")
+        yes_or_no = input("Are you sure you wish to continue? [y/N] ")
         return yes_or_no.lower().startswith('y')
 
     @staticmethod
