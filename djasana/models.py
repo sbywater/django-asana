@@ -101,6 +101,8 @@ class CustomField(NamedModel):
     )
     precision_choices = [(num, num) for num in range(0, 7)]
 
+    created_by = models.ForeignKey(
+        'User', to_field='remote_id', null=True, on_delete=models.SET_NULL)
     description = models.CharField(max_length=1024, null=True, blank=True)
     enum_options = models.CharField(max_length=1024, null=True, blank=True)
     is_global_to_workspace = models.BooleanField(default=False)
