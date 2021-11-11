@@ -4,7 +4,7 @@ django-asana
 
 :License: `MIT`_
 
-.. image:: https://travis-ci.org/sbywater/django-asana.svg?branch=master
+.. image:: https://app.travis-ci.com/sbywater/django-asana.svg?branch=master
     :target: https://travis-ci.org/sbywater/django-asana
     :alt: Build Status
 .. image:: https://coveralls.io/repos/github/sbywater/django-asana/badge.svg
@@ -47,7 +47,7 @@ Requirements
 ============
 
 #. Python 3.5+
-#. `Django 1.11 - 2.2+ <https://www.djangoproject.com/>`_
+#. `Django 1.11 - 3.2+ <https://www.djangoproject.com/>`_
 #. `python-asana 0.9.0+ <https://github.com/Asana/python-asana>`_
 #. `django-braces 1.13+ <https://django-braces.readthedocs.io/en/latest/index.html>`_ for JsonRequestResponseMixin
 
