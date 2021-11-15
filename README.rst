@@ -5,7 +5,7 @@ django-asana
 :License: `MIT`_
 
 .. image:: https://app.travis-ci.com/sbywater/django-asana.svg?branch=master
-    :target: https://travis-ci.org/sbywater/django-asana
+    :target: https://app.travis-ci.com/sbywater/django-asana
     :alt: Build Status
 .. image:: https://coveralls.io/repos/github/sbywater/django-asana/badge.svg
     :target: https://coveralls.io/github/sbywater/django-asana
