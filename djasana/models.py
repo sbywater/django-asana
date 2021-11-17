@@ -468,10 +468,7 @@ def get_next_color():
     color = cache.get('LAST_ASANA_COLOR')
     if color:
         index = COLORS.index(color)
-        if index == len(COLORS) - 1:
-            color = COLORS[0]
-        else:
-            color = COLORS[index + 1]
+        color = COLORS[0] if index == len(COLORS) - 1 else COLORS[index + 1]
     else:
         color = COLORS[0]
     cache.set('LAST_ASANA_COLOR', color)

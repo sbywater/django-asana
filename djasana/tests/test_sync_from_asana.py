@@ -23,9 +23,9 @@ class CommandArgumentsTestCase(TestCase):
     """
 
     def test_bad_model(self):
-        args = ['--noinput']
-        options = {'model': ['foo']}
         with self.assertRaises(CommandError):
+            args = ['--noinput']
+            options = {'model': ['foo']}
             call_command('sync_from_asana', *args, **options)
 
     @patch('djasana.management.commands.sync_from_asana.Command._sync_workspace_id')

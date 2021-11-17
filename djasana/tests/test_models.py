@@ -19,10 +19,7 @@ class ProjectColorTestCase(SimpleTestCase):
 
     @staticmethod
     def cycle_colors():
-        colors = []
-        for dummy in range(len(models.COLORS)):
-            colors.append(models.get_next_color())
-        return colors
+        return [models.get_next_color() for dummy in models.COLORS]
 
     @override_settings()
     def test_get_next_color_cycles_no_cache(self):
