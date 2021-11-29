@@ -28,6 +28,7 @@ def attachment(**kwargs):
 def custom_field(**kwargs):
     defaults = {
         'gid': '1',
+        'created_by': user(),
         'description': 'Priority',
         'enum_options': '''[
             {
