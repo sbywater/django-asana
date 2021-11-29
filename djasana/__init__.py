@@ -1,8 +1,8 @@
 """Django Asana integration project"""
-# :copyright: (c) 2017 by Stephen Bywater.
+# :copyright: (c) 2017-2021 by Stephen Bywater.
 # :license:   MIT, see LICENSE for more details.
 
-VERSION = (1, 4, 7)
+VERSION = (1, 4, 8)
 __version__ = '.'.join(map(str, VERSION[0:3])) + ''.join(VERSION[3:])
 __author__ = 'Steve Bywater'
 __contact__ = 'steve@regionalhelpwanted.com'
