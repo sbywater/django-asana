@@ -10,6 +10,14 @@ Unreleased
 Added
 ~~~~~
 
+1.4.7 (2021-11-29)
+----------------
+Added
+~~~~~
+- Updates supported Django and Python versions
+- Increased support for custom fields
+- Bug fixes
+
 1.4.0 (2019-03-05)
 ----------------
 Added
