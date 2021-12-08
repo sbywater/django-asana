@@ -9,6 +9,8 @@ Unreleased
 ---------------
 Added
 ~~~~~
+- Updates urls.py for newer Django versions
+- Updates supported Django and Python versions
 
 1.4.7 (2021-11-29)
 ----------------

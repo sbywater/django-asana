@@ -6,7 +6,6 @@ python:
 - 3.7
 - 3.8
 - 3.9
-- 3.10
 env:
   global:
   - DJANGO_SETTINGS_MODULE="settings"
@@ -34,7 +33,6 @@ jobs:
     - python: 3.7
       env: DJANGO_VERSION="git+https://github.com/django/django.git"
   allow_failures:
-    - env: DJANGO_VERSION="django>=4.0,<4.1"
     - env: DJANGO_VERSION="git+https://github.com/django/django.git"
 install:
 - pip install $DJANGO_VERSION

@@ -46,8 +46,8 @@ Task.add_comment() can be used to add a comment to a task in Asana.
 Requirements
 ============
 
-#. Python 3.5+
-#. `Django 1.11 - 3.2+ <https://www.djangoproject.com/>`_
+#. Python 3.6+
+#. `Django 2.2.17 - 4.0+ <https://www.djangoproject.com/>`_
 #. `python-asana 0.9.0+ <https://github.com/Asana/python-asana>`_
 #. `django-braces 1.13+ <https://django-braces.readthedocs.io/en/latest/index.html>`_ for JsonRequestResponseMixin
 
