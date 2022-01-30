@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('djasana', '0017_adds_project_due_on'),
+        ("djasana", "0017_adds_project_due_on"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='customfield',
-            name='is_global_to_workspace',
+            model_name="customfield",
+            name="is_global_to_workspace",
             field=models.BooleanField(default=False),
         ),
     ]

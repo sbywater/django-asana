@@ -8,13 +8,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('djasana', '0006_adds_defaults'),
+        ("djasana", "0006_adds_defaults"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='task',
-            name='completed_at',
+            model_name="task",
+            name="completed_at",
             field=models.DateTimeField(null=True),
         ),
     ]

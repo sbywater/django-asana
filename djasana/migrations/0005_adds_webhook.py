@@ -10,16 +10,37 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('djasana', '0004_adds_synctoken'),
+        ("djasana", "0004_adds_synctoken"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Webhook',
+            name="Webhook",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('secret', models.CharField(max_length=64, validators=[django.core.validators.MinValueValidator(64)])),
-                ('project', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='djasana.Project', to_field='remote_id')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "secret",
+                    models.CharField(
+                        max_length=64,
+                        validators=[django.core.validators.MinValueValidator(64)],
+                    ),
+                ),
+                (
+                    "project",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="djasana.Project",
+                        to_field="remote_id",
+                    ),
+                ),
             ],
         ),
     ]

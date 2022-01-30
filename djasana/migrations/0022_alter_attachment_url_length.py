@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('djasana', '0021_adds_custom_field_has_notifications_enabled'),
+        ("djasana", "0021_adds_custom_field_has_notifications_enabled"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='attachment',
-            name='permanent_url',
+            model_name="attachment",
+            name="permanent_url",
             field=models.URLField(max_length=5120),
         ),
         migrations.AlterField(
-            model_name='attachment',
-            name='view_url',
+            model_name="attachment",
+            name="view_url",
             field=models.URLField(max_length=5120),
         ),
     ]

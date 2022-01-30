@@ -9,28 +9,52 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('djasana', '0012_project_team_allows_null'),
+        ("djasana", "0012_project_team_allows_null"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='project',
-            name='owner',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='projects_owned', to='djasana.User', to_field='remote_id'),
+            model_name="project",
+            name="owner",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="projects_owned",
+                to="djasana.User",
+                to_field="remote_id",
+            ),
         ),
         migrations.AlterField(
-            model_name='project',
-            name='team',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='djasana.Team', to_field='remote_id'),
+            model_name="project",
+            name="team",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="djasana.Team",
+                to_field="remote_id",
+            ),
         ),
         migrations.AlterField(
-            model_name='task',
-            name='assignee',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='assigned_tasks', to='djasana.User', to_field='remote_id'),
+            model_name="task",
+            name="assignee",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="assigned_tasks",
+                to="djasana.User",
+                to_field="remote_id",
+            ),
         ),
         migrations.AlterField(
-            model_name='task',
-            name='parent',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='djasana.Task', to_field='remote_id'),
+            model_name="task",
+            name="parent",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="djasana.Task",
+                to_field="remote_id",
+            ),
         ),
     ]

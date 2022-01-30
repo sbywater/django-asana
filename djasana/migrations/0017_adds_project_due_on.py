@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('djasana', '0016_alter_story_resource_subtype'),
+        ("djasana", "0016_alter_story_resource_subtype"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='project',
-            name='due_on',
+            model_name="project",
+            name="due_on",
             field=models.DateField(blank=True, null=True),
         ),
     ]

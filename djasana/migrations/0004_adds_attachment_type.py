@@ -6,16 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('djasana', '0003_adds_story_is_edited_is_pinned'),
+        ("djasana", "0003_adds_story_is_edited_is_pinned"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='attachment',
-            name='type',
+            model_name="attachment",
+            name="type",
             field=models.CharField(
                 blank=True,
-                choices=[('image', 'image'), ('other', 'other')],
-                max_length=24, null=True),
+                choices=[("image", "image"), ("other", "other")],
+                max_length=24,
+                null=True,
+            ),
         ),
     ]

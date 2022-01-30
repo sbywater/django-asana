@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('djasana', '0022_alter_attachment_url_length'),
+        ("djasana", "0022_alter_attachment_url_length"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='attachment',
-            name='download_url',
+            model_name="attachment",
+            name="download_url",
             field=models.URLField(max_length=5120),
         ),
     ]

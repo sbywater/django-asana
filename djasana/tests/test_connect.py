@@ -14,10 +14,10 @@ class ClientConnectTestCase(unittest.TestCase):
         with self.assertRaises(ImproperlyConfigured):
             client_connect()
 
-    @override_settings(ASANA_ACCESS_TOKEN='foo', ASANA_WORKSPACE='foo')
+    @override_settings(ASANA_ACCESS_TOKEN="foo", ASANA_WORKSPACE="foo")
     def test_connect_access_token(self):
         with self.assertRaises(NoAuthorizationError):
             try:
                 client_connect()
             except requests.exceptions.ConnectionError:
-                self.skipTest('No Internet connection')
+                self.skipTest("No Internet connection")

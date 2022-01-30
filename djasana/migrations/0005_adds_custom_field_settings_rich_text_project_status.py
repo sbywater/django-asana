@@ -7,69 +7,110 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('djasana', '0004_adds_attachment_type'),
+        ("djasana", "0004_adds_attachment_type"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ProjectStatus',
+            name="ProjectStatus",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('remote_id', models.BigIntegerField(db_index=True, help_text='The id of this object in Asana.', unique=True)),
-                ('color', models.CharField(blank=True, choices=[('red', 'red'), ('yellow', 'yellow'), ('green', 'green')], max_length=16, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('html_text', models.TextField(blank=True, null=True)),
-                ('text', models.TextField(blank=True, null=True)),
-                ('title', models.CharField(max_length=1024)),
-                ('created_by', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='djasana.User', to_field='remote_id')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "remote_id",
+                    models.BigIntegerField(
+                        db_index=True,
+                        help_text="The id of this object in Asana.",
+                        unique=True,
+                    ),
+                ),
+                (
+                    "color",
+                    models.CharField(
+                        blank=True,
+                        choices=[
+                            ("red", "red"),
+                            ("yellow", "yellow"),
+                            ("green", "green"),
+                        ],
+                        max_length=16,
+                        null=True,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("html_text", models.TextField(blank=True, null=True)),
+                ("text", models.TextField(blank=True, null=True)),
+                ("title", models.CharField(max_length=1024)),
+                (
+                    "created_by",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="djasana.User",
+                        to_field="remote_id",
+                    ),
+                ),
             ],
             options={
-                'ordering': ('-pk',),
+                "ordering": ("-pk",),
             },
         ),
         migrations.AddField(
-            model_name='project',
-            name='custom_field_settings',
+            model_name="project",
+            name="custom_field_settings",
             field=models.TextField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='project',
-            name='html_notes',
+            model_name="project",
+            name="html_notes",
             field=models.TextField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='story',
-            name='html_text',
+            model_name="story",
+            name="html_text",
             field=models.CharField(blank=True, max_length=1024, null=True),
         ),
         migrations.AddField(
-            model_name='task',
-            name='html_notes',
+            model_name="task",
+            name="html_notes",
             field=models.TextField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='team',
-            name='description',
+            model_name="team",
+            name="description",
             field=models.CharField(blank=True, max_length=1024, null=True),
         ),
         migrations.AddField(
-            model_name='team',
-            name='html_description',
+            model_name="team",
+            name="html_description",
             field=models.CharField(blank=True, max_length=1024, null=True),
         ),
         migrations.AlterField(
-            model_name='project',
-            name='notes',
+            model_name="project",
+            name="notes",
             field=models.TextField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='story',
-            name='text',
+            model_name="story",
+            name="text",
             field=models.CharField(blank=True, max_length=1024, null=True),
         ),
         migrations.AddField(
-            model_name='projectstatus',
-            name='project',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='djasana.Project', to_field='remote_id'),
+            model_name="projectstatus",
+            name="project",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="djasana.Project",
+                to_field="remote_id",
+            ),
         ),
     ]

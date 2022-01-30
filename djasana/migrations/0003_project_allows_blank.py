@@ -8,33 +8,44 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('djasana', '0002_alter_name_max_len_etc'),
+        ("djasana", "0002_alter_name_max_len_etc"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='project',
-            name='color',
+            model_name="project",
+            name="color",
             field=models.CharField(blank=True, max_length=16, null=True),
         ),
         migrations.AlterField(
-            model_name='project',
-            name='current_status',
-            field=models.CharField(blank=True, choices=[('inbox', 'inbox'), ('upcoming', 'upcoming'), ('later', 'later')], max_length=16, null=True),
+            model_name="project",
+            name="current_status",
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ("inbox", "inbox"),
+                    ("upcoming", "upcoming"),
+                    ("later", "later"),
+                ],
+                max_length=16,
+                null=True,
+            ),
         ),
         migrations.AlterField(
-            model_name='project',
-            name='due_date',
+            model_name="project",
+            name="due_date",
             field=models.DateField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='project',
-            name='followers',
-            field=models.ManyToManyField(blank=True, related_name='projects_following', to='djasana.User'),
+            model_name="project",
+            name="followers",
+            field=models.ManyToManyField(
+                blank=True, related_name="projects_following", to="djasana.User"
+            ),
         ),
         migrations.AlterField(
-            model_name='project',
-            name='members',
-            field=models.ManyToManyField(blank=True, to='djasana.User'),
+            model_name="project",
+            name="members",
+            field=models.ManyToManyField(blank=True, to="djasana.User"),
         ),
     ]

@@ -8,34 +8,44 @@ import django.utils.timezone
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('djasana', '0008_add_resource_type_subtype'),
+        ("djasana", "0008_add_resource_type_subtype"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='tag',
-            name='color',
+            model_name="tag",
+            name="color",
             field=models.CharField(blank=True, max_length=16, null=True),
         ),
         migrations.AddField(
-            model_name='tag',
-            name='created_at',
-            field=models.DateTimeField(auto_now_add=True, default=django.utils.timezone.now),
+            model_name="tag",
+            name="created_at",
+            field=models.DateTimeField(
+                auto_now_add=True, default=django.utils.timezone.now
+            ),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='tag',
-            name='followers',
-            field=models.ManyToManyField(related_name='tags_following', to='djasana.User'),
+            model_name="tag",
+            name="followers",
+            field=models.ManyToManyField(
+                related_name="tags_following", to="djasana.User"
+            ),
         ),
         migrations.AddField(
-            model_name='tag',
-            name='notes',
+            model_name="tag",
+            name="notes",
             field=models.TextField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='tag',
-            name='workspace',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='djasana.Workspace', to_field='remote_id'),
+            model_name="tag",
+            name="workspace",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to="djasana.Workspace",
+                to_field="remote_id",
+            ),
         ),
     ]

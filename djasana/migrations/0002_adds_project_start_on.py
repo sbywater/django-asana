@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('djasana', '0001_squashed_0015_adds_task_start_on'),
+        ("djasana", "0001_squashed_0015_adds_task_start_on"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='project',
-            name='start_on',
+            model_name="project",
+            name="start_on",
             field=models.DateField(blank=True, null=True),
         ),
     ]

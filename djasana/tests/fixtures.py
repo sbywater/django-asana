@@ -12,14 +12,14 @@ def fake_response(**kwargs):
 
 def attachment(**kwargs):
     defaults = {
-        'gid': '1',
-        'download_url': 'http://foo.foo',
-        'host': 'asana',
-        'name': 'Test Attachment',
-        'num_annotations': 0,
-        'num_incomplete_annotations': 0,
-        'parent': task(),
-        'resource_type': 'attachment',
+        "gid": "1",
+        "download_url": "http://foo.foo",
+        "host": "asana",
+        "name": "Test Attachment",
+        "num_annotations": 0,
+        "num_incomplete_annotations": 0,
+        "parent": task(),
+        "resource_type": "attachment",
     }
     defaults.update(kwargs)
     return fake_response(**defaults)
@@ -27,10 +27,10 @@ def attachment(**kwargs):
 
 def custom_field(**kwargs):
     defaults = {
-        'gid': '1',
-        'created_by': user(),
-        'description': 'Priority',
-        'enum_options': '''[
+        "gid": "1",
+        "created_by": user(),
+        "description": "Priority",
+        "enum_options": """[
             {
               "gid": "789",
               "name": "Low",
@@ -52,10 +52,10 @@ def custom_field(**kwargs):
               "color": "red",
               "resource_type": "enum_option"
             }
-          ]''',
-        'name': 'Test Custom Field',
-        'resource_type': 'custom_field',
-        'resource_subtype': 'enum',
+          ]""",
+        "name": "Test Custom Field",
+        "resource_type": "custom_field",
+        "resource_subtype": "enum",
     }
     defaults.update(kwargs)
     return fake_response(**defaults)
@@ -63,20 +63,20 @@ def custom_field(**kwargs):
 
 def project(**kwargs):
     defaults = {
-        'gid': '1',
-        'name': 'Test Project',
-        'archived': 'false',
-        'custom_fields': [],
-        'current_status': None,
-        'followers': [user()],
-        'owner': user(),
-        'team': team(),
-        'members': [user()],
-        'modified_at': timezone.now(),
-        'public': True,
-        'workspace': workspace(),
-        'resource_type': 'project',
-        'section_migration_status': 'not_migrated',
+        "gid": "1",
+        "name": "Test Project",
+        "archived": "false",
+        "custom_fields": [],
+        "current_status": None,
+        "followers": [user()],
+        "owner": user(),
+        "team": team(),
+        "members": [user()],
+        "modified_at": timezone.now(),
+        "public": True,
+        "workspace": workspace(),
+        "resource_type": "project",
+        "section_migration_status": "not_migrated",
     }
     defaults.update(kwargs)
     return fake_response(**defaults)
@@ -84,15 +84,15 @@ def project(**kwargs):
 
 def project_status(**kwargs):
     defaults = {
-        'gid': '1',
-        'color': 'green',
-        'created_at': None,
-        'created_by': None,
-        'default_view': 'list',
-        'html_text': '<body>Test</body>',
-        'resource_type': 'project_status',
-        'text': 'Test',
-        'title': 'Project Status',
+        "gid": "1",
+        "color": "green",
+        "created_at": None,
+        "created_by": None,
+        "default_view": "list",
+        "html_text": "<body>Test</body>",
+        "resource_type": "project_status",
+        "text": "Test",
+        "title": "Project Status",
     }
     defaults.update(kwargs)
     return fake_response(**defaults)
@@ -100,13 +100,13 @@ def project_status(**kwargs):
 
 def story(**kwargs):
     defaults = {
-        'gid': '1',
-        'name': 'Test Story',
-        'created_by': user(),
-        'previews': [],
-        'target': task(),
-        'resource_type': 'story',
-        'resource_subtype': 'default_story',
+        "gid": "1",
+        "name": "Test Story",
+        "created_by": user(),
+        "previews": [],
+        "target": task(),
+        "resource_type": "story",
+        "resource_subtype": "default_story",
     }
     defaults.update(kwargs)
     return fake_response(**defaults)
@@ -114,11 +114,11 @@ def story(**kwargs):
 
 def tag(**kwargs):
     defaults = {
-        'gid': '1',
-        'followers': [user()],
-        'name': 'Test Tag',
-        'resource_type': 'tag',
-        'workspace': workspace(),
+        "gid": "1",
+        "followers": [user()],
+        "name": "Test Tag",
+        "resource_type": "tag",
+        "workspace": workspace(),
     }
     defaults.update(kwargs)
     return fake_response(**defaults)
@@ -127,23 +127,23 @@ def tag(**kwargs):
 def task(*_dummy, **kwargs):
     """When called as a mock side effect, this will have a positional argument"""
     defaults = {
-        'gid': '1',
-        'name': 'Test Task',
-        'assignee': user(),
-        'completed': False,
-        'dependencies': None,
-        'dependents': None,
-        'followers': [user()],
-        'html_notes': '<body>A note.</body>',
-        'memberships': None,
-        'modified_at': timezone.now(),
-        'notes': 'A note.',
-        'parent': None,
-        'projects': [project()],
-        'tags': [tag()],
-        'workspace': workspace(),
-        'resource_type': 'task',
-        'resource_subtype': 'default_task',
+        "gid": "1",
+        "name": "Test Task",
+        "assignee": user(),
+        "completed": False,
+        "dependencies": None,
+        "dependents": None,
+        "followers": [user()],
+        "html_notes": "<body>A note.</body>",
+        "memberships": None,
+        "modified_at": timezone.now(),
+        "notes": "A note.",
+        "parent": None,
+        "projects": [project()],
+        "tags": [tag()],
+        "workspace": workspace(),
+        "resource_type": "task",
+        "resource_subtype": "default_task",
     }
     defaults.update(kwargs)
     return fake_response(**defaults)
@@ -151,13 +151,13 @@ def task(*_dummy, **kwargs):
 
 def team(**kwargs):
     defaults = {
-        'gid': '1',
-        'name': 'Test Team',
-        'organization': {
-            'gid': '1',
-            'name': 'Test Organization',
+        "gid": "1",
+        "name": "Test Team",
+        "organization": {
+            "gid": "1",
+            "name": "Test Organization",
         },
-        'resource_type': 'team',
+        "resource_type": "team",
     }
     defaults.update(kwargs)
     return fake_response(**defaults)
@@ -165,10 +165,10 @@ def team(**kwargs):
 
 def user(**kwargs):
     defaults = {
-        'gid': '1',
-        'name': 'Test User',
-        'workspaces': [workspace()],
-        'resource_type': 'user',
+        "gid": "1",
+        "name": "Test User",
+        "workspaces": [workspace()],
+        "resource_type": "user",
     }
     defaults.update(kwargs)
     return fake_response(**defaults)
@@ -176,10 +176,10 @@ def user(**kwargs):
 
 def webhook(**kwargs):
     defaults = {
-        'id': 1,
-        'resource': project(),
-        'target': 'https://example.com/receive-webhook/7654',
-        'active': True,
+        "id": 1,
+        "resource": project(),
+        "target": "https://example.com/receive-webhook/7654",
+        "active": True,
     }
     defaults.update(kwargs)
     return fake_response(**defaults)
@@ -187,11 +187,11 @@ def webhook(**kwargs):
 
 def workspace(**kwargs):
     defaults = {
-        'gid': '1',
-        'name': 'Test Workspace',
-        'email_domains': None,
-        'is_organization': False,
-        'resource_type': 'workspace',
+        "gid": "1",
+        "name": "Test Workspace",
+        "email_domains": None,
+        "is_organization": False,
+        "resource_type": "workspace",
     }
     defaults.update(kwargs)
     return fake_response(**defaults)

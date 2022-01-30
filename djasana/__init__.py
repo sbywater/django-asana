@@ -3,12 +3,12 @@
 # :license:   MIT, see LICENSE for more details.
 
 VERSION = (1, 4, 8)
-__version__ = '.'.join(map(str, VERSION[0:3])) + ''.join(VERSION[3:])
-__author__ = 'Steve Bywater'
-__contact__ = 'steve@regionalhelpwanted.com'
-__homepage__ = 'https://github.com/sbywater/django-asana'
-__docformat__ = 'restructuredtext'
-__license__ = 'MIT'
+__version__ = ".".join(map(str, VERSION[0:3])) + "".join(VERSION[3:])
+__author__ = "Steve Bywater"
+__contact__ = "steve@regionalhelpwanted.com"
+__homepage__ = "https://github.com/sbywater/django-asana"
+__docformat__ = "restructuredtext"
+__license__ = "MIT"
 
 # -eof meta-
-default_app_config = 'djasana.apps.DjsanaConfig'
+default_app_config = "djasana.apps.DjsanaConfig"

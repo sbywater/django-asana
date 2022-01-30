@@ -8,38 +8,38 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('djasana', '0005_adds_webhook'),
+        ("djasana", "0005_adds_webhook"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='project',
-            name='archived',
+            model_name="project",
+            name="archived",
             field=models.BooleanField(default=False),
         ),
         migrations.AlterField(
-            model_name='project',
-            name='modified_at',
+            model_name="project",
+            name="modified_at",
             field=models.DateTimeField(auto_now=True),
         ),
         migrations.AlterField(
-            model_name='project',
-            name='public',
+            model_name="project",
+            name="public",
             field=models.BooleanField(default=False),
         ),
         migrations.AlterField(
-            model_name='task',
-            name='completed',
+            model_name="task",
+            name="completed",
             field=models.BooleanField(default=False),
         ),
         migrations.AlterField(
-            model_name='task',
-            name='modified_at',
+            model_name="task",
+            name="modified_at",
             field=models.DateTimeField(auto_now=True),
         ),
         migrations.AlterField(
-            model_name='workspace',
-            name='is_organization',
+            model_name="workspace",
+            name="is_organization",
             field=models.BooleanField(default=True),
         ),
     ]

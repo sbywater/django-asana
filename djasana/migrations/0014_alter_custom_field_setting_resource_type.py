@@ -6,13 +6,15 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('djasana', '0013_renames_custom_field_setting'),
+        ("djasana", "0013_renames_custom_field_setting"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='customfieldsetting',
-            name='resource_type',
-            field=models.CharField(blank=True, default='custom_field_setting', max_length=24, null=True),
+            model_name="customfieldsetting",
+            name="resource_type",
+            field=models.CharField(
+                blank=True, default="custom_field_setting", max_length=24, null=True
+            ),
         ),
     ]

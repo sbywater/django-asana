@@ -8,32 +8,32 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('djasana', '0008_adds_task_blank_null'),
+        ("djasana", "0008_adds_task_blank_null"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='attachment',
-            options={'ordering': ('name',)},
+            name="attachment",
+            options={"ordering": ("name",)},
         ),
         migrations.AlterModelOptions(
-            name='project',
-            options={'ordering': ('name',)},
+            name="project",
+            options={"ordering": ("name",)},
         ),
         migrations.AlterModelOptions(
-            name='tag',
-            options={'ordering': ('name',)},
+            name="tag",
+            options={"ordering": ("name",)},
         ),
         migrations.AlterModelOptions(
-            name='team',
-            options={'ordering': ('name',)},
+            name="team",
+            options={"ordering": ("name",)},
         ),
         migrations.AlterModelOptions(
-            name='user',
-            options={'ordering': ('name',)},
+            name="user",
+            options={"ordering": ("name",)},
         ),
         migrations.AlterModelOptions(
-            name='workspace',
-            options={'ordering': ('name',)},
+            name="workspace",
+            options={"ordering": ("name",)},
         ),
     ]

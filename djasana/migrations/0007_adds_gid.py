@@ -4,7 +4,6 @@ from django.db.migrations.operations.base import Operation
 
 
 class PopulateGid(Operation):
-
     def __init__(self, model_name):
         self.model_name = model_name
 
@@ -12,87 +11,154 @@ class PopulateGid(Operation):
         pass
 
     def database_forwards(self, app_label, schema_editor, from_state, to_state):
-        model = from_state.apps.get_model('djasana', self.model_name)
+        model = from_state.apps.get_model("djasana", self.model_name)
         db_alias = schema_editor.connection.alias
-        model.objects.using(db_alias).update(gid=models.F('remote_id'))
+        model.objects.using(db_alias).update(gid=models.F("remote_id"))
 
     def database_backwards(self, app_label, schema_editor, from_state, to_state):
         pass
 
     def describe(self):
-        return 'Populating {0}.gid'.format(self.model_name)
+        return "Populating {0}.gid".format(self.model_name)
+
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('djasana', '0006_adds_custom_fields'),
+        ("djasana", "0006_adds_custom_fields"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='attachment',
-            name='gid',
-            field=models.CharField(db_index=True, help_text='The gid of this object in Asana.', max_length=31, null=True, unique=True),
+            model_name="attachment",
+            name="gid",
+            field=models.CharField(
+                db_index=True,
+                help_text="The gid of this object in Asana.",
+                max_length=31,
+                null=True,
+                unique=True,
+            ),
         ),
-        PopulateGid(model_name='Attachment'),
+        PopulateGid(model_name="Attachment"),
         migrations.AddField(
-            model_name='customfield',
-            name='gid',
-            field=models.CharField(db_index=True, help_text='The gid of this object in Asana.', max_length=31, null=True, unique=True),
+            model_name="customfield",
+            name="gid",
+            field=models.CharField(
+                db_index=True,
+                help_text="The gid of this object in Asana.",
+                max_length=31,
+                null=True,
+                unique=True,
+            ),
         ),
-        PopulateGid(model_name='CustomField'),
+        PopulateGid(model_name="CustomField"),
         migrations.AddField(
-            model_name='customfieldsettings',
-            name='gid',
-            field=models.CharField(db_index=True, help_text='The gid of this object in Asana.', max_length=31, null=True, unique=True),
+            model_name="customfieldsettings",
+            name="gid",
+            field=models.CharField(
+                db_index=True,
+                help_text="The gid of this object in Asana.",
+                max_length=31,
+                null=True,
+                unique=True,
+            ),
         ),
-        PopulateGid(model_name='CustomFieldSettings'),
+        PopulateGid(model_name="CustomFieldSettings"),
         migrations.AddField(
-            model_name='project',
-            name='gid',
-            field=models.CharField(db_index=True, help_text='The gid of this object in Asana.', max_length=31, null=True, unique=True),
+            model_name="project",
+            name="gid",
+            field=models.CharField(
+                db_index=True,
+                help_text="The gid of this object in Asana.",
+                max_length=31,
+                null=True,
+                unique=True,
+            ),
         ),
-        PopulateGid(model_name='Project'),
+        PopulateGid(model_name="Project"),
         migrations.AddField(
-            model_name='projectstatus',
-            name='gid',
-            field=models.CharField(db_index=True, help_text='The gid of this object in Asana.', max_length=31, null=True, unique=True),
+            model_name="projectstatus",
+            name="gid",
+            field=models.CharField(
+                db_index=True,
+                help_text="The gid of this object in Asana.",
+                max_length=31,
+                null=True,
+                unique=True,
+            ),
         ),
-        PopulateGid(model_name='ProjectStatus'),
+        PopulateGid(model_name="ProjectStatus"),
         migrations.AddField(
-            model_name='story',
-            name='gid',
-            field=models.CharField(db_index=True, help_text='The gid of this object in Asana.', max_length=31, null=True, unique=True),
+            model_name="story",
+            name="gid",
+            field=models.CharField(
+                db_index=True,
+                help_text="The gid of this object in Asana.",
+                max_length=31,
+                null=True,
+                unique=True,
+            ),
         ),
-        PopulateGid(model_name='Story'),
+        PopulateGid(model_name="Story"),
         migrations.AddField(
-            model_name='tag',
-            name='gid',
-            field=models.CharField(db_index=True, help_text='The gid of this object in Asana.', max_length=31, null=True, unique=True),
+            model_name="tag",
+            name="gid",
+            field=models.CharField(
+                db_index=True,
+                help_text="The gid of this object in Asana.",
+                max_length=31,
+                null=True,
+                unique=True,
+            ),
         ),
-        PopulateGid(model_name='Tag'),
+        PopulateGid(model_name="Tag"),
         migrations.AddField(
-            model_name='task',
-            name='gid',
-            field=models.CharField(db_index=True, help_text='The gid of this object in Asana.', max_length=31, null=True, unique=True),
+            model_name="task",
+            name="gid",
+            field=models.CharField(
+                db_index=True,
+                help_text="The gid of this object in Asana.",
+                max_length=31,
+                null=True,
+                unique=True,
+            ),
         ),
-        PopulateGid(model_name='Task'),
+        PopulateGid(model_name="Task"),
         migrations.AddField(
-            model_name='team',
-            name='gid',
-            field=models.CharField(db_index=True, help_text='The gid of this object in Asana.', max_length=31, null=True, unique=True),
+            model_name="team",
+            name="gid",
+            field=models.CharField(
+                db_index=True,
+                help_text="The gid of this object in Asana.",
+                max_length=31,
+                null=True,
+                unique=True,
+            ),
         ),
-        PopulateGid(model_name='Team'),
+        PopulateGid(model_name="Team"),
         migrations.AddField(
-            model_name='user',
-            name='gid',
-            field=models.CharField(db_index=True, help_text='The gid of this object in Asana.', max_length=31, null=True, unique=True),
+            model_name="user",
+            name="gid",
+            field=models.CharField(
+                db_index=True,
+                help_text="The gid of this object in Asana.",
+                max_length=31,
+                null=True,
+                unique=True,
+            ),
         ),
-        PopulateGid(model_name='User'),
+        PopulateGid(model_name="User"),
         migrations.AddField(
-            model_name='workspace',
-            name='gid',
-            field=models.CharField(db_index=True, help_text='The gid of this object in Asana.', max_length=31, null=True, unique=True),
+            model_name="workspace",
+            name="gid",
+            field=models.CharField(
+                db_index=True,
+                help_text="The gid of this object in Asana.",
+                max_length=31,
+                null=True,
+                unique=True,
+            ),
         ),
-        PopulateGid(model_name='Workspace'),
+        PopulateGid(model_name="Workspace"),
     ]

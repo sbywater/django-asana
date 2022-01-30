@@ -9,13 +9,15 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('djasana', '0009_default_ordering'),
+        ("djasana", "0009_default_ordering"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='webhook',
-            name='secret',
-            field=models.CharField(max_length=64, validators=[django.core.validators.MinValueValidator(32)]),
+            model_name="webhook",
+            name="secret",
+            field=models.CharField(
+                max_length=64, validators=[django.core.validators.MinValueValidator(32)]
+            ),
         ),
     ]
