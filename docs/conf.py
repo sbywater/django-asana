@@ -54,7 +54,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "django-asana"
-copyright = "2018, Steve Bywater"
+copyright = "2022, Steve Bywater"
 author = djasana.__author__
 
 # The version info for the project you're documenting, acts as replacement for
@@ -154,7 +154,7 @@ texinfo_documents = [
         "django-asana Documentation",
         author,
         "django-asana",
-        "One line description of project.",
+        "django-asana aims to allow for rich interaction between Django projects and Asana projects.",
         "Miscellaneous",
     ),
 ]

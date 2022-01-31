@@ -1,5 +1,5 @@
 """Django Asana integration project"""
-# :copyright: (c) 2017-2021 by Stephen Bywater.
+# :copyright: (c) 2017-2022 by Stephen Bywater.
 # :license:   MIT, see LICENSE for more details.
 
 VERSION = (1, 4, 8)
