@@ -4,7 +4,7 @@ import os
 import re
 import sys
 
-from distutils.core import setup, Command
+from setuptools import setup, Command
 
 extra = {}
 
@@ -154,18 +154,16 @@ this_directory = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(this_directory, "README.rst")) as f:
     long_description = f.read()
 
-setup(
-    name=NAME,
-    version=meta["VERSION"],
-    description=meta["doc"],
-    author=meta["author"],
-    author_email=meta["contact"],
-    url=meta["homepage"],
-    download_url="https://github.com/sbywater/django-asana",
-    platforms=["any"],
-    license="MIT",
-    packages=packages,
-    package_data=package_data,
-    cmdclass={"test": RunTests, "quicktest": QuickRunTests, "citest": CIRunTests},
-    **extra
-)
+# setup__(
+#     name=NAME,
+#     version=meta["VERSION"],
+#     description=meta["doc"],
+#     author=meta["author"],
+#     author_email=meta["contact"],
+#     packages=packages,
+#     package_data=package_data,
+#     cmdclass={"test": RunTests, "quicktest": QuickRunTests, "citest": CIRunTests},
+#     **extra
+# )
+
+setup()
