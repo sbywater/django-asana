@@ -26,6 +26,7 @@ jobs:
     - env: DJANGO_VERSION="git+https://github.com/django/django.git"
 install:
 - pip install $DJANGO_VERSION
+- pip install -r requirements.txt
 - pip install .
 script:
 - coverage run manage.py test
