@@ -2,10 +2,10 @@ language: python
 dist: xenial
 sudo: true
 python:
-- 3.6
 - 3.7
 - 3.8
 - 3.9
+- 3.10
 env:
   global:
   - DJANGO_SETTINGS_MODULE="settings"
@@ -18,12 +18,8 @@ env:
   - DJANGO_VERSION="git+https://github.com/django/django.git"
 jobs:
   exclude:
-    - python: 3.6
-      env: DJANGO_VERSION="django>=4.0,<4.1"
     - python: 3.7
       env: DJANGO_VERSION="django>=4.0,<4.1"
-    - python: 3.6
-      env: DJANGO_VERSION="git+https://github.com/django/django.git"
     - python: 3.7
       env: DJANGO_VERSION="git+https://github.com/django/django.git"
   allow_failures:
