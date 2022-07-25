@@ -1,4 +1,4 @@
 # Requirements for Continuous Integration; called in .travis.yml.
 # For project requirements, see documentation or inspect setup.py
-coverage==5.5
+coverage==6.4.2
 python-coveralls==2.9.3

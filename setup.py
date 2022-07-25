@@ -177,8 +177,8 @@ setup(
     package_data=package_data,
     zip_safe=False,
     install_requires=[
-        "django>=2.2",
-        "asana>=0.9.0",
+        "django>=3.2",
+        "asana>=1.0.0",
         "django-braces>=1.14",
     ],
     python_requires="~=3.5",
@@ -186,8 +186,6 @@ setup(
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Framework :: Django",
-        "Framework :: Django :: 2.2",
-        "Framework :: Django :: 3.1",
         "Framework :: Django :: 3.2",
         "Framework :: Django :: 4.0",
         "Operating System :: OS Independent",

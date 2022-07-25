@@ -2,7 +2,7 @@
 # :copyright: (c) 2017-2022 by Stephen Bywater.
 # :license:   MIT, see LICENSE for more details.
 
-VERSION = (1, 4, 8)
+VERSION = (1, 4, 9)
 __version__ = ".".join(map(str, VERSION[0:3])) + "".join(VERSION[3:])
 __author__ = "Steve Bywater"
 __contact__ = "steve@regionalhelpwanted.com"
