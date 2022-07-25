@@ -4,13 +4,7 @@ import os
 import re
 import sys
 
-try:
-    from setuptools import setup, Command
-except ImportError:
-    from ez_setup import use_setuptools
-
-    use_setuptools()
-    from setuptools import setup, Command  # noqa
+from distutils.core import setup, Command
 
 extra = {}
 
@@ -167,21 +161,11 @@ setup(
     author=meta["author"],
     author_email=meta["contact"],
     url=meta["homepage"],
-    project_urls={
-        "Documentation": "https://django-asana.readthedocs.io/en/latest",
-        "Source": "https://github.com/sbywater/django-asana",
-    },
+    download_url="https://github.com/sbywater/django-asana",
     platforms=["any"],
     license="MIT",
     packages=packages,
     package_data=package_data,
-    zip_safe=False,
-    install_requires=[
-        "django>=3.2",
-        "asana>=1.0.0",
-        "django-braces>=1.14",
-    ],
-    python_requires="~=3.5",
     cmdclass={"test": RunTests, "quicktest": QuickRunTests, "citest": CIRunTests},
     classifiers=[
         "Development Status :: 5 - Production/Stable",
@@ -196,7 +180,6 @@ setup(
         "Topic :: Office/Business :: Scheduling",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
@@ -205,6 +188,5 @@ setup(
         "Programming Language :: Python :: Implementation :: Jython",
     ],
     long_description=long_description,
-    long_description_content_type="text/x-rst",
     **extra
 )
