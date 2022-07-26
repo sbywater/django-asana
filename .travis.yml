@@ -25,7 +25,7 @@ jobs:
   allow_failures:
     - env: DJANGO_VERSION="git+https://github.com/django/django.git"
 install:
-- pip install --upgrade pip
+- pip install --upgrade pip setuptools wheel
 - pip install $DJANGO_VERSION
 - pip install -r requirements.txt
 - pip install .
