@@ -12,6 +12,9 @@ _build
 build
 dist/
 *.egg-info/
+Makefile
+make.bat
+source/
 
 # Unit test / coverage reports
 .coverage
