@@ -44,3 +44,5 @@ classifiers = [
 [tool.setuptools.dynamic]
 version = {attr = "djasana.VERSION"}
 
+[tool.black]
+line-length = 88

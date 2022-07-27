@@ -110,4 +110,5 @@ class CIRunTests(RunTests):
             "--cover3-html-dir=%s" % (os.path.join(toxinidir, "cover"),),
         ]
 
+
 setup()
