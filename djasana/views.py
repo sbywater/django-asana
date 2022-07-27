@@ -73,10 +73,9 @@ class WebhookView(JSONRequestResponseMixin, View):
         webhook = Webhook.objects.filter(project_id=remote_id).last()
         if not webhook:
             Webhook.objects.create(project_id=remote_id, secret=secret)
-        else:
-            if webhook.secret != secret:
-                webhook.secret = secret
-                webhook.save()
+        elif webhook.secret != secret:
+            webhook.secret = secret
+            webhook.save()
         response = HttpResponse()
         response["X-Hook-Secret"] = secret
         logger.debug("Secret accepted")

@@ -4,6 +4,7 @@ import logging
 
 from asana.error import InvalidRequestError
 from django.conf import settings
+from django.urls import reverse
 
 from djasana.models import (
     Attachment,
@@ -17,8 +18,6 @@ from djasana.models import (
     Team,
     User,
 )
-
-from django.urls import reverse
 
 logger = logging.getLogger(__name__)
 

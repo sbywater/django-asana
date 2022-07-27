@@ -2,18 +2,13 @@ import json
 from unittest.mock import patch
 
 from asana.error import ForbiddenError
-import django
 from django.http import Http404
 from django.test import override_settings, TestCase, RequestFactory
+from django.urls import reverse
 
 from djasana import models, views
 from djasana.tests.fixtures import attachment, project, story, task, user
 from djasana.utils import sign_sha256_hmac
-
-if django.VERSION >= (2, 0, 0):
-    from django.urls import reverse
-else:
-    from django.core.urlresolvers import reverse
 
 
 @override_settings(

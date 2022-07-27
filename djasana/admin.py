@@ -7,16 +7,11 @@ from djasana import models
 
 
 def asana_link(obj):
-    return mark_safe(
-        '<a href="{}" target="_blank">View on Asana</a>'.format(obj.asana_url())
-    )
+    return mark_safe(f'<a href="{obj.asana_url()}" target="_blank">View on Asana</a>')
 
 
 def text_short(obj):
-    if len(obj.text) > 200:
-        return obj.text[:300] + "..."
-    else:
-        return obj.text
+    return f"{obj.text[:300]}..." if len(obj.text) > 200 else obj.text
 
 
 class ParentRawIdWidget(widgets.ForeignKeyRawIdWidget):

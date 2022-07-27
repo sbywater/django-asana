@@ -18,7 +18,7 @@ LOCAL_MEMORY_CACHE = {
 class ProjectColorTestCase(SimpleTestCase):
     @staticmethod
     def cycle_colors():
-        return [models.get_next_color() for dummy in models.COLORS]
+        return [models.get_next_color() for _ in models.COLORS]
 
     @override_settings()
     def test_get_next_color_cycles_no_cache(self):

@@ -60,7 +60,7 @@ class BaseModel(models.Model):
         super(BaseModel, self).save(*args, **kwargs)
 
     def asana_url(self, **kwargs):
-        return "{}{}".format(ASANA_BASE_URL, self.remote_id)
+        return f"{ASANA_BASE_URL}{self.remote_id}"
 
     def get_absolute_url(self):
         return self.asana_url()
@@ -121,7 +121,7 @@ class CustomField(NamedModel):
         ("number", "number"),
         ("text", "text"),
     )
-    precision_choices = [(num, num) for num in range(0, 7)]
+    precision_choices = [(num, num) for num in range(7)]
 
     created_by = models.ForeignKey(
         "User", to_field="remote_id", null=True, on_delete=models.SET_NULL
@@ -224,7 +224,7 @@ class Project(NamedModel):
 
     def asana_url(self, **kwargs):
         """Returns the absolute url for this project at Asana."""
-        return "{}{}/list".format(ASANA_BASE_URL, self.remote_id)
+        return f"{ASANA_BASE_URL}{self.remote_id}/list"
 
 
 class ProjectStatus(BaseModel):
@@ -414,9 +414,7 @@ class Task(Hearted, NamedModel):
     tags = models.ManyToManyField("Tag")
 
     def _asana_project_url(self, project):
-        return "{}{}/{}/list".format(
-            ASANA_BASE_URL, project.workspace.remote_id, self.remote_id
-        )
+        return f"{ASANA_BASE_URL}{project.workspace.remote_id}/{self.remote_id}/list"
 
     def asana_url(self, **kwargs):
         """Returns the absolute url for this task at Asana."""

@@ -147,7 +147,7 @@ class Command(BaseCommand):
                 try:
                     index = model_names.index(model.lower())
                 except ValueError:
-                    raise CommandError("{} is not an Asana model".format(model))
+                    raise CommandError(f"{model} is not an Asana model")
                 else:
                     good_models.append(app_models[index])
             models = good_models
@@ -204,9 +204,9 @@ class Command(BaseCommand):
             workspace_ids = [wks["gid"] for wks in workspaces_]
         if bad_list:
             if len(bad_list) == 1:
-                raise CommandError("{} is not an Asana workspace".format(workspaces[0]))
+                raise CommandError(f"{workspaces[0]} is not an Asana workspace")
             raise CommandError(
-                "Specified workspaces are not valid: {}".format(", ".join(bad_list))
+                f'Specified workspaces are not valid: {", ".join(bad_list)}'
             )
         # Return newer workspaces first so they get synced earlier
         return sorted(workspace_ids, reverse=True)
@@ -228,9 +228,9 @@ class Command(BaseCommand):
             project_ids = [prj["gid"] for prj in projects_]
         if bad_list:
             if len(bad_list) == 1:
-                raise CommandError("{} is not an Asana project".format(bad_list[0]))
+                raise CommandError(f"{bad_list[0]} is not an Asana project")
             raise CommandError(
-                "Specified projects are not valid: {}".format(", ".join(bad_list))
+                f"Specified projects are not valid: {', '.join(bad_list)}"
             )
         # Return newer projects first so they get synced earlier
         return sorted(project_ids, reverse=True)
@@ -240,12 +240,11 @@ class Command(BaseCommand):
         a webhook does not currently exist"""
         if not (self.commit and settings.DJASANA_WEBHOOK_URL):
             return
-        webhooks = [
-            webhook
-            for webhook in self.client.webhooks.get_all(
+        webhooks = list(
+            self.client.webhooks.get_all(
                 {"workspace": workspace.remote_id, "resource": project_id}
             )
-        ]
+        )
         if webhooks:
             # If there is exactly one, and it is active, we are good to go,
             # else delete them and start a new one.
@@ -322,7 +321,7 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.SUCCESS(message))
                 logger.info(message)
         if self.commit:
-            message = "Successfully synced project {}.".format(project.name)
+            message = f"Successfully synced project {project.name}."
             self.stdout.write(self.style.SUCCESS(message))
             logger.info(message)
         return project_dict["archived"]
@@ -466,6 +465,6 @@ class Command(BaseCommand):
                 self._check_sync_project_id(project_id, workspace, models)
 
         if workspace:
-            message = "Successfully synced workspace {}.".format(workspace.name)
+            message = f"Successfully synced workspace {workspace.name}."
             self.stdout.write(self.style.SUCCESS(message))
             logger.info(message)
