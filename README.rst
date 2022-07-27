@@ -2,8 +2,11 @@
 django-asana
 ============
 
-:License: `MIT`_
 
+.. image:: https://img.shields.io/pypi/l/django-asana.svg
+   :target: https://pypi.python.org/pypi/django-asana/
+.. image:: https://img.shields.io/pypi/pyversions/django-asana.svg
+   :target: https://pypi.python.org/pypi/django-asana/
 .. image:: https://app.travis-ci.com/sbywater/django-asana.svg?branch=master
     :target: https://app.travis-ci.com/sbywater/django-asana
     :alt: Build Status
