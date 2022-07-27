@@ -3,7 +3,6 @@ import hmac
 import logging
 
 from asana.error import InvalidRequestError
-import django
 from django.conf import settings
 
 from djasana.models import (
@@ -19,10 +18,7 @@ from djasana.models import (
     User,
 )
 
-if django.VERSION >= (2, 0, 0):
-    from django.urls import reverse
-else:
-    from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 logger = logging.getLogger(__name__)
 
@@ -56,9 +52,9 @@ def set_webhook(client, project_id):
 def pop_unsupported_fields(instance_dict, model):
     """Pops unsupported fields from a dict that is to be used in get_or_create.
 
-    Provides forward compatibility, so when Asana API includes a new field, things do not break
-    until the model gains support for it. Known unsupported fields should be explicitly popped
-    before reaching here.
+    Provides forward compatibility, so when Asana API includes a new field,
+    things do not break before the model gains support for it. Known unsupported
+    fields should be explicitly popped before reaching here.
     """
     supported_fields = []
     for field in model._meta.get_fields():

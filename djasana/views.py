@@ -24,7 +24,8 @@ logger = logging.getLogger(__name__)
 
 @method_decorator(csrf_exempt, name="dispatch")
 class WebhookView(JSONRequestResponseMixin, View):
-    """Receives authenticated webhooks from Asana on changes to projects, tasks, and stories."""
+    """Receives authenticated webhooks from Asana on changes
+    to projects, tasks, and stories."""
 
     client = None
 

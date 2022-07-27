@@ -128,7 +128,8 @@ class TaskModelTestCase(TestCase):
         task = models.Task(
             custom_fields="""[{
         "id": 1, "gid": "1", "name": "Priority", "resource_type": "custom_field",
-        "resource_subtype": "enum", "enum_value": {"id": 11, "gid": "11", "name": "High"}}]"""
+        "resource_subtype": "enum",
+        "enum_value": {"id": 11, "gid": "11", "name": "High"}}]"""
         )
         self.assertEqual("High", task.get_custom_fields()["Priority"])
 

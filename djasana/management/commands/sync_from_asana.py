@@ -50,7 +50,8 @@ class Command(BaseCommand):
             action="store_false",
             dest="interactive",
             default=True,
-            help="If provided, no prompts will be issued to the user and the data will be synced.",
+            help="If provided, no prompts will be issued to the user "
+            "and the data will be synced.",
         )
         parser.add_argument(
             "-w",
@@ -105,7 +106,8 @@ class Command(BaseCommand):
         self.commit = not options.get("nocommit")
         if self.commit and options.get("interactive", True):
             self.stdout.write(
-                "WARNING: This will irreparably synchronize your local database from Asana."
+                "WARNING: This will irreparably synchronize "
+                "your local database from Asana."
             )
             if not self._confirm():
                 self.stdout.write("No action taken.")
@@ -160,7 +162,8 @@ class Command(BaseCommand):
         return models
 
     def _check_sync_project_id(self, project_id, workspace, models):
-        """If we have a valid sync token for this project sync new events else sync the project"""
+        """If we have a valid sync token for this project sync new events
+        else sync the project"""
         new_sync = False
         try:
             sync_token = SyncToken.objects.get(project_id=project_id)
@@ -233,7 +236,8 @@ class Command(BaseCommand):
         return sorted(project_ids, reverse=True)
 
     def _set_webhook(self, workspace, project_id):
-        """Sets a webhook if the setting is configured and a webhook does not currently exist"""
+        """Sets a webhook if the setting is configured and
+        a webhook does not currently exist"""
         if not (self.commit and settings.DJASANA_WEBHOOK_URL):
             return
         webhooks = [
@@ -350,8 +354,8 @@ class Command(BaseCommand):
     def _sync_task(self, task, project, models, skip_subtasks=False):
         """Sync this task and its parent, dependencies, and subtasks
 
-        For parents and subtasks, this method is called recursively, so skip_subtasks True is
-        passed when syncing a parent task from a subtask.
+        For parents and subtasks, this method is called recursively,
+        so skip_subtasks True is passed when syncing a parent task from a subtask.
         """
         task_id = task["gid"]
         try:

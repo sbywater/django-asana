@@ -241,7 +241,8 @@ class SyncFromAsanaTestCase(TestCase):
         self.assertEqual(1024, len(story_instance.text))
 
     def test_task_with_parent(self):
-        # When processed, tasks get modified in place; we need to pass the original twice.
+        # When processed, tasks get modified in place;
+        # we need to pass the original twice.
         parent_task = task()
         parent_copy = parent_task.copy()
         child_task = task(gid="2", parent=parent_task)
@@ -316,7 +317,8 @@ class SyncFromAsanaTestCase(TestCase):
     def test_subtasks_synced(self):
         parent_task = task()
         child_task = task(gid="99", name="Subtask", parent=task())
-        # When processed, tasks get modified in place; we need to pass the original twice.
+        # When processed, tasks get modified in place;
+        # we need to pass the original twice.
         child_copy = child_task.copy()
         self.command.client.tasks.find_all.return_value = [parent_task, child_task]
         self.command.client.tasks.find_by_id.side_effect = [
@@ -335,7 +337,8 @@ class SyncFromAsanaTestCase(TestCase):
         dependent_task = task(
             gid="99", name="Requires task 98", dependencies=[task(gid="98")]
         )
-        # When processed, tasks get modified in place; we need to pass the original twice.
+        # When processed, tasks get modified in place;
+        # we need to pass the original twice.
         dependent_copy = dependent_task.copy(), dependent_task.copy()
         self.command.client.tasks.find_all.return_value = [main_task, dependent_task]
         self.command.client.tasks.find_by_id.side_effect = [

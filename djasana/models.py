@@ -540,7 +540,8 @@ class Team(NamedModel):
 class User(NamedModel):
     """An Asana user.
 
-    Note this is not related to a django User (although you can establish a relationship yourself).
+    Note this is not related to a django User (although you can establish a
+    relationship yourself).
 
     """
 
