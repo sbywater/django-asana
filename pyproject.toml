@@ -1,12 +1,12 @@
 [build-system]
-requires = ["setuptools >= 58.0.4", "wheel"]
+requires = ["setuptools >= 58.0.4", "wheel", "python>=3.7"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "django-asana"
 dynamic = ["version",]
 authors = [
-  { name="Steve Bywater", email="steve@regionalhelpwanted.com" },
+  { name="Steve Bywater"},
 ]
 description = "A project for representing Asana objects as Django models, and for sychronizing data from Asana to Django."
 readme = "README.rst"
