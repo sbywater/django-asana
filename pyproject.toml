@@ -16,6 +16,7 @@ dependencies = [
     "django >= 3.2",
     "asana == 3.2.2",
     "django-braces >= 1.14",
+    "requests >= 2.31.0",
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
