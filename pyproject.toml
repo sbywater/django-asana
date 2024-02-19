@@ -10,11 +10,11 @@ authors = [
 ]
 description = "A project for representing Asana objects as Django models, and for sychronizing data from Asana to Django."
 readme = "README.rst"
-license = { file="LICENSE" }
-requires-python = ">=3.7"
+license = {file = "LICENSE"}
+requires-python = ">= 3.7"
 dependencies = [
     "django >= 3.2",
-    "asana >= 1.0.0",
+    "asana == 3.2.2",
     "django-braces >= 1.14",
 ]
 classifiers = [
@@ -38,8 +38,10 @@ classifiers = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/sbywater/django-asana"
-"Bug Tracker" = "https://github.com/sbywater/django-asana/issues"
+Homepage = "https://github.com/sbywater/django-asana"
+Issues = "https://github.com/sbywater/django-asana/issues"
+Changelog = "https://github.com/sbywater/django-asana/blob/master/CHANGELOG.rst"
+
 
 [tool.setuptools.dynamic]
 version = {attr = "djasana.VERSION"}

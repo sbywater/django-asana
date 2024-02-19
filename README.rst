@@ -52,7 +52,7 @@ Requirements
 #. Python 3.7+
 #. `Django 3.2.14 - 4.0+ <https://www.djangoproject.com/>`_
 #. `python-asana 3.2.2 <https://github.com/Asana/python-asana>`_
-#. `django-braces 1.13+ <https://django-braces.readthedocs.io/en/latest/index.html>`_ for JsonRequestResponseMixin
+#. `django-braces 1.14+ <https://django-braces.readthedocs.io/en/latest/index.html>`_ for JsonRequestResponseMixin
 
 
 Installation
