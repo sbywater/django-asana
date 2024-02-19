@@ -10,8 +10,8 @@ jobs:
       - run:
           command: |
             python3 setup.py sdist bdist_wheel
-            sudo add-apt-repository universe -y
-            sudo apt-get update
+            # sudo add-apt-repository universe -y
+            # sudo apt-get update
             python3 -m venv venv
             . venv/bin/activate
             python3 -m build
