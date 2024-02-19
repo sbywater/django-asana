@@ -15,7 +15,7 @@ jobs:
             python3 -m venv venv
             . venv/bin/activate
             # python setup.py install --user
-            pip3 install django-asana
+            pip3 install django-asana requests
             # python3 -m build
             # pipenv install -r requirements.txt
       - save_cache:
