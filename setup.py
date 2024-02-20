@@ -113,7 +113,7 @@ class CIRunTests(RunTests):
 
 setup(
     install_requires=[
-        "django>=3.2",
+        "django>=3.2,<5.0",
         "asana==3.2.2",
         "django-braces>=1.14",
         "requests>=2.31.0",
