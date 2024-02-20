@@ -10,14 +10,11 @@ jobs:
       - run:
           command: |
             python3 setup.py sdist bdist_wheel
-            # sudo add-apt-repository universe -y
-            # sudo apt-get update
             python3 -m venv venv
             . venv/bin/activate
-            # python setup.py install --user
             python3 -m pip install --upgrade pip
-            pip3 install django-asana requests
-            # python3 -m build
+            # pip3 install requests
+            python setup.py install
             # pipenv install -r requirements.txt
       - save_cache:
           key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
